@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" fill="currentColor" role="img" aria-label="Embassy">
+  <!-- Stacked-triangle mark: three tiers, decreasing size, suggestive of layered citadel -->
+  <polygon points="30,3 22,16 38,16" />
+  <polygon points="30,19 18,33 42,33" />
+  <polygon points="30,36 12,57 48,57" />
+</svg>

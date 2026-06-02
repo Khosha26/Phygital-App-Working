@@ -1,0 +1,13 @@
+# OS junk
+.DS_Store
+*.log
+
+# Screenshot dumps (test artifacts, not source)
+_screenshots-v4/
+_screenshots-v5/
+_screenshots-v6/
+
+# Backups & build artifacts
+deploy-old-backup/
+_archive-parent-app/
+deploy.zip
