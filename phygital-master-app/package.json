@@ -1,0 +1,15 @@
+{
+  "name": "phygital-showcase",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Phygital experiences kiosk — dark launcher screen backed by local Postgres",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "db:init": "psql -d phygital -f db/schema.sql && psql -d phygital -f db/seed.sql"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.11.5"
+  }
+}
