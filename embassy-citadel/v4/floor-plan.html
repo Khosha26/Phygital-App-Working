@@ -35,6 +35,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
+<!-- GOAL 2: placeholder-marker styles (.nu) -->
 <style>
   :root {
     --paper:      #FCFAF4;
@@ -106,16 +107,17 @@
     position: fixed; inset: 0; overflow: hidden;
     display: flex; align-items: center; justify-content: center;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-    background-color: var(--bone);
-    background-image: url('assets/bg-paper.png');
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
+    isolation: isolate;
+    /* Flat paper — matches the stage's own paper edge exactly, so the
+       letterbox/pillarbox margins on non-16:10 screens (iPad 4:3, 65" 16:9)
+       blend seamlessly into the stage with no visible "cut". */
+    background: url('assets/bg-paper.png') center/cover no-repeat, var(--paper);
   }
   #stage, .stage-inner {
     position: relative;
     width: 1440px; height: 900px;
     flex-shrink: 0;
+    z-index: 1;
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
@@ -127,7 +129,7 @@
   .stage-bg {
     position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
     z-index: 0; pointer-events: none;
-    background-color: var(--bone);
+    background-color: var(--paper);
     background-image: url('assets/bg-paper.png');
     background-size: cover; background-position: center center; background-repeat: no-repeat;
   }
@@ -268,8 +270,8 @@
     border: 1px solid var(--hair-lo);
     border-radius: 18px;
     box-shadow: var(--card-shadow);
-    display: grid;
-    grid-template-rows: auto auto 1fr auto auto;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
     min-width: 0;
     min-height: 0;
@@ -428,6 +430,46 @@
   .pw-close:active { transform: scale(0.92); }
   .pw-close.is-hidden { display: none; }
 
+  /* ── TYPE SEGMENTED CONTROL (Unit · Typical · Amenity) ───────── */
+  .pw-types {
+    display: flex; align-items: stretch;
+    gap: 0;
+    margin: calc(var(--base-font) * 0.7) var(--pad-x) 0;
+    padding: calc(var(--base-font) * 0.28);
+    background: var(--paper-2);
+    border: 1px solid var(--hair-lo);
+    border-radius: 999px;
+  }
+  .pw-type {
+    flex: 1 1 0; min-width: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px;
+    height: calc(var(--base-font) * 2.3);
+    padding: 0 calc(var(--base-font) * 0.6);
+    border-radius: 999px;
+    background: transparent;
+    border: none;
+    color: var(--taupe-500);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: calc(var(--base-font) * 0.72);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 200ms ease, background 220ms ease, box-shadow 220ms ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pw-type:hover:not(.is-active) { color: var(--onyx-700); }
+  .pw-type.is-active {
+    background: var(--paper);
+    color: var(--gold-500);
+    box-shadow:
+      0 2px 8px -3px rgba(80, 58, 28, 0.28),
+      inset 0 0 0 1px var(--gold-300);
+  }
+  .pw-type:active { transform: translateY(0.5px); }
+
   /* ── FILTERS ROW + plan selector ─────────────────────────────── */
   .pw-filters {
     display: flex; align-items: center;
@@ -518,9 +560,73 @@
     pointer-events: none;
   }
 
+  /* ── CONTROLS BAR (selectors row) ────────────────────────────── */
+  .pw-controls {
+    display: flex; flex-wrap: wrap; align-items: flex-end;
+    gap: calc(var(--base-font) * 0.9);
+    padding: calc(var(--base-font) * 0.85) var(--pad-x);
+    border-bottom: 1px solid var(--hair-lo);
+  }
+  .pw-ctl {
+    display: flex; flex-direction: column;
+    gap: calc(var(--base-font) * 0.34);
+    min-width: 0;
+  }
+  .pw-ctl.is-grow { flex: 1 1 40%; }
+  .pw-ctl-lbl {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: calc(var(--base-font) * 0.62);
+    letter-spacing: 0.30em; text-transform: uppercase;
+    color: var(--taupe-400);
+    padding-left: 2px;
+  }
+  .pw-select {
+    position: relative;
+    display: inline-flex; align-items: center;
+  }
+  .pw-select select {
+    appearance: none; -webkit-appearance: none;
+    width: 100%;
+    background: var(--paper-2);
+    border: 1px solid var(--hair);
+    color: var(--onyx-700);
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: calc(var(--base-font) * 0.82);
+    letter-spacing: 0.02em;
+    height: calc(var(--base-font) * 2.5);
+    padding: 0 calc(var(--base-font) * 2.1) 0 calc(var(--base-font) * 0.95);
+    border-radius: calc(var(--base-font) * 0.7);
+    cursor: pointer;
+    transition: border-color 200ms ease, background 200ms ease;
+  }
+  .pw-select select:hover  { border-color: var(--hair-hi); }
+  .pw-select select:focus  { outline: none; border-color: var(--gold-400); }
+  .pw-select::after {
+    content: '';
+    position: absolute;
+    right: calc(var(--base-font) * 0.95); top: 50%;
+    width: 6px; height: 6px;
+    border-right: 1.4px solid var(--gold-500);
+    border-bottom: 1.4px solid var(--gold-500);
+    transform: translateY(-65%) rotate(45deg);
+    pointer-events: none;
+  }
+
+  /* ── FILTER BAR (Bedrooms · Wing) ────────────────────────────── */
+  .pw-filterbar {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: calc(var(--base-font) * 1.5);
+    padding: calc(var(--base-font) * 0.7) var(--pad-x);
+    border-bottom: 1px solid var(--hair-lo);
+    background: var(--paper-2);
+  }
+
   /* ── CANVAS (floor-plan area) ────────────────────────────────── */
   .pw-canvas-wrap {
     position: relative;
+    flex: 1 1 auto;            /* canvas claims the flexible space */
     margin: var(--canvas-pad) var(--canvas-pad) calc(var(--canvas-pad) * 0.7);
     background: var(--paper-2);
     border: 1px solid var(--hair-lo);
@@ -549,9 +655,28 @@
   .pw-zoom-stage.is-panning { cursor: grabbing; transition: none; }
   .pw-blueprint {
     position: absolute;
-    inset: 6% 6% 6% 6%;
-    width: 88%;
-    height: 88%;
+    inset: 5% 5% 5% 5%;
+    width: 90%;
+    height: 90%;
+  }
+  /* Clean paper backing card so white-interior line-art reads as a
+     complete sheet and never blends into the blueprint background. */
+  .pw-sheet {
+    position: absolute; inset: 0;
+    background: #FCFAF4;
+    border: 1px solid var(--hair-lo);
+    border-radius: calc(var(--canvas-radius) * 0.55);
+    box-shadow:
+      0 18px 40px -16px rgba(80, 58, 28, 0.30),
+      0 6px 16px  -8px  rgba(40, 28, 10, 0.16);
+    padding: calc(var(--base-font) * 1.1);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .pw-plan-img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    display: block;
   }
 
   .pw-compass {
@@ -599,30 +724,6 @@
     color: var(--taupe-400);
   }
 
-  .pw-view3d {
-    position: absolute;
-    bottom: calc(var(--base-font) * 1); right: calc(var(--base-font) * 1.1);
-    height: calc(var(--base-font) * 2.4);
-    padding: 0 calc(var(--base-font) * 1.1);
-    border-radius: 999px;
-    background: rgba(252, 250, 244, 0.92);
-    border: 1px solid var(--gold-300);
-    color: var(--gold-500);
-    display: inline-flex; align-items: center;
-    gap: calc(var(--base-font) * 0.55);
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: calc(var(--base-font) * 0.7);
-    letter-spacing: 0.30em; text-transform: uppercase;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(40, 28, 10, 0.10);
-    z-index: 4;
-    transition: background 200ms ease, color 200ms ease, border-color 200ms ease, transform 160ms ease;
-  }
-  .pw-view3d:hover { background: var(--gold-500); color: var(--paper); border-color: var(--gold-500); }
-  .pw-view3d:active { transform: scale(0.96); }
-  .pw-view3d svg { stroke: currentColor; }
-
   .pw-zoom-indicator {
     position: absolute;
     bottom: calc(var(--base-font) * 1); left: calc(var(--base-font) * 1.2);
@@ -644,7 +745,7 @@
   /* ── SPECS row ───────────────────────────────────────────────── */
   .pw-specs {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 6px;
     padding: calc(var(--base-font) * 0.9) var(--pad-x) calc(var(--base-font) * 0.9);
     border-top: 1px solid var(--hair-lo);
@@ -789,6 +890,10 @@
   @media (prefers-reduced-motion: reduce) {
     * { animation-duration: 1ms !important; transition-duration: 1ms !important; }
   }
+  /* fabricated pricing hidden until client provides real figures */
+  .pw-price{display:none !important;}
+  /* full-sheet plans carry their own title/area/specs — hide window duplicates */
+  .pw-carpet, .pw-specs, .pw-tier-pill, .pw-sub-row { display:none !important; }
 </style>
 
 <script>
@@ -1093,8 +1198,8 @@
       title: 'Plan 01',
       tier: 'Classic',
       carpet: '1,640 sq.ft.',
-      band: 'Tower A · Unit 01 · Floors 08 – 14',
-      bhkName: '3 BHK Compact · East',
+      band: 'North & South Towers · Stack 01',
+      bhkName: '3 BHK · East',
       bhk: 3, facing: 'E',
       bhkAllowed: [3, 4], facingAllowed: ['E', 'W'],
       bed: 3, bath: 3, car: 1, serv: 1,
@@ -1106,10 +1211,10 @@
       title: 'Plan 02',
       tier: 'Grand',
       carpet: '3,160 sq.ft.',
-      band: 'Tower A · Unit 02 · Floors 44 – 68',
-      bhkName: '5 BHK Grand · South',
+      band: 'North & South Towers · Upper Stack',
+      bhkName: '4 BHK · South',
       bhk: 5, facing: 'S',
-      bhkAllowed: [5, 6], facingAllowed: ['N', 'S'],
+      bhkAllowed: [3, 4], facingAllowed: ['N', 'S'],
       bed: 5, bath: 5, car: 3, serv: 2,
       basic: '₹ 13.80 Cr', plc: '₹ 2.10 Cr', other: '₹ 1.20 Cr',
       gst: '₹ 1.65 Cr', total: '₹ 18.75 Cr',
@@ -1119,10 +1224,10 @@
       title: 'Plan 03',
       tier: 'Premium',
       carpet: '2,135 sq.ft.',
-      band: 'Tower A · Unit 03 · Floors 15 – 43',
-      bhkName: '4 BHK Classic · North',
+      band: 'North & South Towers · Stack 03',
+      bhkName: '4 BHK · North',
       bhk: 4, facing: 'N',
-      bhkAllowed: [4, 5, 6], facingAllowed: ['N', 'S'],
+      bhkAllowed: [3, 4], facingAllowed: ['N', 'S'],
       bed: 4, bath: 4, car: 2, serv: 1,
       basic: '₹ 8.50 Cr', plc: '₹ 1.20 Cr', other: '₹ 0.80 Cr',
       gst: '₹ 1.02 Cr', total: '₹ 11.52 Cr',
@@ -1133,34 +1238,282 @@
   const FACING_FULL = { N: 'North', S: 'South', E: 'East', W: 'West' };
 
   // ──────────────────────────────────────────────────────────────
+  // REAL PLANS — inlined from assets/floorplans/manifest.json
+  // Grouped <optgroup>s drive the plan <select>. Each entry carries the
+  // real transparent floor-plan asset shown via <img object-fit:contain>.
+  //   Residential Units → 11 residential items whose name starts "unit-"
+  //   Mansion           → all 7 mansion items
+  //   Typical Floors    → 6 residential items: "typical-*" or "service-floor"
+  // Default selection = unit-S01-stack01 (the 4 BHK).
+  // ──────────────────────────────────────────────────────────────
+  const REAL_PLAN_GROUPS = [
+    { group: 'North · Unit 01 (4 Bed)', items: [
+      { name: 'unit-N01-lvl-17-18', label: 'Floors 17–18 · 3,072 sqft', title: 'North · Unit 01 · Floors 17–18', file: 'assets/floorplans-final/units/unit-N01-lvl-17-18.webp', carpet: '3,072 sq.ft.', beds: 4 },
+      { name: 'unit-N01-lvl-20-25', label: 'Floors 20–25 · 3,202 sqft', title: 'North · Unit 01 · Floors 20–25', file: 'assets/floorplans-final/units/unit-N01-lvl-20-25.webp', carpet: '3,202 sq.ft.', beds: 4 },
+      { name: 'unit-N01-lvl-28-33', label: 'Floors 28–33, 42 · 3,078 sqft', title: 'North · Unit 01 · Floors 28–33, 42', file: 'assets/floorplans-final/units/unit-N01-lvl-28-33.webp', carpet: '3,078 sq.ft.', beds: 4 },
+      { name: 'unit-N01-lvl-35-40', label: 'Floors 35–40 · 3,238 sqft', title: 'North · Unit 01 · Floors 35–40', file: 'assets/floorplans-final/units/unit-N01-lvl-35-40.webp', carpet: '3,238 sq.ft.', beds: 4 },
+      { name: 'unit-N01-lvl-43-47', label: 'Floors 43–47 · 3,087 sqft', title: 'North · Unit 01 · Floors 43–47', file: 'assets/floorplans-final/units/unit-N01-lvl-43-47.webp', carpet: '3,087 sq.ft.', beds: 4 },
+      { name: 'unit-N01-lvl-49-54', label: 'Floors 49–54, 64–69 · 3,247 sqft', title: 'North · Unit 01 · Floors 49–54, 64–69', file: 'assets/floorplans-final/units/unit-N01-lvl-49-54.webp', carpet: '3,247 sq.ft.', beds: 4 },
+      { name: 'unit-N01-lvl-57-62', label: 'Floors 57–62, 72–76 · 3,087 sqft', title: 'North · Unit 01 · Floors 57–62, 72–76', file: 'assets/floorplans-final/units/unit-N01-lvl-57-62.webp', carpet: '3,087 sq.ft.', beds: 4 },
+      { name: 'unit-N01-lvl-71', label: 'Floor 71 · 3,101 sqft', title: 'North · Unit 01 · Floor 71', file: 'assets/floorplans-final/units/unit-N01-lvl-71.webp', carpet: '3,101 sq.ft.', beds: 4 },
+    ]},
+    { group: 'North · Unit 02 (4–5 Bed)', items: [
+      { name: 'unit-N02-lvl-17-25', label: 'Floors 17–25 · 3,538 sqft', title: 'North · Unit 02 · Floors 17–25', file: 'assets/floorplans-final/units/unit-N02-lvl-17-25.webp', carpet: '3,538 sq.ft.', beds: 4 },
+      { name: 'unit-N02-lvl-26', label: 'Floor 26 · Refuge · 5,387 sqft', title: 'North · Unit 02 · Floor 26 · Refuge', file: 'assets/floorplans-final/units/unit-N02-lvl-26.webp', carpet: '5,387 sq.ft.', beds: 5 },
+      { name: 'unit-N02-lvl-28-33', label: 'Floors 28–40 · 3,594 sqft', title: 'North · Unit 02 · Floors 28–40', file: 'assets/floorplans-final/units/unit-N02-lvl-28-33.webp', carpet: '3,594 sq.ft.', beds: 4 },
+      { name: 'unit-N02-lvl-41', label: 'Floor 41 · Refuge · 5,465 sqft', title: 'North · Unit 02 · Floor 41 · Refuge', file: 'assets/floorplans-final/units/unit-N02-lvl-41.webp', carpet: '5,465 sq.ft.', beds: 5 },
+      { name: 'unit-N02-lvl-42', label: 'Floor 42 · 3,556 sqft', title: 'North · Unit 02 · Floor 42', file: 'assets/floorplans-final/units/unit-N02-lvl-42.webp', carpet: '3,556 sq.ft.', beds: 4 },
+      { name: 'unit-N02-lvl-43-47', label: 'Floors 43–54, 57–63 · 3,611 sqft', title: 'North · Unit 02 · Floors 43–54, 57–63', file: 'assets/floorplans-final/units/unit-N02-lvl-43-47.webp', carpet: '3,611 sq.ft.', beds: 4 },
+      { name: 'unit-N02-lvl-55', label: 'Floor 55 · Refuge · 5,534 sqft', title: 'North · Unit 02 · Floor 55 · Refuge', file: 'assets/floorplans-final/units/unit-N02-lvl-55.webp', carpet: '5,534 sq.ft.', beds: 5 },
+      { name: 'unit-N02-lvl-64-69', label: 'Floors 64–69 · 3,624 sqft', title: 'North · Unit 02 · Floors 64–69', file: 'assets/floorplans-final/units/unit-N02-lvl-64-69.webp', carpet: '3,624 sq.ft.', beds: 4 },
+      { name: 'unit-N02-lvl-70', label: 'Floor 70 · Refuge · 5,497 sqft', title: 'North · Unit 02 · Floor 70 · Refuge', file: 'assets/floorplans-final/units/unit-N02-lvl-70.webp', carpet: '5,497 sq.ft.', beds: 5 },
+      { name: 'unit-N02-lvl-71', label: 'Floor 71 · 5,497 sqft', title: 'North · Unit 02 · Floor 71', file: 'assets/floorplans-final/units/unit-N02-lvl-71.webp', carpet: '5,497 sq.ft.', beds: 5 },
+      { name: 'unit-N02-lvl-72-76', label: 'Floors 72–76 · 5,560 sqft', title: 'North · Unit 02 · Floors 72–76', file: 'assets/floorplans-final/units/unit-N02-lvl-72-76.webp', carpet: '5,560 sq.ft.', beds: 5 },
+    ]},
+    { group: 'North · Unit 03 (3 Bed)', items: [
+      { name: 'unit-N03-lvl-17-25', label: 'Floors 17–25 · 1,843 sqft', title: 'North · Unit 03 · Floors 17–25', file: 'assets/floorplans-final/units/unit-N03-lvl-17-25.webp', carpet: '1,843 sq.ft.', beds: 3 },
+      { name: 'unit-N03-lvl-28-33', label: 'Floors 28–40 · 1,884 sqft', title: 'North · Unit 03 · Floors 28–40', file: 'assets/floorplans-final/units/unit-N03-lvl-28-33.webp', carpet: '1,884 sq.ft.', beds: 3 },
+      { name: 'unit-N03-lvl-43-47', label: 'Floors 43–54, 57–69 · 1,901 sqft', title: 'North · Unit 03 · Floors 43–54, 57–69', file: 'assets/floorplans-final/units/unit-N03-lvl-43-47.webp', carpet: '1,901 sq.ft.', beds: 3 },
+    ]},
+    { group: 'South · Unit 01 (4 Bed)', items: [
+      { name: 'unit-S01-lvl-17-18+20-25', label: 'Floors 17–18, 20–25 · 3,075 sqft', title: 'South · Unit 01 · Floors 17–18, 20–25', file: 'assets/floorplans-final/units/unit-S01-lvl-17-18+20-25.webp', carpet: '3,075 sq.ft.', beds: 4 },
+      { name: 'unit-S01-lvl-28-33', label: 'Floors 28–33, 42 · 3,234 sqft', title: 'South · Unit 01 · Floors 28–33, 42', file: 'assets/floorplans-final/units/unit-S01-lvl-28-33.webp', carpet: '3,234 sq.ft.', beds: 4 },
+      { name: 'unit-S01-lvl-35-40', label: 'Floors 35–40 · 3,074 sqft', title: 'South · Unit 01 · Floors 35–40', file: 'assets/floorplans-final/units/unit-S01-lvl-35-40.webp', carpet: '3,074 sq.ft.', beds: 4 },
+      { name: 'unit-S01-lvl-43-47', label: 'Floors 43–47 · 3,246 sqft', title: 'South · Unit 01 · Floors 43–47', file: 'assets/floorplans-final/units/unit-S01-lvl-43-47.webp', carpet: '3,246 sq.ft.', beds: 4 },
+      { name: 'unit-S01-lvl-49-54', label: 'Floors 49–54, 64–69 · 3,086 sqft', title: 'South · Unit 01 · Floors 49–54, 64–69', file: 'assets/floorplans-final/units/unit-S01-lvl-49-54.webp', carpet: '3,086 sq.ft.', beds: 4 },
+      { name: 'unit-S01-lvl-57-62', label: 'Floors 57–62, 72–76 · 3,246 sqft', title: 'South · Unit 01 · Floors 57–62, 72–76', file: 'assets/floorplans-final/units/unit-S01-lvl-57-62.webp', carpet: '3,246 sq.ft.', beds: 4 },
+      { name: 'unit-S01-lvl-71', label: 'Floor 71 · 3,262 sqft', title: 'South · Unit 01 · Floor 71', file: 'assets/floorplans-final/units/unit-S01-lvl-71.webp', carpet: '3,262 sq.ft.', beds: 4 },
+    ]},
+    { group: 'South · Unit 02 (4–5 Bed)', items: [
+      { name: 'unit-S02-lvl-17-25', label: 'Floors 17–25 · 3,325 sqft', title: 'South · Unit 02 · Floors 17–25', file: 'assets/floorplans-final/units/unit-S02-lvl-17-25.webp', carpet: '3,325 sq.ft.', beds: 4 },
+      { name: 'unit-S02-lvl-26', label: 'Floor 26 · Refuge · 5,401 sqft', title: 'South · Unit 02 · Floor 26 · Refuge', file: 'assets/floorplans-final/units/unit-S02-lvl-26.webp', carpet: '5,401 sq.ft.', beds: 5 },
+      { name: 'unit-S02-lvl-28-33', label: 'Floors 28–40 · 3,355 sqft', title: 'South · Unit 02 · Floors 28–40', file: 'assets/floorplans-final/units/unit-S02-lvl-28-33.webp', carpet: '3,355 sq.ft.', beds: 4 },
+      { name: 'unit-S02-lvl-41', label: 'Floor 41 · Refuge · 5,479 sqft', title: 'South · Unit 02 · Floor 41 · Refuge', file: 'assets/floorplans-final/units/unit-S02-lvl-41.webp', carpet: '5,479 sq.ft.', beds: 5 },
+      { name: 'unit-S02-lvl-42', label: 'Floor 42 · 3,318 sqft', title: 'South · Unit 02 · Floor 42', file: 'assets/floorplans-final/units/unit-S02-lvl-42.webp', carpet: '3,318 sq.ft.', beds: 4 },
+      { name: 'unit-S02-lvl-43-47', label: 'Floors 43–54, 57–63 · 3,372 sqft', title: 'South · Unit 02 · Floors 43–54, 57–63', file: 'assets/floorplans-final/units/unit-S02-lvl-43-47.webp', carpet: '3,372 sq.ft.', beds: 4 },
+      { name: 'unit-S02-lvl-55', label: 'Floor 55 · Refuge · 5,556 sqft', title: 'South · Unit 02 · Floor 55 · Refuge', file: 'assets/floorplans-final/units/unit-S02-lvl-55.webp', carpet: '5,556 sq.ft.', beds: 5 },
+      { name: 'unit-S02-lvl-64-69', label: 'Floors 64–69 · 3,386 sqft', title: 'South · Unit 02 · Floors 64–69', file: 'assets/floorplans-final/units/unit-S02-lvl-64-69.webp', carpet: '3,386 sq.ft.', beds: 4 },
+      { name: 'unit-S02-lvl-70', label: 'Floor 70 · Refuge · 5,513 sqft', title: 'South · Unit 02 · Floor 70 · Refuge', file: 'assets/floorplans-final/units/unit-S02-lvl-70.webp', carpet: '5,513 sq.ft.', beds: 5 },
+      { name: 'unit-S02-lvl-71', label: 'Floor 71 · 5,510 sqft', title: 'South · Unit 02 · Floor 71', file: 'assets/floorplans-final/units/unit-S02-lvl-71.webp', carpet: '5,510 sq.ft.', beds: 5 },
+      { name: 'unit-S02-lvl-72-76', label: 'Floors 72–76 · 5,548 sqft', title: 'South · Unit 02 · Floors 72–76', file: 'assets/floorplans-final/units/unit-S02-lvl-72-76.webp', carpet: '5,548 sq.ft.', beds: 5 },
+    ]},
+    { group: 'South · Unit 03 (4 Bed)', items: [
+      { name: 'unit-S03-lvl-17-25', label: 'Floors 17–25 · 2,089 sqft', title: 'South · Unit 03 · Floors 17–25', file: 'assets/floorplans-final/units/unit-S03-lvl-17-25.webp', carpet: '2,089 sq.ft.', beds: 4 },
+      { name: 'unit-S03-lvl-28-33', label: 'Floors 28–40, 42 · 2,131 sqft', title: 'South · Unit 03 · Floors 28–40, 42', file: 'assets/floorplans-final/units/unit-S03-lvl-28-33.webp', carpet: '2,131 sq.ft.', beds: 4 },
+      { name: 'unit-S03-lvl-43-47', label: 'Floors 43–54, 57–69 · 2,148 sqft', title: 'South · Unit 03 · Floors 43–54, 57–69', file: 'assets/floorplans-final/units/unit-S03-lvl-43-47.webp', carpet: '2,148 sq.ft.', beds: 4 },
+    ]},
+    { group: 'Typical & Refuge Floors', items: [
+      { name: 'typical-lvl-17-18', label: 'Typical · Floors 17–18', title: 'Typical · Floors 17–18', file: 'assets/floorplans-final/typical/typical-lvl-17-18.webp' },
+      { name: 'refuge-lvl-19', label: 'Refuge · Floor 19', title: 'Refuge · Floor 19', file: 'assets/floorplans-final/typical/refuge-lvl-19.webp' },
+      { name: 'typical-lvl-20-25', label: 'Typical · Floors 20–25', title: 'Typical · Floors 20–25', file: 'assets/floorplans-final/typical/typical-lvl-20-25.webp' },
+      { name: 'refuge-lvl-26', label: 'Refuge · Floor 26', title: 'Refuge · Floor 26', file: 'assets/floorplans-final/typical/refuge-lvl-26.webp' },
+      { name: 'typical-lvl-28-33', label: 'Typical · Floors 28–33', title: 'Typical · Floors 28–33', file: 'assets/floorplans-final/typical/typical-lvl-28-33.webp' },
+      { name: 'refuge-lvl-34', label: 'Refuge · Floor 34', title: 'Refuge · Floor 34', file: 'assets/floorplans-final/typical/refuge-lvl-34.webp' },
+      { name: 'typical-lvl-35-40', label: 'Typical · Floors 35–40', title: 'Typical · Floors 35–40', file: 'assets/floorplans-final/typical/typical-lvl-35-40.webp' },
+      { name: 'refuge-lvl-41', label: 'Refuge · Floor 41', title: 'Refuge · Floor 41', file: 'assets/floorplans-final/typical/refuge-lvl-41.webp' },
+      { name: 'floor-lvl-42', label: 'Floor 42', title: 'Floor 42', file: 'assets/floorplans-final/typical/floor-lvl-42.webp' },
+      { name: 'typical-lvl-43-47', label: 'Typical · Floors 43–47', title: 'Typical · Floors 43–47', file: 'assets/floorplans-final/typical/typical-lvl-43-47.webp' },
+      { name: 'refuge-lvl-48', label: 'Refuge · Floor 48', title: 'Refuge · Floor 48', file: 'assets/floorplans-final/typical/refuge-lvl-48.webp' },
+      { name: 'typical-lvl-49-54', label: 'Typical · Floors 49–54', title: 'Typical · Floors 49–54', file: 'assets/floorplans-final/typical/typical-lvl-49-54.webp' },
+      { name: 'refuge-lvl-55', label: 'Refuge · Floor 55', title: 'Refuge · Floor 55', file: 'assets/floorplans-final/typical/refuge-lvl-55.webp' },
+      { name: 'typical-lvl-57-62', label: 'Typical · Floors 57–62', title: 'Typical · Floors 57–62', file: 'assets/floorplans-final/typical/typical-lvl-57-62.webp' },
+      { name: 'refuge-lvl-63', label: 'Refuge · Floor 63', title: 'Refuge · Floor 63', file: 'assets/floorplans-final/typical/refuge-lvl-63.webp' },
+      { name: 'typical-lvl-64-69', label: 'Typical · Floors 64–69', title: 'Typical · Floors 64–69', file: 'assets/floorplans-final/typical/typical-lvl-64-69.webp' },
+      { name: 'refuge-lvl-70', label: 'Refuge · Floor 70', title: 'Refuge · Floor 70', file: 'assets/floorplans-final/typical/refuge-lvl-70.webp' },
+      { name: 'floor-lvl-71', label: 'Floor 71', title: 'Floor 71', file: 'assets/floorplans-final/typical/floor-lvl-71.webp' },
+      { name: 'typical-lvl-72-76', label: 'Typical · Floors 72–76', title: 'Typical · Floors 72–76', file: 'assets/floorplans-final/typical/typical-lvl-72-76.webp' },
+      { name: 'refuge-lvl-77', label: 'Refuge · Floor 77', title: 'Refuge · Floor 77', file: 'assets/floorplans-final/typical/refuge-lvl-77.webp' },
+    ]},
+    { group: 'Amenity Floors', items: [
+      { name: 'amenity-ground-floor', label: 'Amenity · Ground Floor', title: 'Amenity · Ground Floor', file: 'assets/floorplans-final/amenity/amenity-ground-floor.webp' },
+      { name: 'amenity-lvl-10', label: 'Amenity · Level 10', title: 'Amenity · Level 10', file: 'assets/floorplans-final/amenity/amenity-lvl-10.webp' },
+      { name: 'amenity-lvl-12', label: 'Amenity · Level 12', title: 'Amenity · Level 12', file: 'assets/floorplans-final/amenity/amenity-lvl-12.webp' },
+      { name: 'amenity-lvl-13', label: 'Amenity · Level 13', title: 'Amenity · Level 13', file: 'assets/floorplans-final/amenity/amenity-lvl-13.webp' },
+      { name: 'amenity-lvl-14', label: 'Amenity · Level 14', title: 'Amenity · Level 14', file: 'assets/floorplans-final/amenity/amenity-lvl-14.webp' },
+      { name: 'amenity-lvl-15', label: 'Amenity · Level 15', title: 'Amenity · Level 15', file: 'assets/floorplans-final/amenity/amenity-lvl-15.webp' },
+      { name: 'amenity-lvl-79', label: 'Amenity · Level 79', title: 'Amenity · Level 79', file: 'assets/floorplans-final/amenity/amenity-lvl-79.webp' },
+    ]},
+  ];
+
+  // Flat lookup name → {name,label,file}
+  const REAL_PLAN_BY_NAME = {};
+  REAL_PLAN_GROUPS.forEach(g => g.items.forEach(it => { REAL_PLAN_BY_NAME[it.name] = it; }));
+
+  const DEFAULT_REAL_PLAN = 'unit-S01-lvl-43-47';
+
+  // ──────────────────────────────────────────────────────────────
+  // TYPE MODEL — three plan TYPES the segmented control switches between.
+  //   unit    → the 6 unit groups (North/South · 01/02/03)
+  //   typical → the "Typical & Refuge Floors" group
+  //   amenity → the "Amenity Floors" group
+  // For "unit" we further index every item by wing (N/S) + unit (01/02/03)
+  // so the Wing / Unit / Floor-band selectors + Bed filter can narrow it.
+  // ──────────────────────────────────────────────────────────────
+  const TYPICAL_GROUP = REAL_PLAN_GROUPS.find(g => g.group === 'Typical & Refuge Floors');
+  const AMENITY_GROUP = REAL_PLAN_GROUPS.find(g => g.group === 'Amenity Floors');
+
+  // Unit catalogue: list of {wing,unit,beds,name,label,...} from every unit group.
+  const UNIT_ITEMS = [];
+  REAL_PLAN_GROUPS.forEach(g => {
+    g.items.forEach(it => {
+      const m = it.name.match(/^unit-([NS])(\d{2})-/);
+      if (!m) return;
+      UNIT_ITEMS.push(Object.assign({ wing: m[1], unit: m[2] }, it));
+    });
+  });
+
+  const WING_FULL = { N: 'North', S: 'South' };
+
+  function planType(name) {
+    if (!name) return 'unit';
+    if (/^unit-/.test(name)) return 'unit';
+    if (/^amenity-/.test(name)) return 'amenity';
+    return 'typical';
+  }
+
+  // Available bed counts present in the unit catalogue (for the Bed filter).
+  const UNIT_BEDS = Array.from(new Set(UNIT_ITEMS.map(i => i.beds))).sort((a, b) => a - b);
+
+  // Given a wing+unit+bedFilter, return the matching unit items (the floor bands).
+  function unitBandsFor(wing, unit, bedFilter) {
+    return UNIT_ITEMS.filter(i =>
+      i.wing === wing && i.unit === unit &&
+      (bedFilter === 'all' || i.beds === bedFilter));
+  }
+  // Units (01/02/03) available within a wing under the active bed filter.
+  function unitsForWing(wing, bedFilter) {
+    const set = new Set(UNIT_ITEMS
+      .filter(i => i.wing === wing && (bedFilter === 'all' || i.beds === bedFilter))
+      .map(i => i.unit));
+    return Array.from(set).sort();
+  }
+  function wingsForBed(bedFilter) {
+    const set = new Set(UNIT_ITEMS
+      .filter(i => bedFilter === 'all' || i.beds === bedFilter)
+      .map(i => i.wing));
+    return ['N', 'S'].filter(w => set.has(w));
+  }
+
+  // <option> list helper for a plain (non-grouped) select.
+  function optionsMarkup(items, selectedName) {
+    return items.map(it =>
+      `<option value="${it.name}" ${it.name === selectedName ? 'selected' : ''}>${it.label}</option>`
+    ).join('');
+  }
+
+  // ──────────────────────────────────────────────────────────────
   // WINDOW STATE — array of { id, planId, bhk, facing, scale, tx, ty }
   // Each window is independent.
   // ──────────────────────────────────────────────────────────────
   let nextWinId = 1;
   let focusedWinId = null;
 
-  function makeWindowState(planId) {
+  function makeWindowState(planId, realName) {
     const p = PLANS[planId];
-    return {
+    const name = realName || DEFAULT_REAL_PLAN;
+    const st = {
       id: nextWinId++,
       planId,
+      realName: name,
+      type: planType(name),       // 'unit' | 'typical' | 'amenity'
+      bedFilter: 'all',           // 'all' | 3 | 4 | 5
+      wing: 'S', unit: '01',      // active wing / unit (unit type only)
       bhk: p.bhk,
       facing: p.facing,
       scale: 1, tx: 0, ty: 0,
     };
+    syncUnitSelectorsToName(st);
+    return st;
   }
 
-  // Default: open TWO windows for instant comparison (Plan 03 + Plan 01).
-  // Mirrors the spawn order produced by ADD WINDOW (03 → 01 → 02).
+  // Keep wing/unit in sync with the active unit plan name.
+  function syncUnitSelectorsToName(st) {
+    if (st.type !== 'unit') return;
+    const it = UNIT_ITEMS.find(i => i.name === st.realName);
+    if (it) { st.wing = it.wing; st.unit = it.unit; }
+  }
+
+  // Default: open TWO windows for instant comparison.
+  // Window 1 = the 4 BHK default (unit-S01-stack01); window 2 = a contrasting unit.
   // User can add a 3rd via ADD WINDOW pill (max 3) or close to drop back to 1.
-  const windows = [ makeWindowState(3), makeWindowState(1) ];
+  const windows = [
+    makeWindowState(3, 'unit-S01-lvl-43-47'),
+    makeWindowState(1, 'unit-N02-lvl-43-47'),
+  ];
   focusedWinId = windows[0].id;
 
   // ──────────────────────────────────────────────────────────────
   // BUILD A SINGLE .plan-window ELEMENT (per state)
   // ──────────────────────────────────────────────────────────────
+  // Build the selector row markup for the active type.
+  function buildControlsMarkup(state) {
+    if (state.type === 'unit') {
+      const wings = wingsForBed(state.bedFilter);
+      if (!wings.includes(state.wing)) state.wing = wings[0] || 'S';
+      const units = unitsForWing(state.wing, state.bedFilter);
+      if (!units.includes(state.unit)) state.unit = units[0] || '01';
+      const bands = unitBandsFor(state.wing, state.unit, state.bedFilter);
+      if (!bands.find(b => b.name === state.realName) && bands[0]) {
+        state.realName = bands[0].name;
+      }
+      const unitOpts = units.map(u =>
+        `<option value="${u}" ${u === state.unit ? 'selected' : ''}>Unit ${u}</option>`
+      ).join('');
+      return `
+        <div class="pw-ctl">
+          <span class="pw-ctl-lbl">Unit</span>
+          <div class="pw-select">
+            <select class="pw-unit-dd" aria-label="Select unit">${unitOpts}</select>
+          </div>
+        </div>
+        <div class="pw-ctl is-grow">
+          <span class="pw-ctl-lbl">Floor Band</span>
+          <div class="pw-select">
+            <select class="pw-band-dd" aria-label="Select floor band">${optionsMarkup(bands, state.realName)}</select>
+          </div>
+        </div>
+      `;
+    }
+    if (state.type === 'amenity') {
+      const items = AMENITY_GROUP.items;
+      if (!items.find(i => i.name === state.realName)) state.realName = items[0].name;
+      return `
+        <div class="pw-ctl is-grow">
+          <span class="pw-ctl-lbl">Amenity Level</span>
+          <div class="pw-select">
+            <select class="pw-band-dd" aria-label="Select amenity level">${optionsMarkup(items, state.realName)}</select>
+          </div>
+        </div>
+      `;
+    }
+    // typical
+    const items = TYPICAL_GROUP.items;
+    if (!items.find(i => i.name === state.realName)) state.realName = items[0].name;
+    return `
+      <div class="pw-ctl is-grow">
+        <span class="pw-ctl-lbl">Floor Band</span>
+        <div class="pw-select">
+          <select class="pw-band-dd" aria-label="Select floor">${optionsMarkup(items, state.realName)}</select>
+        </div>
+      </div>
+    `;
+  }
+
+  // Default the realName when switching TYPE so the frame loads a valid plan.
+  function defaultNameForType(state, type) {
+    if (type === 'unit') {
+      const bands = unitBandsFor(state.wing, state.unit, state.bedFilter);
+      if (bands[0]) return bands[0].name;
+      // fall back to any unit
+      return UNIT_ITEMS[0].name;
+    }
+    if (type === 'amenity') return AMENITY_GROUP.items[0].name;
+    return TYPICAL_GROUP.items[0].name;
+  }
+
   function buildWindow(state) {
     const p = PLANS[state.planId];
+    const rp = REAL_PLAN_BY_NAME[state.realName] || REAL_PLAN_BY_NAME[DEFAULT_REAL_PLAN];
     const facingFull = FACING_FULL[state.facing] || state.facing;
     const liveBhkName = state.bhk + ' BHK ' + p.tier + ' · ' + facingFull;
 
@@ -1168,53 +1521,67 @@
     el.className = 'plan-window';
     el.setAttribute('data-window-id', state.id);
 
-    // Head
+    const typeLabel = state.type === 'unit' ? 'Residence'
+                    : state.type === 'amenity' ? 'Amenity Floor' : 'Typical Floor';
+
+    // Head — title · type eyebrow · carpet · close
     const head = document.createElement('header');
     head.className = 'pw-head';
     head.innerHTML = `
       <div class="pw-title-row">
-        <h3 class="pw-title">${p.title}</h3>
-        <span class="pw-tier-pill">${p.tier}</span>
+        <h3 class="pw-title">${rp.title || rp.label}</h3>
+        ${rp.beds ? `<span class="pw-tier-pill">${rp.beds} Bed</span>` : ''}
       </div>
-      <div class="pw-carpet">
-        <span class="lbl">Carpet&nbsp;Area</span>
-        <span class="val">${p.carpet}</span>
-      </div>
+      ${rp.carpet ? `<div class="pw-carpet">
+        <span class="lbl">Usable&nbsp;Carpet&nbsp;Area</span>
+        <span class="val">${rp.carpet}</span>
+      </div>` : ''}
       <div class="pw-sub-row">
-        <span class="pw-sub">${p.band}</span>
-        <span class="pw-sub-tag pw-bhk-name">${liveBhkName}</span>
+        <span class="pw-sub-tag">${typeLabel}</span>
+        ${rp.beds ? `<span class="pw-sub">${WING_FULL[state.wing] || ''} Wing · Unit ${state.unit}</span>` : ''}
       </div>
       <button class="pw-close" type="button" aria-label="Close window">×</button>
     `;
     el.appendChild(head);
 
-    // Filters
-    const filters = document.createElement('div');
-    filters.className = 'pw-filters';
-    const allBhk = [3, 4, 5, 6];
-    const allFacing = ['N', 'S', 'E', 'W'];
-    filters.innerHTML = `
-      <div class="pw-filter-group">
-        <span class="pw-flabel">BHK</span>
-        ${allBhk.filter(b => p.bhkAllowed.includes(b)).map(b => `
-          <button class="pw-fpill ${b === state.bhk ? 'is-active' : ''}" data-bhk="${b}" type="button">${b} BHK</button>
-        `).join('')}
-      </div>
-      <div class="pw-filter-group">
-        <span class="pw-flabel">Facing</span>
-        ${allFacing.filter(f => p.facingAllowed.includes(f)).map(f => `
-          <button class="pw-fpill ${f === state.facing ? 'is-active' : ''}" data-facing="${f}" type="button">${f}</button>
-        `).join('')}
-      </div>
-      <div class="pw-plan-select">
-        <select class="pw-plan-dd" aria-label="Switch plan">
-          ${Object.keys(PLANS).map(pid => `
-            <option value="${pid}" ${parseInt(pid, 10) === state.planId ? 'selected' : ''}>${PLANS[pid].title}</option>
-          `).join('')}
-        </select>
-      </div>
+    // Type segmented control — Unit · Typical · Amenity
+    const types = document.createElement('div');
+    types.className = 'pw-types';
+    types.setAttribute('role', 'tablist');
+    types.innerHTML = `
+      <button class="pw-type ${state.type === 'unit' ? 'is-active' : ''}" data-type="unit" type="button">Unit</button>
+      <button class="pw-type ${state.type === 'typical' ? 'is-active' : ''}" data-type="typical" type="button">Typical</button>
+      <button class="pw-type ${state.type === 'amenity' ? 'is-active' : ''}" data-type="amenity" type="button">Amenity</button>
     `;
-    el.appendChild(filters);
+    el.appendChild(types);
+
+    // Filter bar — only for Unit type (Bedrooms · Wing)
+    if (state.type === 'unit') {
+      const bar = document.createElement('div');
+      bar.className = 'pw-filterbar';
+      const bedPills = ['all'].concat(UNIT_BEDS).map(b => {
+        const lbl = b === 'all' ? 'All' : (b + ' Bed');
+        return `<button class="pw-fpill ${state.bedFilter === b ? 'is-active' : ''}" data-bed="${b}" type="button">${lbl}</button>`;
+      }).join('');
+      const wingPills = wingsForBed(state.bedFilter).map(w =>
+        `<button class="pw-fpill ${state.wing === w ? 'is-active' : ''}" data-wing="${w}" type="button">${WING_FULL[w]}</button>`
+      ).join('');
+      bar.innerHTML = `
+        <div class="pw-filter-group">
+          <span class="pw-flabel">Bedrooms</span>${bedPills}
+        </div>
+        <div class="pw-filter-group">
+          <span class="pw-flabel">Wing</span>${wingPills}
+        </div>
+      `;
+      el.appendChild(bar);
+    }
+
+    // Controls — selectors that load a plan into the frame
+    const controls = document.createElement('div');
+    controls.className = 'pw-controls';
+    controls.innerHTML = buildControlsMarkup(state);
+    el.appendChild(controls);
 
     // Canvas
     const canvas = document.createElement('div');
@@ -1238,48 +1605,39 @@
         <button class="pw-zoom-btn pw-zoom-fit" type="button" aria-label="Reset zoom">Fit</button>
       </div>
       <div class="pw-zoom-stage">
-        <svg class="pw-blueprint" viewBox="0 0 880 600" preserveAspectRatio="xMidYMid meet" aria-label="Floor plan">${p.svg()}</svg>
+        <div class="pw-blueprint">
+          <div class="pw-sheet">
+            <img class="pw-plan-img" src="${rp.file}" alt="${rp.label}">
+          </div>
+        </div>
       </div>
       <div class="pw-zoom-indicator">100%</div>
-      <button class="pw-view3d" type="button">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 7l9-4 9 4M3 7v10l9 4M3 7l9 4M21 7v10l-9 4M21 7l-9 4M12 11v10"/>
-        </svg>
-        <span>View 3D</span>
-      </button>
     `;
     el.appendChild(canvas);
 
-    // Specs
-    const specs = document.createElement('div');
-    specs.className = 'pw-specs';
-    specs.innerHTML = `
+    // Specs — real bedroom / bathroom counts (Unit plans only)
+    if (rp.beds) {
+      const specs = document.createElement('div');
+      specs.className = 'pw-specs';
+      specs.innerHTML = `
       <div class="pw-spec">
         <span class="ico"><svg><use href="#ic-bed"/></svg></span>
-        <span class="num pw-bed">${p.bed}</span>
+        <span class="num pw-bed">${rp.beds}</span>
         <span class="lbl">Bedrooms</span>
       </div>
       <div class="pw-spec">
         <span class="ico"><svg><use href="#ic-bath"/></svg></span>
-        <span class="num pw-bath">${p.bath}</span>
+        <span class="num pw-bath">${rp.beds}</span>
         <span class="lbl">Bathrooms</span>
       </div>
-      <div class="pw-spec">
-        <span class="ico"><svg><use href="#ic-car"/></svg></span>
-        <span class="num pw-car">${p.car}</span>
-        <span class="lbl">Car Parks</span>
-      </div>
-      <div class="pw-spec">
-        <span class="ico"><svg><use href="#ic-person"/></svg></span>
-        <span class="num pw-serv">${p.serv}</span>
-        <span class="lbl">Servant</span>
-      </div>
     `;
-    el.appendChild(specs);
+      el.appendChild(specs);
+    }
 
-    // Price sheet
+    // Price sheet — indicative numbers pending final pricing
     const price = document.createElement('section');
     price.className = 'pw-price';
+    price.setAttribute('data-', 'Pricing — not final');
     price.innerHTML = `
       <h4>Price Sheet</h4>
       <div class="pw-row"><span class="k">Basic Price</span><span class="v">${p.basic}</span></div>
@@ -1290,7 +1648,7 @@
         <span class="k">Total Price</span>
         <span class="v">${p.total}<span style="font-size:0.55em;color:var(--taupe-400);">*</span></span>
       </div>
-      <p class="pw-rera">* Indicative · RERA P51900-30421</p>
+      <p class="pw-rera">* Indicative · RERA PR1170002501931</p>
     `;
     el.appendChild(price);
 
@@ -1349,38 +1707,70 @@
       }, 200);
     });
 
-    // BHK pills
-    el.querySelectorAll('[data-bhk]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const bhk = parseInt(btn.dataset.bhk, 10);
-        state.bhk = bhk;
-        el.querySelectorAll('[data-bhk]').forEach(b => b.classList.remove('is-active'));
-        btn.classList.add('is-active');
-        updateBhkLabel(el, state);
-      });
-    });
-
-    // Facing pills
-    el.querySelectorAll('[data-facing]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        state.facing = btn.dataset.facing;
-        el.querySelectorAll('[data-facing]').forEach(b => b.classList.remove('is-active'));
-        btn.classList.add('is-active');
-        updateBhkLabel(el, state);
-      });
-    });
-
-    // Plan selector
-    const dd = el.querySelector('.pw-plan-dd');
-    dd.addEventListener('change', () => {
-      const newPlan = parseInt(dd.value, 10);
-      if (newPlan === state.planId) return;
-      state.planId = newPlan;
-      const p = PLANS[newPlan];
-      state.bhk = p.bhk;
-      state.facing = p.facing;
+    // Helper — rebuild this window in place after a state change.
+    function rebuild() {
       state.scale = 1; state.tx = 0; state.ty = 0;
-      render();
+      const fresh = buildWindow(state);
+      el.replaceWith(fresh);
+      wireWindow(fresh, state);
+      applyTransform(fresh, state);
+    }
+
+    // Type segmented control — Unit · Typical · Amenity
+    el.querySelectorAll('[data-type]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const t = btn.dataset.type;
+        if (t === state.type) return;
+        state.type = t;
+        state.realName = defaultNameForType(state, t);
+        rebuild();
+      });
+    });
+
+    // Bedroom filter pills (Unit only)
+    el.querySelectorAll('[data-bed]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const raw = btn.dataset.bed;
+        state.bedFilter = raw === 'all' ? 'all' : parseInt(raw, 10);
+        // narrow wing/unit/band; buildControlsMarkup resolves a valid plan
+        const wings = wingsForBed(state.bedFilter);
+        if (!wings.includes(state.wing)) state.wing = wings[0] || 'S';
+        const units = unitsForWing(state.wing, state.bedFilter);
+        if (!units.includes(state.unit)) state.unit = units[0] || '01';
+        const bands = unitBandsFor(state.wing, state.unit, state.bedFilter);
+        state.realName = (bands[0] || UNIT_ITEMS[0]).name;
+        rebuild();
+      });
+    });
+
+    // Wing filter pills (Unit only)
+    el.querySelectorAll('[data-wing]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.wing = btn.dataset.wing;
+        const units = unitsForWing(state.wing, state.bedFilter);
+        if (!units.includes(state.unit)) state.unit = units[0] || '01';
+        const bands = unitBandsFor(state.wing, state.unit, state.bedFilter);
+        state.realName = (bands[0] || UNIT_ITEMS[0]).name;
+        rebuild();
+      });
+    });
+
+    // Unit selector (Unit only)
+    const unitDd = el.querySelector('.pw-unit-dd');
+    if (unitDd) unitDd.addEventListener('change', () => {
+      state.unit = unitDd.value;
+      const bands = unitBandsFor(state.wing, state.unit, state.bedFilter);
+      state.realName = (bands[0] || UNIT_ITEMS[0]).name;
+      rebuild();
+    });
+
+    // Floor-band / level selector — loads the plan into the frame
+    const bandDd = el.querySelector('.pw-band-dd');
+    if (bandDd) bandDd.addEventListener('change', () => {
+      if (bandDd.value === state.realName) return;
+      state.realName = bandDd.value;
+      syncUnitSelectorsToName(state);
+      rebuild();
     });
 
     // Zoom buttons
@@ -1393,11 +1783,6 @@
     el.querySelector('.pw-zoom-fit').addEventListener('click', () => {
       state.scale = 1; state.tx = 0; state.ty = 0;
       applyTransform(el, state);
-    });
-
-    // View 3D — stub toast
-    el.querySelector('.pw-view3d').addEventListener('click', () => {
-      flashToast('3D walkthrough — coming soon.');
     });
 
     // Wheel + pinch + pan on the canvas
@@ -1475,13 +1860,6 @@
     el.addEventListener('mousedown', () => { focusedWinId = state.id; });
   }
 
-  function updateBhkLabel(el, state) {
-    const p = PLANS[state.planId];
-    const facingFull = FACING_FULL[state.facing] || state.facing;
-    el.querySelector('.pw-bhk-name').textContent =
-      state.bhk + ' BHK ' + p.tier + ' · ' + facingFull;
-  }
-
   function setScale(state, el, next) {
     state.scale = Math.max(0.7, Math.min(3, next));
     if (state.scale <= 1.01) { state.tx = 0; state.ty = 0; }
@@ -1517,23 +1895,27 @@
     render();
   });
 
-  // Chevron prev/next — cycle the focused window's plan
-  document.getElementById('prevBtn').addEventListener('click', () => {
+  // Chevron prev/next — step through the focused window's current plan list
+  // (the floor-band / level options for the active type + filters).
+  function currentPlanList(w) {
+    if (w.type === 'unit') return unitBandsFor(w.wing, w.unit, w.bedFilter);
+    if (w.type === 'amenity') return AMENITY_GROUP.items;
+    return TYPICAL_GROUP.items;
+  }
+  function stepFocusedPlan(dir) {
     const w = windows.find(w => w.id === focusedWinId) || windows[0];
-    w.planId = w.planId === 1 ? 3 : w.planId - 1;
-    const p = PLANS[w.planId];
-    w.bhk = p.bhk; w.facing = p.facing;
+    const list = currentPlanList(w);
+    if (!list.length) return;
+    let idx = list.findIndex(it => it.name === w.realName);
+    if (idx === -1) idx = 0;
+    idx = (idx + dir + list.length) % list.length;
+    w.realName = list[idx].name;
+    syncUnitSelectorsToName(w);
     w.scale = 1; w.tx = 0; w.ty = 0;
     render();
-  });
-  document.getElementById('nextBtn').addEventListener('click', () => {
-    const w = windows.find(w => w.id === focusedWinId) || windows[0];
-    w.planId = w.planId === 3 ? 1 : w.planId + 1;
-    const p = PLANS[w.planId];
-    w.bhk = p.bhk; w.facing = p.facing;
-    w.scale = 1; w.tx = 0; w.ty = 0;
-    render();
-  });
+  }
+  document.getElementById('prevBtn').addEventListener('click', () => stepFocusedPlan(-1));
+  document.getElementById('nextBtn').addEventListener('click', () => stepFocusedPlan(1));
 
   // ──────────────────────────────────────────────────────────────
   // TOAST
@@ -1565,6 +1947,47 @@
   // INITIAL RENDER
   // ──────────────────────────────────────────────────────────────
   render();
+
+  // ── DEEP-LINK from Inventory → Choose-Floors ──────────────────
+  // If the user arrived via a section/level selection, preselect the
+  // matching plan in the focused window.
+  (function () {
+    var lvl = null, sec = null;
+    try { lvl = sessionStorage.getItem('ec.floor'); sec = sessionStorage.getItem('ec.section'); } catch (e) {}
+    if (!lvl && !sec) return;
+    try { sessionStorage.removeItem('ec.floor'); sessionStorage.removeItem('ec.section'); } catch (e) {}
+    function rangeOf(name) {
+      var m = name.match(/lvl-([\d+\-]+)/); if (!m) return null;
+      var nums = m[1].split(/[-+]/).map(Number).filter(function (n){return !isNaN(n);});
+      return nums.length ? [Math.min.apply(null,nums), Math.max.apply(null,nums)] : null;
+    }
+    var amenityHint = sec != null && /amenit/i.test(String(sec));
+    var target = null;
+    var n = lvl != null ? parseInt(lvl, 10) : NaN;
+    if (amenityHint) {
+      // Arrived from an amenity section → prefer an amenity plan.
+      if (!isNaN(n) && REAL_PLAN_BY_NAME['amenity-lvl-'+n]) target = 'amenity-lvl-'+n;
+      else target = AMENITY_GROUP.items[0].name;
+    }
+    if (!target && !isNaN(n)) {
+      // 1) exact refuge / amenity level, else 2) a typical band containing it, else 3) any plan whose range covers it
+      var pref = ['refuge-lvl-'+n, 'amenity-lvl-'+n];
+      for (var i=0;i<pref.length;i++){ if (REAL_PLAN_BY_NAME[pref[i]]) { target = pref[i]; break; } }
+      if (!target) {
+        var names = Object.keys(REAL_PLAN_BY_NAME);
+        // prefer a typical-floor band, then any unit/plan band
+        var order = names.filter(function(k){return k.indexOf('typical')===0;}).concat(names);
+        for (var j=0;j<order.length;j++){ var r=rangeOf(order[j]); if (r && n>=r[0] && n<=r[1]) { target = order[j]; break; } }
+      }
+    }
+    if (target && REAL_PLAN_BY_NAME[target] && windows[0]) {
+      windows[0].realName = target;
+      windows[0].type = planType(target);
+      syncUnitSelectorsToName(windows[0]);
+      windows[0].scale = 1; windows[0].tx = 0; windows[0].ty = 0;
+      render();
+    }
+  })();
 </script>
 
 <!-- PWA-JS-START -->
@@ -1572,7 +1995,13 @@
   // Service worker registration (PWA + offline cache)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
+      var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});
+      var ecReloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if (ecReloaded || !ecHadCtrl) return;   // skip the first-ever claim
+        ecReloaded = true; window.location.reload();   // new version deployed -> refresh
+      });
     });
   }
   // iOS double-tap zoom guard
@@ -1644,5 +2073,6 @@
     window.addEventListener('popstate', clearLeave);
   })();
 </script>
+  <script src="assets/tools-dock.js"></script>
 </body>
 </html>

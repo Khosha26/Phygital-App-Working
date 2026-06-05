@@ -79,7 +79,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-
 <style>
   :root {
     --paper:      #FCFAF4;
@@ -143,14 +142,24 @@
     position: fixed; inset: 0; overflow: hidden;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     display: flex; align-items: center; justify-content: center;
-    background:
-      url('assets/bg-paper.png') center/cover no-repeat,
-      radial-gradient(ellipse 80% 60% at 50% 45%, var(--paper) 0%, var(--bone-50) 55%, var(--bone-200) 100%) var(--paper);
+    isolation: isolate;
+    /* Flat paper — matches the stage's own paper edge so the letterbox/
+       pillarbox margins (iPad 4:3, 65" 16:9) blend with no visible "cut". */
+    background: url('assets/bg-paper.png') center/cover no-repeat, var(--paper);
+  }
+  /* Full-bleed day-tint behind the stage so the margins shift hue in
+     lock-step with the stage's own .day-tint — no seam at any tint phase. */
+  #stage-wrap::before {
+    content: ''; position: absolute; inset: 0; z-index: 0;
+    pointer-events: none; mix-blend-mode: color;
+    background-color: rgba(255, 250, 240, 0.10);
+    animation: dayCycle 120s linear infinite;
   }
   #stage, .stage-inner {
     position: relative;
     width: 1440px; height: 900px;
     flex-shrink: 0;
+    z-index: 1;
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
@@ -344,8 +353,8 @@
   }
   .lr-eyebrow {
     font-family: 'Inter', sans-serif;
-    font-weight: 500; font-size: 9px;
-    letter-spacing: 0.55em; text-transform: uppercase;
+    font-weight: 500; font-size: 10px;
+    letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500);
     opacity: 0.85;
     margin-bottom: 14px;
@@ -353,8 +362,8 @@
   .lr-headline {
     font-family: 'Cormorant Garamond', serif;
     font-weight: 400;
-    font-size: 72px;
-    line-height: 0.92;
+    font-size: 56px;
+    line-height: 0.98;
     letter-spacing: -0.01em;
     color: var(--onyx-700);
     margin: 0 0 12px 0;
@@ -446,15 +455,17 @@
     left: 340px;
     top: 108px;
     width: 720px;
-    height: 640px;
+    /* Metadata strip removed → column now breathes down toward the footer. */
+    height: 716px;
     z-index: 5;
   }
 
-  /* Circular hero plate — centred in the 720px column (icon-stack rail removed) */
+  /* Circular hero plate — centred (vertically) in the taller column */
   .circle-wrap {
     position: absolute;
     left: 40px;
-    top: 0;
+    top: 50%;
+    transform: translateY(-50%);
     width: 640px;
     height: 640px;
     z-index: 3;
@@ -547,12 +558,14 @@
   .circle-img.is-shown { opacity: 1; transform: scale(1.04); }
 
   /* Counter + arrow row — sits as a soft pill OVERLAY at the bottom
-     of the circular hero plate. Frees vertical space below for the
-     metadata strip; reads as a chrome control floating over the image. */
+     of the circular hero plate (which is now vertically centred in the
+     taller column after the metadata strip was removed). Reads as a
+     chrome control floating over the image. */
   .ctrl-row {
     position: absolute;
     left: 40px;
-    top: 552px;
+    top: 50%;
+    margin-top: 264px;
     width: 640px;
     height: 56px;
     display: flex; align-items: center; justify-content: center;
@@ -622,7 +635,8 @@
     left: 1080px;
     top: 108px;
     width: 320px;
-    height: 640px;
+    /* Metadata strip removed → rail breathes down toward the footer. */
+    height: 716px;
     z-index: 6;
     display: flex; flex-direction: column;
     gap: 14px;
@@ -777,56 +791,6 @@
   .ts-thumb.is-active .plus { display: grid; }
   .ts-thumb .plus svg { width: 10px; height: 10px; display: block; }
 
-  /* ── METADATA STRIP (same as gallery) ────────────────────────────── */
-  .metastrip {
-    position: absolute;
-    left: 44px; right: 44px;
-    bottom: 60px;
-    height: 80px;
-    z-index: 6;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 16px;
-    border-top: 1px solid var(--hair-lo);
-    border-bottom: 1px solid var(--hair-lo);
-    background: linear-gradient(0deg, rgba(252,250,244,0.55), rgba(252,250,244,0.20));
-  }
-  .meta {
-    display: flex; flex-direction: column;
-    gap: 6px;
-    text-align: left;
-  }
-  .meta.center { text-align: center; align-items: center; }
-  .meta .label {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500; font-size: 8px;
-    letter-spacing: 0.45em; text-transform: uppercase;
-    color: var(--gold-500);
-    opacity: 0.85;
-  }
-  .meta .value {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 400;
-    font-size: 22px;
-    color: var(--onyx-700);
-    line-height: 1;
-    letter-spacing: 0.01em;
-    font-variant-numeric: tabular-nums;
-  }
-  .meta .sub {
-    font-family: 'Inter', sans-serif;
-    font-weight: 400; font-size: 8.5px;
-    letter-spacing: 0.32em; text-transform: uppercase;
-    color: var(--taupe-400);
-  }
-  .meta-pip {
-    width: 4px; height: 4px;
-    background: var(--gold-500);
-    transform: rotate(45deg);
-    opacity: 0.4;
-    flex-shrink: 0;
-  }
-
   /* ── FOOTER BAR (identical to home / gallery) ────────────────────── */
   .footer {
     position: absolute; bottom: 0; left: 0; right: 0; height: 56px;
@@ -875,6 +839,241 @@
     box-shadow: 0 0 10px rgba(201,165,103,0.55);
   }
 
+  /* ── LEVEL-PLANS LAUNCHER (left rail, under category list) ─────────
+     Opens the amenity-floor plan viewer overlay. Sits in the left rail
+     beneath the 6 category rows; reads as the editorial counterpart to
+     the category list — "see the floors these amenities live on." */
+  .lp-launch {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%;
+    margin-top: 4px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--hair);
+    background: rgba(252, 250, 244, 0.78);
+    cursor: pointer;
+    text-align: left;
+    box-shadow: var(--tile-shadow);
+    transition: background 220ms ease, border-color 220ms ease,
+                box-shadow 240ms ease, transform 180ms ease;
+  }
+  .lp-launch:hover {
+    background: var(--paper);
+    border-color: var(--hair-hi);
+    transform: translateY(-1px);
+  }
+  .lp-launch .lp-ic {
+    width: 18px; height: 18px; flex-shrink: 0;
+    color: var(--gold-500);
+    display: grid; place-items: center;
+  }
+  .lp-launch .lp-ic svg { width: 100%; height: 100%; display: block; }
+  .lp-launch .lp-txt { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .lp-launch .lp-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 10.5px;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--onyx-700);
+  }
+  .lp-launch .lp-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic; font-size: 12px;
+    color: var(--gold-500); opacity: 0.85;
+  }
+  .lp-launch .lp-count {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400; font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--taupe-400);
+    font-variant-numeric: tabular-nums;
+    padding: 2px 7px; border-radius: 9px;
+    border: 1px solid var(--hair-lo);
+    background: rgba(252, 250, 244, 0.6);
+    flex-shrink: 0;
+  }
+
+  /* ── LEVEL-PLANS OVERLAY (amenity floor plans on bone/paper) ──────── */
+  .lp-overlay {
+    position: absolute; inset: 0;
+    z-index: 40;
+    display: none;
+    flex-direction: column;
+    background: url('assets/bg-paper.png') center/cover no-repeat, var(--paper);
+  }
+  .lp-overlay.is-open { display: flex; }
+  .lp-ov-top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 44px 14px;
+  }
+  .lp-ov-titles { display: flex; flex-direction: column; gap: 6px; }
+  .lp-ov-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 10px;
+    letter-spacing: 0.5em; text-transform: uppercase;
+    color: var(--gold-500); opacity: 0.85;
+  }
+  .lp-ov-headline {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400; font-size: 38px; line-height: 1;
+    letter-spacing: -0.01em; color: var(--onyx-700); margin: 0;
+  }
+  .lp-ov-close {
+    display: inline-flex; align-items: center; gap: 8px;
+    min-height: 44px; padding: 0 18px;
+    border-radius: 999px;
+    background: rgba(252, 250, 244, 0.72);
+    border: 1px solid var(--hair);
+    color: var(--gold-500);
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 10px;
+    letter-spacing: 0.42em; text-transform: uppercase;
+    cursor: pointer;
+    transition: background 220ms ease, color 220ms ease, border-color 220ms ease;
+  }
+  .lp-ov-close:hover { background: var(--paper); color: var(--onyx-700); border-color: var(--hair-hi); }
+  .lp-ov-close svg { width: 12px; height: 12px; display: block; }
+
+  /* Big plan viewer — zoomable. The stage is the clipping FRAME
+     (overflow:hidden); the image is panned/zoomed via a JS transform.
+     object-fit:contain keeps the plan honest at fit (no stretch). */
+  .lp-stage {
+    flex: 1;
+    position: relative;
+    margin: 0 44px;
+    border-radius: 16px;
+    border: 1px solid var(--hair-lo);
+    background: linear-gradient(160deg, var(--bone-50) 0%, var(--bone-200) 100%);
+    box-shadow: var(--tile-shadow);
+    overflow: hidden;
+    isolation: isolate;
+    touch-action: none;
+  }
+  .lp-stage img {
+    position: absolute; inset: 18px;
+    width: calc(100% - 36px); height: calc(100% - 36px);
+    object-fit: contain;
+    display: block;
+    transform-origin: center center;
+    transform: translate(var(--lpx, 0px), var(--lpy, 0px)) scale(var(--lps, 1));
+    transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+  .lp-stage img.no-anim { transition: none; }
+  .lp-stage.is-zoomed   { cursor: grab; }
+  .lp-stage.is-grabbing { cursor: grabbing; }
+
+  /* Zoom control cluster — +/−/Fit pill + live % (overlay chrome) */
+  .lp-zoom {
+    position: absolute;
+    left: 50%; bottom: 16px; transform: translateX(-50%);
+    z-index: 4;
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: rgba(252, 250, 244, 0.86);
+    border: 1px solid var(--hair);
+    box-shadow:
+      0 10px 24px -8px rgba(80, 58, 28, 0.40),
+      0 3px 8px rgba(40, 28, 10, 0.14);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  .lp-zoom .lp-zbtn {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(252, 250, 244, 0.92);
+    border: 1px solid var(--hair);
+    color: var(--gold-500);
+    display: grid; place-items: center;
+    cursor: pointer;
+    transition: background 200ms ease, transform 180ms ease;
+  }
+  .lp-zoom .lp-zbtn:hover  { background: var(--paper); transform: scale(1.06); }
+  .lp-zoom .lp-zbtn:active { transform: scale(0.94); }
+  .lp-zoom .lp-zbtn svg { width: 13px; height: 13px; display: block; }
+  .lp-zoom .lp-zpct {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--onyx-700);
+    font-variant-numeric: tabular-nums;
+    min-width: 38px; text-align: center;
+  }
+  .lp-zoom .lp-zfit {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 8.5px;
+    letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--gold-500);
+    background: transparent;
+    border: 1px solid var(--hair);
+    border-radius: 999px;
+    padding: 6px 12px; min-height: 30px;
+    cursor: pointer;
+    transition: background 200ms ease, color 200ms ease, border-color 200ms ease;
+  }
+  .lp-zoom .lp-zfit:hover { background: var(--paper); color: var(--onyx-700); border-color: var(--hair-hi); }
+  .lp-zoom .lp-zfit.is-disabled { opacity: 0.4; pointer-events: none; }
+
+  .lp-stage .lp-caption {
+    position: absolute;
+    left: 50%; top: 16px; transform: translateX(-50%);
+    z-index: 4;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 9px;
+    letter-spacing: 0.4em; text-transform: uppercase;
+    color: var(--gold-500);
+    background: rgba(252, 250, 244, 0.78);
+    border: 1px solid var(--hair-lo);
+    padding: 7px 16px; border-radius: 999px;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* Thumbnail selector row — 6 amenity level plans */
+  .lp-thumbs {
+    display: flex; gap: 12px;
+    padding: 16px 44px 24px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+  }
+  .lp-thumb {
+    position: relative;
+    flex: 1 1 0; min-width: 140px;
+    height: 92px;
+    border-radius: 10px;
+    border: 1px solid var(--hair-lo);
+    background: linear-gradient(160deg, var(--bone-50) 0%, var(--bone-200) 100%);
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow: var(--tile-shadow);
+    transition: border-color 220ms ease, box-shadow 220ms ease, transform 200ms ease;
+    padding: 0;
+  }
+  .lp-thumb img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: contain;
+    padding: 8px 8px 22px;
+    display: block;
+  }
+  .lp-thumb .lp-thumb-lab {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 5px 8px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 8px;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--onyx-700);
+    background: linear-gradient(0deg, rgba(252,250,244,0.95), rgba(252,250,244,0.4));
+    text-align: center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .lp-thumb:hover { transform: translateY(-2px); border-color: var(--hair); }
+  .lp-thumb.is-active {
+    border-color: var(--gold-300);
+    box-shadow: 0 0 0 1.5px var(--gold-300), var(--tile-shadow);
+  }
+
   /* ── Cream veil (matches home pattern) ──────────────────────────── */
   .veil {
     position: absolute; inset: 0;
@@ -893,19 +1092,18 @@
   @keyframes veilWakeOut { to { opacity: 0; } }
 
   /* Entrance fade for the amenities content (subtle settle-in) */
-  .leftrail, .centercol, .rightrail, .metastrip {
+  .leftrail, .centercol, .rightrail {
     animation: settleIn 700ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
   }
   .centercol   { animation-delay: 140ms; }
   .rightrail   { animation-delay: 200ms; }
-  .metastrip   { animation-delay: 320ms; }
   @keyframes settleIn {
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .leftrail, .centercol, .rightrail, .metastrip { animation: none; }
+    .leftrail, .centercol, .rightrail { animation: none; }
     .day-tint, .live-dot { animation: none; }
   }
 </style>
@@ -1001,6 +1199,20 @@
       <div class="lr-rule"></div>
 
       <div class="cat-list" id="catList"></div>
+
+      <!-- Level-plans launcher → opens the amenity-floor plan viewer overlay -->
+      <button class="lp-launch" type="button" id="lpLaunch" aria-label="View amenity level plans">
+        <span class="lp-ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="1.5"/><path d="M3 9h18M9 9v12M15 3v6"/>
+          </svg>
+        </span>
+        <span class="lp-txt">
+          <span class="lp-title">Level Plans</span>
+          <span class="lp-sub">The floors amenities live on</span>
+        </span>
+        <span class="lp-count">07</span>
+      </button>
     </aside>
 
     <!-- ╔══ CENTER COLUMN ══╗ -->
@@ -1010,7 +1222,7 @@
         <div class="circle-halo"></div>
         <div class="orbital-ring"></div>
         <div class="circle-plate" id="circlePlate">
-          <img class="circle-img is-shown" id="circleImg" alt="Amenity image" />
+          <img class="circle-img is-shown" id="circleImg" alt="Amenity image" src="assets/client/amenities/am-resident-living.webp" decoding="async" />
           <div class="circle-fallback" id="circleFallback"><span>Image pending</span></div>
         </div>
       </div>
@@ -1042,43 +1254,36 @@
       <div class="thumbstack" id="thumbStack"></div>
     </aside>
 
-    <!-- ╔══ METADATA STRIP ══╗ -->
-    <div class="metastrip">
-      <div class="meta">
-        <span class="label">From</span>
-        <span class="value">85 Cr</span>
-        <span class="sub">4 · 5 · 6 BHK</span>
+    <!-- (Bottom metadata strip removed — main content breathes into the freed space.) -->
+
+    <!-- ╔══ LEVEL-PLANS OVERLAY — 6 amenity floor plans ══╗ -->
+    <div class="lp-overlay" id="lpOverlay" aria-hidden="true">
+      <div class="lp-ov-top">
+        <div class="lp-ov-titles">
+          <span class="lp-ov-eyebrow">— Amenity Level Plans</span>
+          <h2 class="lp-ov-headline">The Floors of the Tower</h2>
+        </div>
+        <button class="lp-ov-close" type="button" id="lpClose" aria-label="Close level plans">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          <span>Close</span>
+        </button>
       </div>
-      <span class="meta-pip"></span>
-      <div class="meta center">
-        <span class="label">Elevation</span>
-        <span class="value">312 m</span>
-        <span class="sub">Above Sea Face</span>
+      <div class="lp-stage" id="lpStage">
+        <img id="lpImage" alt="" decoding="async" draggable="false" />
+        <div class="lp-caption" id="lpCaption">—</div>
+        <!-- Plan zoom control — +/− · live % · Fit (resets pan+zoom) -->
+        <div class="lp-zoom" aria-label="Plan zoom controls">
+          <button class="lp-zbtn" type="button" id="lpZoomOut" aria-label="Zoom out">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg>
+          </button>
+          <span class="lp-zpct" id="lpZoomPct">100%</span>
+          <button class="lp-zbtn" type="button" id="lpZoomIn" aria-label="Zoom in">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+          <button class="lp-zfit is-disabled" type="button" id="lpZoomFit" aria-label="Fit plan to frame">Fit</button>
+        </div>
       </div>
-      <span class="meta-pip"></span>
-      <div class="meta center">
-        <span class="label">Floors</span>
-        <span class="value">79</span>
-        <span class="sub">Single Tower</span>
-      </div>
-      <span class="meta-pip"></span>
-      <div class="meta center">
-        <span class="label">Residences</span>
-        <span class="value">158</span>
-        <span class="sub">In Total</span>
-      </div>
-      <span class="meta-pip"></span>
-      <div class="meta center">
-        <span class="label">Available</span>
-        <span class="value">12</span>
-        <span class="sub">Open for Selection</span>
-      </div>
-      <span class="meta-pip"></span>
-      <div class="meta">
-        <span class="label">Possession</span>
-        <span class="value">Q4 2028</span>
-        <span class="sub">RERA P51900-30421</span>
-      </div>
+      <div class="lp-thumbs" id="lpThumbs"></div>
     </div>
 
     <!-- Cream veil -->
@@ -1171,14 +1376,11 @@
       sub: 'Sanctuary for<br/>Mind, Body &amp; Soul.',
       desc: 'Spaces designed to nurture holistic well-being in every moment.',
       items: [
-        // Real interior lap pool render — best-fit amenity photo available.
-        { icon: 'pool',       name: 'Infinity Pool',    tag: 'Rooftop',          img: 'assets/generated/hero-pool-golden-hour.png' },
-        // No real spa / steam / yoga / gym / salon photography yet — fallback plate.
-        { icon: 'spa',        name: 'Spa & Steam',      tag: 'Thermal Suite',    img: null },
-        { icon: 'yoga',       name: 'Yoga Studio',      tag: 'Meditation',       img: null },
-        { icon: 'gym',        name: 'Gymnasium',        tag: 'Technogym',        img: null },
-        { icon: 'salon',      name: 'Salon',            tag: 'Personal Care',    img: null },
-        { icon: 'meditation', name: 'Meditation Deck',  tag: 'Sky Deck',         img: null },
+        // Only amenities with a real client render are listed.
+        { icon: 'pool',       name: 'Infinity Pool',    tag: 'Rooftop',          img: 'assets/client/amenities/am-aqua-lounge.webp' },
+        { icon: 'spa',        name: 'Spa & Steam',      tag: 'Thermal Suite',    img: 'assets/client/amenities/am-salon-spa.webp' },
+        { icon: 'gym',        name: 'Gymnasium',        tag: 'Technogym',        img: 'assets/client/amenities/am-gym-1.webp' },
+        { icon: 'salon',      name: 'Salon',            tag: 'Personal Care',    img: 'assets/client/amenities/am-salon-spa.webp' },
       ],
     },
     {
@@ -1189,16 +1391,11 @@
       sub: 'Refined play,<br/>considered hours.',
       desc: 'Hours of quiet pursuit — from cinema to court — without leaving the tower.',
       items: [
-        // No real cinema / bowling / billiards / karaoke / court / sports renders
-        // exist in the asset pool. Honest cream-gradient placeholder for all eight.
-        { icon: 'cinema',    name: 'Cinema',          tag: 'Private Screening', img: null },
-        { icon: 'bowling',   name: 'Bowling Alley',   tag: 'Lounge',            img: null },
-        { icon: 'billiards', name: 'Billiards Room',  tag: 'Snooker',           img: null },
-        { icon: 'karaoke',   name: 'Karaoke Lounge',  tag: 'Acoustic',          img: null },
-        { icon: 'squash',    name: 'Squash Court',    tag: 'Pro',               img: null },
-        { icon: 'tennis',    name: 'Tennis Court',    tag: 'Surfaced',          img: null },
-        { icon: 'indoor',    name: 'Indoor Sports',   tag: 'Multi-use',         img: null },
-        { icon: 'games',     name: 'Games Room',      tag: 'Lounge',            img: null },
+        // Only amenities with a real client render are listed.
+        { icon: 'bowling',   name: 'Bowling Alley',   tag: 'Lounge',            img: 'assets/client/amenities/am-bowling.webp' },
+        { icon: 'tennis',    name: 'Tennis Court',    tag: 'Surfaced',          img: 'assets/client/amenities/am-padel.webp' },
+        { icon: 'indoor',    name: 'Indoor Sports',   tag: 'Multi-use',         img: 'assets/client/amenities/am-gym-2.webp' },
+        { icon: 'games',     name: 'Games Room',      tag: 'Lounge',            img: 'assets/client/amenities/am-indoor-games.webp' },
       ],
     },
     {
@@ -1209,13 +1406,8 @@
       sub: 'Considered space<br/>for considered work.',
       desc: 'A quiet floor for meetings, reading, and the kind of work that needs no interruption.',
       items: [
-        { icon: 'meeting',   name: 'Meeting Rooms',     tag: 'Executive',  img: null },
-        { icon: 'coworking', name: 'Co-Working',        tag: 'Open',       img: null },
-        { icon: 'concierge', name: 'Concierge Office',  tag: 'Private',    img: null },
-        // Brochure-p-13's lounge interior is a half-spread on a white page —
-        // crops awkwardly in the circular plate. Leave the placeholder.
-        { icon: 'library',   name: 'Library',           tag: 'Reading',    img: null },
-        { icon: 'tech',      name: 'Tech Lounge',       tag: 'AV-Ready',   img: null },
+        // Amenity-lobby render = open shared lounge → Co-Working.
+        { icon: 'coworking', name: 'Co-Working',        tag: 'Open',       img: 'assets/client/amenities/am-amenity-lobby.webp' },
       ],
     },
     {
@@ -1226,15 +1418,12 @@
       sub: 'Where the city<br/>gathers, quietly.',
       desc: 'Rooms for the evening — for hosts, for guests, for the kind of dinner that lingers.',
       items: [
-        { icon: 'banquet', name: 'Banquet Hall',   tag: 'Grand',           img: null },
-        // Real sky-lounge interior with people + city night view → fits Bar Lounge.
-        { icon: 'bar',     name: 'Bar Lounge',     tag: 'Resident',        img: 'assets/generated/hero-sky-lounge-night.png' },
-        { icon: 'wine',    name: 'Wine Cellar',    tag: 'Private Tasting', img: null },
-        { icon: 'dining',  name: 'Private Dining', tag: 'Chef Table',      img: null },
-        { icon: 'cigar',   name: 'Cigar Room',     tag: 'Humidor',         img: null },
-        { icon: 'cafe',    name: 'Lounge Café',    tag: 'All-Day',         img: null },
-        // Hero-tower-dusk is the only night skyline tower shot — perfect for Top Floor.
-        { icon: 'skyclub', name: 'Sky Club',       tag: 'Top Floor',       img: 'assets/photography/hero-tower-dusk.jpg' },
+        { icon: 'banquet', name: 'Banquet Hall',   tag: 'Grand',           img: 'assets/client/amenities/am-banquet.webp' },
+        // Resident-living sky lounge render → Bar Lounge (resident).
+        { icon: 'bar',     name: 'Bar Lounge',     tag: 'Resident',        img: 'assets/client/amenities/am-resident-living.webp' },
+        { icon: 'dining',  name: 'Private Dining', tag: 'Chef Table',      img: 'assets/client/amenities/am-restaurant.webp' },
+        // Sky party hall (79th) render → Sky Club, Top Floor.
+        { icon: 'skyclub', name: 'Sky Club',       tag: 'Top Floor',       img: 'assets/client/amenities/am-party-hall.webp' },
       ],
     },
     {
@@ -1245,17 +1434,8 @@
       sub: 'Two and a half acres<br/>along the sea face.',
       desc: 'Native gardens, soft paths, and a long stretch of west-facing sky.',
       items: [
-        { icon: 'garden',    name: 'Sculpted Garden',    tag: 'Native',        img: null },
-        { icon: 'jogging',   name: 'Jogging Track',      tag: 'Soft',          img: null },
-        { icon: 'yoga',      name: 'Yoga Lawn',          tag: 'Sunrise',       img: null },
-        // Aerial Worli + Sea Link at golden hour reads as the west-facing horizon.
-        { icon: 'sunset',    name: 'Sunset Deck',        tag: 'West-Facing',   img: 'assets/generated/hero-skyline-worli.png' },
-        // Tower exterior with visible vertical greenery / hanging gardens.
-        { icon: 'skygarden', name: 'Sky Garden',         tag: 'Vertical',      img: 'assets/presentation/pg-56.jpg' },
-        { icon: 'pet',       name: 'Pet Park',           tag: 'Off-Leash',     img: null },
-        { icon: 'play',      name: 'Children’s Play', tag: 'Adventure',   img: null },
-        { icon: 'bbq',       name: 'BBQ Deck',           tag: 'Outdoor Grill', img: null },
-        { icon: 'stone',     name: 'Reflexology Path',   tag: 'Stone',         img: null },
+        // Only amenities with a real client render are listed.
+        { icon: 'play',      name: 'Children’s Play', tag: 'Adventure',   img: 'assets/client/amenities/am-kids-play.webp' },
       ],
     },
     {
@@ -1266,14 +1446,8 @@
       sub: 'Thoughtful<br/>by default.',
       desc: 'Around-the-clock care across every floor — quietly, never overheard.',
       items: [
-        { icon: 'concierge', name: 'Concierge',        tag: '24-Hour',       img: null },
-        // Brochure-p-14 has a marketing text overlay ("THE WORLD CHANGES AT
-        // THE DOOR") burned into the image — disqualifies it for the hero.
-        { icon: 'valet',     name: 'Valet',            tag: 'Always-On',     img: null },
-        { icon: 'booking',   name: 'Spa Booking',      tag: 'One-Tap',       img: null },
-        { icon: 'housekeep', name: 'Housekeeping',     tag: 'Discreet',      img: null },
-        { icon: 'food',      name: 'F&B In-Residence', tag: 'Chef-on-Call',  img: null },
-        { icon: 'security',  name: 'Security',         tag: 'Multi-Layer',   img: null },
+        // Entrance / arrival lobby render → front-of-house Concierge.
+        { icon: 'concierge', name: 'Concierge',        tag: '24-Hour',       img: 'assets/client/amenities/am-entrance-lobby.webp' },
       ],
     },
   ];
@@ -1378,18 +1552,25 @@
 
     circleImg.classList.add('is-fading');
     setTimeout(() => {
+      const reveal = () => circleImg.classList.remove('is-fading');
       if (item.img) {
         circleFallbk.classList.remove('is-on');
         circleImg.style.display = '';
         circleImg.src = item.img;
+        // Decode the new frame before fading it in — no mid-load pop.
+        if (circleImg.decode) {
+          circleImg.decode().then(reveal).catch(reveal);
+        } else {
+          circleImg.complete ? reveal() : circleImg.addEventListener('load', reveal, { once: true });
+        }
       } else {
         // No real photo for this amenity — show the tasteful cream-gradient
         // "image pending" plate instead of firing a 404 for "null".
         circleImg.removeAttribute('src');
         circleImg.style.display = 'none';
         circleFallbk.classList.add('is-on');
+        reveal();
       }
-      circleImg.classList.remove('is-fading');
     }, 220);
 
     counterTextEl.innerHTML = pad2(state.subIndex + 1) + '<span class="slash">/</span>' + pad2(c.items.length);
@@ -1425,8 +1606,11 @@
   document.getElementById('prevBtn').addEventListener('click', prevSub);
   document.getElementById('nextBtn').addEventListener('click', nextSub);
 
-  // Keyboard arrows
+  // Keyboard arrows (ignored while the level-plans overlay is open —
+  // that overlay owns the arrows for plan navigation)
   window.addEventListener('keydown', e => {
+    const ov = document.getElementById('lpOverlay');
+    if (ov && ov.classList.contains('is-open')) return;
     if (e.key === 'ArrowLeft')  prevSub();
     if (e.key === 'ArrowRight') nextSub();
   });
@@ -1479,6 +1663,197 @@
   tickClock();
   setInterval(tickClock, 30000);
 
+  // ── LEVEL PLANS — 6 amenity floor plans (hardcoded from manifest.json
+  //    for offline safety; transparent WebP on uniform canvases) ───────
+  const LEVEL_PLANS = [
+    { label: 'Ground Floor',    file: 'assets/floorplans-final/amenity/amenity-ground-floor.webp' },
+    { label: 'Level 10',        file: 'assets/floorplans-final/amenity/amenity-lvl-10.webp' },
+    { label: 'Level 12',        file: 'assets/floorplans-final/amenity/amenity-lvl-12.webp' },
+    { label: 'Level 13',        file: 'assets/floorplans-final/amenity/amenity-lvl-13.webp' },
+    { label: 'Level 14',        file: 'assets/floorplans-final/amenity/amenity-lvl-14.webp' },
+    { label: 'Level 15',        file: 'assets/floorplans-final/amenity/amenity-lvl-15.webp' },
+    { label: 'Level 79 · Sky',  file: 'assets/floorplans-final/amenity/amenity-lvl-79.webp' },
+  ];
+  const lpOverlay  = document.getElementById('lpOverlay');
+  const lpThumbsEl = document.getElementById('lpThumbs');
+  const lpImageEl  = document.getElementById('lpImage');
+  const lpCapEl    = document.getElementById('lpCaption');
+  let lpIndex = 0;
+
+  // ── LEVEL-PLAN ZOOM ENGINE ──────────────────────────────────────────
+  // Wheel / trackpad + two-finger pinch to zoom · drag to pan when zoomed ·
+  // double-tap / double-click to reset · +/−/Fit control + live %.
+  // The plan image starts FIT (scale 1 = whole plan visible inside the
+  // frame via object-fit:contain), then zooms for detail. Pan is clamped
+  // so the image box never leaves the frame; .lp-stage overflow:hidden
+  // clips the result. Resets on plan switch + overlay open/close.
+  const LpZoom = (function () {
+    const stage = document.getElementById('lpStage');
+    const pctEl = document.getElementById('lpZoomPct');
+    const fitEl = document.getElementById('lpZoomFit');
+    const MIN = 1, MAX = 5;
+    let scale = 1, tx = 0, ty = 0;
+
+    function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+
+    // Image box = stage minus the 18px inset on each side.
+    function box() {
+      const r = stage.getBoundingClientRect();
+      return { w: Math.max(0, r.width - 36), h: Math.max(0, r.height - 36) };
+    }
+    function clampPan() {
+      const b = box();
+      const ox = (b.w * scale - b.w) / 2;
+      const oy = (b.h * scale - b.h) / 2;
+      tx = clamp(tx, -ox, ox);
+      ty = clamp(ty, -oy, oy);
+    }
+    function apply(animate) {
+      if (!animate) lpImageEl.classList.add('no-anim');
+      else lpImageEl.classList.remove('no-anim');
+      stage.style.setProperty('--lps', scale.toFixed(4));
+      stage.style.setProperty('--lpx', tx.toFixed(2) + 'px');
+      stage.style.setProperty('--lpy', ty.toFixed(2) + 'px');
+      stage.classList.toggle('is-zoomed', scale > 1.001);
+      pctEl.textContent = Math.round(scale * 100) + '%';
+      fitEl.classList.toggle('is-disabled', scale <= 1.001 && tx === 0 && ty === 0);
+      if (!animate) requestAnimationFrame(() => lpImageEl.classList.remove('no-anim'));
+    }
+    // Focal point: client px → offset from stage centre, in CSS px.
+    function focalFromClient(cx, cy) {
+      const r = stage.getBoundingClientRect();
+      return { fx: cx - (r.left + r.width / 2), fy: cy - (r.top + r.height / 2) };
+    }
+    function zoomTo(next, fx, fy) {
+      next = clamp(next, MIN, MAX);
+      if (next === scale) return;
+      const k = next / scale;
+      tx = (tx - fx) * k + fx;
+      ty = (ty - fy) * k + fy;
+      scale = next;
+      clampPan();
+      apply(true);
+    }
+    function reset(animate) {
+      scale = 1; tx = 0; ty = 0;
+      apply(animate !== false);
+    }
+
+    // Wheel / trackpad
+    stage.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const { fx, fy } = focalFromClient(e.clientX, e.clientY);
+      const step = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+      zoomTo(scale * step, fx, fy);
+    }, { passive: false });
+
+    // Drag to pan (mouse + single touch)
+    let dragging = false, lastX = 0, lastY = 0;
+    function dragStart(cx, cy) {
+      if (scale <= 1.001) return false;
+      dragging = true; lastX = cx; lastY = cy;
+      stage.classList.add('is-grabbing');
+      return true;
+    }
+    function dragMove(cx, cy) {
+      if (!dragging) return;
+      tx += (cx - lastX);
+      ty += (cy - lastY);
+      lastX = cx; lastY = cy;
+      clampPan();
+      apply(false);
+    }
+    function dragEnd() { dragging = false; stage.classList.remove('is-grabbing'); }
+
+    stage.addEventListener('mousedown', (e) => { if (dragStart(e.clientX, e.clientY)) e.preventDefault(); });
+    window.addEventListener('mousemove', (e) => dragMove(e.clientX, e.clientY));
+    window.addEventListener('mouseup', dragEnd);
+    stage.addEventListener('dblclick', (e) => { e.preventDefault(); reset(true); });
+
+    // Touch: single-finger pan · two-finger pinch · double-tap reset
+    let pinch = null, lastTap = 0;
+    stage.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        const a = e.touches[0], b = e.touches[1];
+        const d0 = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+        const mid = focalFromClient((a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2);
+        pinch = { d0, s0: scale, fx: mid.fx, fy: mid.fy };
+        dragging = false;
+      } else if (e.touches.length === 1) {
+        const now = Date.now();
+        if (now - lastTap < 300) { e.preventDefault(); reset(true); lastTap = 0; return; }
+        lastTap = now;
+        dragStart(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: false });
+    stage.addEventListener('touchmove', (e) => {
+      if (pinch && e.touches.length === 2) {
+        e.preventDefault();
+        const a = e.touches[0], b = e.touches[1];
+        const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+        zoomTo(pinch.s0 * (d / pinch.d0), pinch.fx, pinch.fy);
+      } else if (dragging && e.touches.length === 1) {
+        e.preventDefault();
+        dragMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: false });
+    stage.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) pinch = null;
+      if (e.touches.length === 0) dragEnd();
+    });
+
+    // +/− / Fit buttons
+    document.getElementById('lpZoomIn').addEventListener('click', () => zoomTo(scale * 1.4, 0, 0));
+    document.getElementById('lpZoomOut').addEventListener('click', () => zoomTo(scale / 1.4, 0, 0));
+    fitEl.addEventListener('click', () => reset(true));
+
+    return { reset };
+  })();
+
+  function lpSelect(i) {
+    lpIndex = (i + LEVEL_PLANS.length) % LEVEL_PLANS.length;
+    const p = LEVEL_PLANS[lpIndex];
+    lpImageEl.src = p.file;
+    lpImageEl.alt = p.label;
+    lpCapEl.textContent = p.label;
+    lpThumbsEl.querySelectorAll('.lp-thumb').forEach((el, j) =>
+      el.classList.toggle('is-active', j === lpIndex));
+    // Switching plans always returns the viewer to Fit.
+    if (LpZoom) LpZoom.reset(false);
+  }
+  LEVEL_PLANS.forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'lp-thumb' + (i === 0 ? ' is-active' : '');
+    btn.innerHTML = '<img alt="" loading="lazy" />' +
+      '<span class="lp-thumb-lab">' + p.label + '</span>';
+    const img = btn.querySelector('img');
+    img.src = p.file;
+    btn.addEventListener('click', () => lpSelect(i));
+    lpThumbsEl.appendChild(btn);
+  });
+  function lpOpen()  {
+    lpOverlay.classList.add('is-open');
+    lpOverlay.setAttribute('aria-hidden', 'false');
+    // Select AFTER the overlay is laid out so the stage has real dimensions
+    // for the Fit clamp, and the plan opens fully visible (Fit) by default.
+    requestAnimationFrame(() => { lpSelect(lpIndex); if (LpZoom) LpZoom.reset(false); });
+  }
+  function lpCloseFn() {
+    lpOverlay.classList.remove('is-open');
+    lpOverlay.setAttribute('aria-hidden', 'true');
+    if (LpZoom) LpZoom.reset(false);
+  }
+  document.getElementById('lpLaunch').addEventListener('click', lpOpen);
+  document.getElementById('lpClose').addEventListener('click', lpCloseFn);
+  window.addEventListener('keydown', e => {
+    if (!lpOverlay.classList.contains('is-open')) return;
+    if (e.key === 'Escape')     lpCloseFn();
+    if (e.key === 'ArrowLeft')  lpSelect(lpIndex - 1);
+    if (e.key === 'ArrowRight') lpSelect(lpIndex + 1);
+  });
+  lpSelect(0);
+
   // ── Initial render ──────────────────────────────────────────────
   renderRailHeader();
   renderThumbStack();
@@ -1489,7 +1864,13 @@
   // Service worker registration (PWA + offline cache)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
+      var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});
+      var ecReloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if (ecReloaded || !ecHadCtrl) return;   // skip the first-ever claim
+        ecReloaded = true; window.location.reload();   // new version deployed -> refresh
+      });
     });
   }
   // iOS double-tap zoom guard
@@ -1553,5 +1934,6 @@
     window.addEventListener('popstate', clearLeave);
   })();
 </script>
+  <script src="assets/tools-dock.js"></script>
 </body>
 </html>

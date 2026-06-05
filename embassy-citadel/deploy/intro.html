@@ -48,14 +48,25 @@
     position: fixed; inset: 0; overflow: hidden;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     display: flex; align-items: center; justify-content: center;
-    background:
-      url('assets/bg-paper.png') center/cover no-repeat,
-      radial-gradient(ellipse 80% 60% at 50% 45%, var(--paper) 0%, var(--bone-50) 55%, var(--bone-200) 100%) var(--paper);
+    isolation: isolate;
+    /* Flat paper — matches the stage's own paper edge exactly, so the
+       letterbox/pillarbox margins on non-16:10 screens (iPad 4:3, 65" 16:9)
+       blend seamlessly into the stage with no visible "cut". */
+    background: url('assets/bg-paper.png') center/cover no-repeat, var(--paper);
+  }
+  /* Full-bleed day-tint behind the stage so the margins shift hue in lock-step
+     with the stage's own .day-tint — the seam never appears at any tint phase. */
+  #stage-wrap::before {
+    content: ''; position: absolute; inset: 0; z-index: 0;
+    pointer-events: none; mix-blend-mode: color;
+    background-color: rgba(255, 250, 240, 0.10);
+    animation: dayCycle 120s linear infinite;
   }
   #stage, .stage-inner {
     position: relative;
     width: 1440px; height: 900px;
     flex-shrink: 0;
+    z-index: 1;
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden; will-change: transform;
@@ -203,10 +214,14 @@
   }
 
   /* ── CENTER WORDMARK + TAGLINE ─────────────────────────────────── */
+  /* Wordmark + tagline block. Anchored to the TOP of the stage and pushed
+     down a fixed amount, so it sits in the upper-middle and the column below
+     (field → circle → labels) always has clear, even breathing room beneath
+     it regardless of intrinsic block height. */
   .threshold {
     position: absolute;
-    left: 50%; top: 50%;
-    transform: translate(-50%, -55%);
+    left: 50%; top: 116px;
+    transform: translate(-50%, 0);
     z-index: 6;
     display: flex; flex-direction: column; align-items: center;
     pointer-events: none;
@@ -216,7 +231,7 @@
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.55em; text-transform: uppercase;
     color: var(--gold-500); opacity: 0;
-    margin-bottom: 24px;
+    margin-bottom: 18px;
     display: flex; align-items: center; gap: 14px;
     animation: textIn 1100ms cubic-bezier(0.22, 1, 0.36, 1) 600ms forwards;
   }
@@ -230,7 +245,7 @@
   }
 
   .threshold-wordmark {
-    width: 420px; height: 210px;
+    width: 400px; height: 168px;
     color: var(--onyx-700);
     filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.4));
     opacity: 0;
@@ -249,7 +264,7 @@
     letter-spacing: 0.10em; text-transform: uppercase;
     color: var(--onyx-700);
     opacity: 0;
-    margin-top: 22px;
+    margin-top: 14px;
     animation: textInDark 1100ms cubic-bezier(0.22, 1, 0.36, 1) 1000ms forwards;
   }
   @keyframes textInDark {
@@ -268,13 +283,16 @@
   }
 
   /* ── TAP-TO-ENTER ZONE (white fingerprint scanner) ─────────────── */
+  /* Field → circle → labels column. Top-anchored at a fixed y so there is a
+     deliberate clear band beneath the wordmark/tagline block (which ends near
+     y≈392) before the token field begins — no overlap, even rhythm. */
   .tap-wrap {
     position: absolute;
-    bottom: 84px; left: 50%;
+    top: 470px; left: 50%;
     transform: translateX(-50%);
     z-index: 10;
     display: flex; flex-direction: column; align-items: center;
-    gap: 20px;
+    gap: 22px;
     opacity: 0;
     animation: tapIn 900ms cubic-bezier(0.22, 1, 0.36, 1) 1800ms forwards;
   }
@@ -282,6 +300,25 @@
     from { opacity: 0; transform: translate(-50%, 12px); }
     to   { opacity: 1; transform: translate(-50%, 0); }
   }
+
+  .tap-field { width: 326px; max-width: 78vw; }
+  .tap-field input {
+    width: 100%; box-sizing: border-box;
+    font-family: 'Inter', sans-serif; font-size: 13px; letter-spacing: 0.04em;
+    text-align: center; color: var(--onyx-700);
+    padding: 13px 20px; border-radius: 999px;
+    border: 1px solid rgba(148,111,56,0.42);
+    background: rgba(252,250,244,0.74);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    box-shadow: 0 6px 18px rgba(110,90,55,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
+    outline: none; transition: border-color 200ms ease, box-shadow 200ms ease;
+  }
+  .tap-field input::placeholder { color: var(--taupe-400); letter-spacing: 0.05em; }
+  .tap-field input:focus {
+    border-color: rgba(148,111,56,0.72);
+    box-shadow: 0 0 0 3px rgba(217,185,122,0.18), 0 6px 18px rgba(110,90,55,0.12);
+  }
+  body.is-firing .tap-field { opacity: 0.3; transition: opacity 400ms ease; }
 
   .tap-zone {
     position: relative;
@@ -434,15 +471,15 @@
   body.is-firing .corner-r { opacity: 0; transition: opacity 380ms ease; }
 
   /* THE BIG ONE — wordmark morphs to the home centerpiece position.
-     Stage center is (720, 450). Home centerpiece is at (1050, 450).
-     intro wordmark is centered at ~(720, 410) inside .threshold; we
-     translate (+330, +40) and scale 0.333 so the wordmark lands at
-     the centerpiece's wordmark size + position. */
+     Stage center is (720, 450). Home centerpiece is at ~(1050, 450).
+     .threshold is now top-anchored at y=116; its wordmark centers at
+     ~(720, 234). We translate (+330, +216) and scale 0.333 so the
+     wordmark lands at the centerpiece's wordmark size + position. */
   .threshold {
     transition: transform 900ms cubic-bezier(0.7, 0, 0.3, 1);
   }
   body.is-firing .threshold {
-    transform: translate(-50%, -55%) translate(330px, 40px) scale(0.333);
+    transform: translate(-50%, 0) translate(330px, 216px) scale(0.333);
     transition: transform 900ms cubic-bezier(0.7, 0, 0.3, 1);
   }
 
@@ -632,14 +669,25 @@
   // Stage scaler — fit-to-viewport (letterbox on either axis as needed).
   (function () {
     const W = 1440, H = 900;
+    // True when the token/phone field (or any input) holds focus — i.e. the
+    // soft keyboard is (or is about to be) open. While editing we must NOT
+    // rescale: the keyboard shrinks visualViewport, which would otherwise
+    // shrink the whole intro.
+    function isEditing() {
+      const a = document.activeElement;
+      if (!a) return false;
+      const tag = a.tagName;
+      return tag === 'INPUT' || tag === 'TEXTAREA' || a.isContentEditable;
+    }
     function scale() {
+      // Field focused / keyboard open → keep the stage exactly as it is.
+      if (isEditing()) return;
       const stage = document.querySelector('.stage-inner') || document.getElementById('stage');
       if (!stage) return;
-      let vw = window.innerWidth, vh = window.innerHeight;
-      if (window.visualViewport) {
-        vw = Math.min(vw, window.visualViewport.width);
-        vh = Math.min(vh, window.visualViewport.height);
-      }
+      // Use window.innerWidth/innerHeight (the layout viewport), NOT
+      // visualViewport.height — innerHeight stays the full screen height when
+      // the keyboard opens, so the intro never scales down on field focus.
+      const vw = window.innerWidth, vh = window.innerHeight;
       const s = Math.min(vw / W, vh / H);
       const t = 'scale(' + s + ')';
       stage.style.transform = t;
@@ -650,8 +698,10 @@
     window.addEventListener('resize', scale);
     window.addEventListener('orientationchange', scale);
     if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', scale);
-      window.visualViewport.addEventListener('scroll', scale);
+      // Ignore visualViewport changes while editing (keyboard show/hide), so
+      // typing never triggers a rescale of the stage.
+      window.visualViewport.addEventListener('resize', function () { if (!isEditing()) scale(); });
+      window.visualViewport.addEventListener('scroll', function () { if (!isEditing()) scale(); });
     }
     document.addEventListener('DOMContentLoaded', scale);
     window.addEventListener('load', scale);
@@ -682,8 +732,48 @@
 <link rel="apple-touch-icon" sizes="512x512" href="assets/icon-512.png">
 <meta name="format-detection" content="telephone=no">
 <!-- PWA-BLOCK-END -->
+<style id="ecdl-style">
+  .ecdl-gate{position:fixed;inset:0;z-index:99999;background:radial-gradient(120% 90% at 50% 18%,#FFFFFF 0%,var(--paper,#FCFAF4) 46%,var(--bone,#F4F2ED) 100%);display:grid;place-items:center;font-family:'Inter',system-ui,sans-serif;opacity:1;transition:opacity .55s ease;-webkit-tap-highlight-color:transparent;}
+  .ecdl-gate.is-done{opacity:0;pointer-events:none;}
+  .ecdl-card{width:min(560px,86vw);text-align:center;padding:0 24px;transition:transform .55s cubic-bezier(.22,1,.36,1);}
+  .ecdl-gate.is-done .ecdl-card{transform:translateY(-10px);}
+  .ecdl-logo img{height:44px;width:auto;opacity:.96;margin:0 auto 28px;display:block;}
+  .ecdl-kicker{font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold-500,#946F38);margin-bottom:14px;font-weight:600;}
+  .ecdl-title{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:46px;line-height:1.05;color:#2A2620;margin:0 0 14px;letter-spacing:.01em;}
+  .ecdl-sub{font-size:14.5px;line-height:1.6;color:#6E675C;max-width:430px;margin:0 auto 30px;font-weight:300;}
+  .ecdl-btn{appearance:none;-webkit-appearance:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:#FCFAF4;background:linear-gradient(180deg,var(--gold-400,#B89968),var(--gold-500,#946F38));padding:16px 30px;border-radius:100px;box-shadow:0 12px 28px -10px rgba(80,58,28,.55),inset 0 1px 1px rgba(255,255,255,.35);transition:transform .18s ease,opacity .3s ease;}
+  .ecdl-btn:active{transform:scale(.97);}
+  .ecdl-skip{display:block;margin:18px auto 0;background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#A89B86;transition:color .2s;}
+  .ecdl-skip:active{color:var(--gold-500,#946F38);}
+  .ecdl-btn.is-hidden,.ecdl-skip.is-hidden{display:none;}
+  .ecdl-meter{max-width:430px;margin:6px auto 0;}
+  .ecdl-bar{height:6px;border-radius:100px;background:rgba(168,155,134,.22);overflow:hidden;box-shadow:inset 0 1px 2px rgba(80,58,28,.10);}
+  .ecdl-bar>span{display:block;height:100%;width:0%;border-radius:100px;background:linear-gradient(90deg,var(--gold-300,#C9A567),var(--gold-500,#946F38));transition:width .25s ease;}
+  .ecdl-stat{display:flex;justify-content:space-between;margin-top:13px;font-size:12px;letter-spacing:.06em;color:#6E675C;font-variant-numeric:tabular-nums;}
+  .ecdl-stat #ecdlPct{color:var(--gold-500,#946F38);font-weight:600;}
+  .ecdl-note{margin-top:16px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#A89B86;transition:color .3s;}
+  .ecdl-gate.is-complete .ecdl-note{color:var(--gold-500,#946F38);}
+  html.ecdl-lock,html.ecdl-lock body{overflow:hidden;}
+  @media (max-height:560px){.ecdl-title{font-size:34px;}.ecdl-logo img{height:34px;margin-bottom:18px;}}
+</style>
 </head>
 <body>
+<div id="ecDownloadGate" class="ecdl-gate" hidden>
+  <div class="ecdl-card">
+    <div class="ecdl-logo"><img src="assets/embassy-citadel-logo.svg" alt="Embassy Citadel" /></div>
+    <div class="ecdl-kicker">&mdash; Offline Experience</div>
+    <h1 class="ecdl-title">Prepare this device</h1>
+    <p class="ecdl-sub">Download the complete sales suite to this device so every floor plan, film and gallery opens instantly &mdash; with or without a connection.</p>
+    <div class="ecdl-meter" id="ecdlMeter" hidden>
+      <div class="ecdl-bar"><span id="ecdlFill"></span></div>
+      <div class="ecdl-stat"><span id="ecdlPct">0%</span><span id="ecdlMb">0 / 173 MB</span></div>
+      <div class="ecdl-note" id="ecdlNote">Downloading the experience&hellip;</div>
+    </div>
+    <button class="ecdl-btn" id="ecdlBtn" type="button">Download for Offline &middot; <span id="ecdlSize">173 MB</span></button>
+    <button class="ecdl-skip" id="ecdlSkip" type="button">Skip for now</button>
+  </div>
+</div>
+
 
 <!-- Embassy Citadel wordmark symbol -->
 <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -729,6 +819,11 @@
     </div>
 
     <div class="tap-wrap">
+      <div class="tap-field">
+        <input id="tokenInput" type="text" inputmode="text" autocomplete="off" spellcheck="false"
+               placeholder="Enter token number or phone number"
+               aria-label="Token number or phone number" />
+      </div>
       <button class="tap-zone" id="tapZone" type="button" aria-label="Tap the Embassy Citadel mark to enter">
         <!-- Original Embassy Citadel pennant/citadel mark, isolated from the wordmark -->
         <span class="brand-tap" aria-hidden="true">
@@ -773,6 +868,7 @@
   const tapZone = document.getElementById('tapZone');
   let firing = false;
   function commit(e) {
+    try { sessionStorage.setItem('ec.token', (document.getElementById('tokenInput')||{}).value || ''); } catch(e){}
     if (firing) return;
     if (e) e.preventDefault();
     firing = true;
@@ -815,7 +911,13 @@
   // Service worker registration (PWA + offline cache)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
+      var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});
+      var ecReloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if (ecReloaded || !ecHadCtrl) return;   // skip the first-ever claim
+        ecReloaded = true; window.location.reload();   // new version deployed -> refresh
+      });
     });
   }
   // iOS double-tap zoom guard
@@ -1024,6 +1126,81 @@
     window.addEventListener('pageshow', clearLeave);
     window.addEventListener('popstate', clearLeave);
   })();
+</script>
+<script src="assets/precache-list.js"></script>
+<script>
+/* First-run offline download gate (intro.html only). Downloads the full app
+   into Cache Storage with a streamed, byte-accurate progress bar, then never
+   shows again. Skip is a safety valve so the kiosk is never a dead-end. */
+(function(){
+  var gate=document.getElementById('ecDownloadGate'); if(!gate) return;
+  var cacheName=(window.EC_CACHE||'citadel-v26');
+  var FLAG='ec.offlineReady.'+cacheName;
+  if(localStorage.getItem(FLAG)) return;            // already downloaded
+  if(!('caches' in window)) return;                  // no Cache API -> online only
+  var list=(window.EC_PRECACHE||[]);
+  var totalBytes=(window.EC_TOTAL_BYTES||181000000);
+  var mbTotal=Math.round(totalBytes/1048576);
+
+  gate.hidden=false; document.documentElement.classList.add('ecdl-lock');
+  var $=function(id){return document.getElementById(id);};
+  $('ecdlSize').textContent=mbTotal+' MB'; $('ecdlMb').textContent='0 / '+mbTotal+' MB';
+  var btn=$('ecdlBtn'),skip=$('ecdlSkip'),meter=$('ecdlMeter'),fill=$('ecdlFill'),
+      pctEl=$('ecdlPct'),mbEl=$('ecdlMb'),noteEl=$('ecdlNote');
+
+  function finishGate(setFlag){
+    if(setFlag){try{localStorage.setItem(FLAG,'1');}catch(e){}}
+    gate.classList.add('is-done');
+    setTimeout(function(){try{gate.parentNode.removeChild(gate);}catch(e){} document.documentElement.classList.remove('ecdl-lock');},650);
+  }
+  skip.addEventListener('click',function(){finishGate(false);});
+
+  btn.addEventListener('click',function(){
+    if(!list.length){ noteEl.textContent='List unavailable \u2014 entering online'; meter.hidden=false; btn.classList.add('is-hidden'); skip.classList.add('is-hidden'); setTimeout(function(){finishGate(false);},1400); return; }
+    btn.classList.add('is-hidden'); skip.classList.add('is-hidden'); meter.hidden=false;
+    if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().catch(function(){});}
+    var received=0, failed=0;
+    function update(){
+      var pct=Math.min(100,Math.round(received/totalBytes*100));
+      fill.style.width=pct+'%'; pctEl.textContent=pct+'%';
+      mbEl.textContent=Math.min(mbTotal,Math.round(received/1048576))+' / '+mbTotal+' MB';
+    }
+    function one(cache,url){
+      return fetch(url,{cache:'reload'}).then(function(resp){
+        if(!resp||!resp.ok){failed++;return;}
+        if(resp.body&&resp.body.getReader){
+          var reader=resp.body.getReader(),chunks=[];
+          return (function pump(){return reader.read().then(function(r){
+            if(r.done){var blob=new Blob(chunks);return cache.put(url,new Response(blob,{headers:resp.headers,status:resp.status,statusText:resp.statusText})).catch(function(){});}
+            chunks.push(r.value); received+=r.value.length; update(); return pump();
+          });})();
+        }
+        return resp.blob().then(function(blob){received+=blob.size;update();return cache.put(url,new Response(blob,{headers:resp.headers})).catch(function(){});});
+      }).catch(function(){failed++;});
+    }
+    function pool(cache,items,conc){
+      return new Promise(function(resolve){
+        var i=0,done=0,active=0;
+        function launch(){
+          while(active<conc&&i<items.length){
+            active++; one(cache,items[i++]).then(function(){active--;done++; (done===items.length)?resolve():launch();});
+          }
+        }
+        items.length?launch():resolve();
+      });
+    }
+    caches.open(cacheName).then(function(cache){
+      return pool(cache,list,5);
+    }).then(function(){
+      received=totalBytes; update();
+      gate.classList.add('is-complete');
+      noteEl.textContent=failed?('Ready \u00b7 '+failed+' item(s) will load when online'):'Ready for offline use';
+      setTimeout(function(){finishGate(true);},950);
+    }).catch(function(){
+      noteEl.textContent='Storage error \u2014 entering online'; setTimeout(function(){finishGate(false);},1400);
+    });
+  });
+})();
 </script>
 </body>
 </html>

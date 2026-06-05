@@ -3,58 +3,41 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Embassy Citadel — Floor Selector</title>
+<title>Embassy Citadel — Choose a Floor</title>
 
 <!--
   ──────────────────────────────────────────────────────────────────────
-  INVENTORY · FLOORS v1 — assumptions + reasoning
+  INVENTORY · CHOOSE FLOORS — assumptions + reasoning
   ──────────────────────────────────────────────────────────────────────
-  Arrived from inventory.html via iris-reveal that originates at the
-  exact tap point on the tower (passed in as ?ox=%&oy=%).
+  Arrived from inventory.html, which stored the tapped section in
+  sessionStorage('ec.section'). This screen reads that section and:
 
-  Layout (1440 × 900 stage)
-  · Top bar 76px — slightly different chrome: top-left is a Cormorant
-    "EMBASSY CITADEL" + small caps "WORLI, MUMBAI" (the whole block is
-    the back button → home.html with cream-veil). Top-right carries a
-    tiny "↻ TAP THE TOWER" link back to inventory.html.
-  · LEFT RAIL @ x=72 w=340 — editorial eyebrow + 3-line Cormorant
-    headline + body + CODE INDEX card (6 colour-coded rows; clicking
-    one filters the slider bands by highlighting them).
-  · CENTER @ x≈460 w≈540 — colour-coded elevation drawing of the tower
-    (assets/tower-elevation.png), with altitude tags on the left
-    (zone heights) and elevation metres + SERVICE callouts on the right.
-  · RIGHT RAIL @ x=1100 w=280 — FLOOR SELECTOR card containing a
-    vertical slider with colour-coded bands. Drag the handle, click
-    the track, use ↑/↓ arrow keys, or use the bottom chevron buttons
-    to change floor. Default selected floor = 26.
-  · BOTTOM — QUICK JUMP dropdown (left), centre hint + ←/→ buttons,
-    VIEW FLOOR PLAN CTA (right) → floor-units.html?floor=N.
+  · LEFT HALF of the 1440×900 stage = the TOWER. The angled render
+    (assets/inventory/tower-types.webp, 2752×2064) is shown at a natural
+    large size occupying the left half — NOT cropped/zoomed into a small
+    box. The chosen section glows in its per-type gradient + soft glow;
+    the rest of the tower is dimmed. So the tower reads as the tower,
+    just lit on the section you picked.
+  · RIGHT HALF = the FLOOR SELECTOR in the prior slider style the client
+    liked: a tall vertical colour-coded track with one band per level of
+    the chosen section, a draggable pill handle (.fs-handle with a
+    Cormorant numeral .fs-handle-label), level labels on the left rail,
+    ticks on the right, and a dashed gold leader line drawn from the
+    handle across to the tower. Drag / click the track / arrow keys move
+    the handle; the band you land on is the chosen level.
+  · A "View Floor Plan" CTA under the slider confirms the level:
+    sessionStorage('ec.floor') + cream-veil → floor-plan.html.
 
-  Floor range
-  · -5 .. -3 = basements (B5..B3)
-  · -2 .. 4  = parking podiums (B2..L4)
-  · 5        = single amenity level
-  · 6 .. 74  = residential towers
-  · 75 .. 77 = amenity / mansion entry
-  · 78 .. 79 = terrace
+  Bands are equal-height per level (top = first/highest in the section
+  list, bottom = last). For 1-level sections the single band fills the
+  track. Labels thin out automatically for long lists (residential ~45).
 
-  Iris reveal
-  · body.is-arriving applied on load, clip-path circle expands from
-    (--reveal-x, --reveal-y) over 900ms cubic-bezier(0.65,0,0.35,1).
-  · URL params ox / oy default to 50 when missing.
-
-  Placeholders / to-wire-later
-  · "VIEW FLOOR PLAN" CTA → floor-units.html?floor=N (floor-unit
-    selection screen — pick a unit on this floor).
-  · Code-Index row click only highlights the matching bands on the
-    slider; it does not jump the handle to that range yet.
-  · Quick-Jump dropdown shows a grouped picker — the categories are
-    real but the picker is a one-shot floor select (not a deep filter).
+  Stage scaler, #stage-wrap responsiveness, PWA blocks and back
+  navigation are preserved from the prior build.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root {
     --paper:      #FCFAF4;
@@ -82,14 +65,9 @@
     --hair:       rgba(148, 111, 56, 0.32);
     --hair-hi:    rgba(148, 111, 56, 0.58);
 
-    /* Floor-band swatches (driven by the Code Index legend) */
-    --band-residential: #F5E89A;
-    --band-amenity-mansion: #F2C8C8;
-    --band-terrace: #F5C4A8;
-    --band-service: #D8D0E8;
-    --band-amenity: #C6DCC6;
-    --band-parking: #E0D9C5;
-    --band-basement: #B9C2CC;
+    /* The active section accent — set at runtime from the type palette */
+    --accent-a:   #E67E22;
+    --accent-b:   #F1C40F;
 
     --plate-shadow:  0 30px 60px -18px rgba(80, 58, 28, 0.30),
                      0 14px 30px -10px rgba(80, 58, 28, 0.18),
@@ -135,14 +113,14 @@
   /* ── Stage scaler ─────────────────────────────────────────────── */
   #stage-wrap {
     position: fixed; inset: 0; overflow: hidden;
+    isolation: isolate;
     display: flex; align-items: center; justify-content: center;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-    background:
-      url('assets/bg-paper.png') center/cover no-repeat,
-      radial-gradient(ellipse 80% 60% at 50% 45%, var(--paper) 0%, var(--bone-50) 55%, var(--bone-200) 100%) var(--paper);
+    background: url('assets/bg-paper.png') center/cover no-repeat, var(--paper);
   }
   #stage, .stage-inner {
     position: relative;
+    z-index: 1;
     width: 1440px; height: 900px;
     flex-shrink: 0;
     transform-origin: center center;
@@ -155,8 +133,6 @@
   }
 
   /* ── PAPER + GRAIN BG ─────────────────────────────────────────── */
-  /* Full-bleed paper texture. Extend slightly past stage edges so no
-     white slivers appear on the edges from rounding/scale artifacts. */
   .stage-bg {
     position: absolute;
     top: -2px; left: -2px; right: -2px; bottom: -2px;
@@ -179,17 +155,16 @@
     background-position: 0 0, 1px 1px;
   }
 
-  /* ── TOP BAR (seamless — paper bg shows through) ────────────── */
+  /* ── TOP BAR ──────────────────────────────────────────────────── */
   .topbar {
     position: absolute; top: 0; left: 0; right: 0; height: 76px;
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 44px;
     z-index: 8;
-    background: linear-gradient(180deg, rgba(252,250,244,0.55), rgba(252,250,244,0) 100%);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    background: linear-gradient(180deg, rgba(252,250,244,0.78), rgba(252,250,244,0) 100%);
+    /* solid-ish gradient instead of a wide backdrop-blur over the moving
+       tower — avoids per-frame blur recompute (flicker) with no visual loss */
   }
-  /* Unified right-side BACK button (added) */
   .ec-back-btn {
     display: inline-flex; align-items: center; gap: 8px;
     min-width: 92px; min-height: 44px;
@@ -213,16 +188,13 @@
   .ec-back-btn:active { transform: scale(0.96); }
   .ec-back-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--gold-500); }
   .ec-back-btn .arr { font-size: 13px; line-height: 1; transform: translateY(-0.5px); letter-spacing: 0; }
-  /* ── TAP RESPONSIVENESS — interactive surfaces inside the app ── */
-  button, [role="button"], a[href], .ci-row, .floor-row {
+
+  button, [role="button"], a[href], .floor-row {
     -webkit-tap-highlight-color: transparent;
     user-select: none; -webkit-user-select: none;
     touch-action: manipulation;
   }
-  svg .tap, svg [data-tap], svg [role="button"], svg .floor-band { pointer-events: all; cursor: pointer; }
 
-  /* Top-left: small badge + EMBASSY CITADEL serif + WORLI caps
-     The whole block IS the back button. */
   .brand-back {
     display: flex; align-items: center; gap: 14px;
     text-decoration: none; color: inherit; cursor: pointer;
@@ -248,47 +220,12 @@
     opacity: 0.85;
     transform: translate(14px, -50%);
   }
-  .brand-diamond {
-    width: 18px; height: 18px;
-    position: relative; display: inline-block;
-    transform: rotate(45deg);
-    border: 1px solid var(--gold-500);
-    background: linear-gradient(135deg, var(--gold-200) 0%, var(--gold-500) 100%);
-    box-shadow: 0 0 6px rgba(148,111,56,0.20);
-  }
-  .brand-diamond::before {
-    content: '';
-    position: absolute; inset: 3px;
-    border: 0.5px solid rgba(255,255,255,0.55);
-    background: transparent;
-  }
-  .brand-text {
-    display: flex; flex-direction: column; gap: 2px;
-    line-height: 1;
-  }
-  .brand-text .name {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 500;
-    font-size: 22px;
-    color: var(--onyx-700);
-    letter-spacing: 0.04em;
-  }
-  .brand-text .loc {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 9px;
-    letter-spacing: 0.4em;
-    text-transform: uppercase;
-    color: var(--gold-500);
-  }
-  /* Canonical SVG wordmark (matches home.html) */
   .brand-wordmark {
     width: 130px; height: 36px;
     color: var(--onyx-700);
   }
   .brand-wordmark svg { width: 100%; height: 100%; display: block; }
 
-  /* Top-right: small "Tap the tower" reset link */
   .top-reset {
     display: flex; align-items: center; gap: 10px;
     font-family: 'Inter', sans-serif;
@@ -308,441 +245,147 @@
     color: var(--onyx-700);
     transform: translateX(-2px);
   }
-  .top-reset .glyph {
-    display: inline-block;
-    transition: transform 280ms ease;
-  }
+  .top-reset .glyph { display: inline-block; transition: transform 280ms ease; }
   .top-reset:hover .glyph { transform: rotate(-90deg); }
 
-  /* ── LEFT RAIL ────────────────────────────────────────────────── */
-  .left-rail {
+  /* ── LEFT HALF : THE TOWER ────────────────────────────────────────
+     The render occupies the left half of the stage at a natural large
+     size. It is NOT clipped into a small box — the SVG is a full-height
+     panel and the image is fit by height, so the tower stands tall on
+     the page. The chosen section is lit; the rest is dimmed. */
+  .tower-panel {
     position: absolute;
-    top: 110px; left: 72px;
-    width: 340px;
-    bottom: 130px;
-    display: flex; flex-direction: column; gap: 18px;
-    z-index: 4;
-  }
-  .lr-eyebrow {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 10px;
-    letter-spacing: 0.5em;
-    text-transform: uppercase;
-    color: var(--gold-500);
-    display: flex; align-items: center; gap: 10px;
-  }
-  .lr-eyebrow::before {
-    content: '';
-    width: 16px; height: 1px;
-    background: var(--gold-500);
-    opacity: 0.6;
-    display: inline-block;
-  }
-  .lr-headline {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 400;
-    font-size: 48px;
-    line-height: 1.05;
-    letter-spacing: -0.005em;
-    color: var(--onyx-700);
-    margin: 0;
-  }
-  .lr-headline .em {
-    font-style: italic;
-    color: var(--gold-500);
-  }
-  .lr-divider {
-    height: 1px;
-    background: var(--hair);
-    margin: 4px 0 2px;
-  }
-  .lr-sub {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 10px;
-    letter-spacing: 0.4em;
-    text-transform: uppercase;
-    color: var(--gold-500);
-  }
-  .lr-body {
-    font-family: 'Inter', sans-serif;
-    font-weight: 400;
-    font-size: 12px;
-    line-height: 1.65;
-    color: var(--taupe-400);
-    text-wrap: pretty;
-    max-width: 320px;
-  }
-
-  /* CODE INDEX card */
-  .code-index {
-    margin-top: 14px;
-    padding: 22px 22px 18px;
-    background: var(--paper);
-    border: 1px solid var(--hair-lo);
-    border-radius: 14px;
-    box-shadow: var(--card-shadow);
-  }
-  .ci-head {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 14px;
-  }
-  .ci-title {
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 10px;
-    letter-spacing: 0.5em;
-    text-transform: uppercase;
-    color: var(--gold-500);
-  }
-  .ci-num {
-    font-family: 'Inter', sans-serif;
-    font-weight: 400;
-    font-size: 9px;
-    letter-spacing: 0.32em;
-    text-transform: uppercase;
-    color: var(--taupe-400);
-    font-variant-numeric: tabular-nums;
-  }
-  .ci-rows {
-    display: flex; flex-direction: column;
-    gap: 8px;
-  }
-  .ci-row {
-    display: grid;
-    grid-template-columns: 16px 1fr auto;
-    align-items: center;
-    column-gap: 12px;
-    padding: 7px 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    border: 1px solid transparent;
-    transition: background 200ms ease, border-color 200ms ease;
-  }
-  .ci-row:hover {
-    background: var(--bone-50);
-  }
-  .ci-row.is-active {
-    background: var(--bone-50);
-    border-color: var(--hair);
-  }
-  .ci-swatch {
-    width: 12px; height: 12px;
-    border-radius: 3px;
-    border: 0.5px solid rgba(0,0,0,0.06);
-    box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.05);
-  }
-  .ci-label {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 9.5px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--onyx-100);
-    line-height: 1.2;
-  }
-  .ci-range {
-    font-family: 'Inter', sans-serif;
-    font-weight: 400;
-    font-size: 9px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--taupe-400);
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-  .ci-foot {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px dashed var(--hair-lo);
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 9px;
-    letter-spacing: 0.32em;
-    text-transform: uppercase;
-    color: var(--taupe-400);
-    display: flex; align-items: center; gap: 6px;
-    line-height: 1.4;
-  }
-
-  /* ── CENTER ELEVATION ─────────────────────────────────────────── */
-  /* Stage is 1440×900 fixed; "viewport height" for sizing the tower is
-     the stage height. 75vh → 675px tall image, centered between the
-     left rail (Code Index, ends ~x420) and the right rail (Floor
-     Selector, starts ~x1020). The wrap is the constraining box; the
-     image scales by height and lets width be whatever the aspect needs. */
-  .elevation {
-    position: absolute;
-    top: 50%;
-    left: 420px;
-    right: 372px;
-    /* Bare architectural cross-section. Reduced to 640px so the
-       full tower (incl. terrace top) fits between the topbar and
-       the bottom CTA without clipping. */
-    height: 640px;
-    transform: translateY(-50%);
+    top: 0; left: 0;
+    width: 720px;      /* exactly the left half of the 1440 stage */
+    bottom: 0;
     z-index: 3;
-    display: flex; align-items: center; justify-content: center;
     pointer-events: none;
   }
-  .elev-img-wrap {
-    position: relative;
-    height: 100%;
-    width: 100%;
-    display: flex; align-items: center; justify-content: center;
-    overflow: visible;
+  .tower-panel svg { display: block; width: 100%; height: 100%; }
+
+  /* Editorial eyebrow + section title, sat over the upper-left */
+  .tower-head {
+    position: absolute;
+    top: 100px; left: 72px;
+    width: 480px;
+    z-index: 5;
+    pointer-events: none;
   }
-  /* Bare architectural cross-section (tower-elevation.png 512×950):
-     clean color bands — terrace red, mansion pink, sky+mid yellow,
-     amenity green, parking gray, trees at base. Multiply blend lets
-     the paper texture come through behind the bands. */
-  .elev-img {
-    height: 100%;
-    width: auto;
-    max-width: 100%;
-    object-fit: contain;
-    object-position: center center;
-    display: block;
-    mix-blend-mode: multiply;
-    filter: contrast(1.04);
+  .th-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 10px;
+    letter-spacing: 0.5em; text-transform: uppercase;
+    color: var(--gold-500);
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .th-eyebrow::before {
+    content: ''; width: 16px; height: 1px;
+    background: var(--gold-500); opacity: 0.6; display: inline-block;
+  }
+  .th-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400; font-size: 46px;
+    line-height: 1.0; letter-spacing: -0.01em;
+    color: var(--onyx-700); margin: 0 0 10px;
+  }
+  .th-title .em { font-style: italic; color: var(--gold-500); }
+  .th-sub {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400; font-size: 12px;
+    line-height: 1.6; color: var(--taupe-400);
+    max-width: 380px; margin: 0;
   }
 
-  /* ── ELEVATION OVERLAY CALLOUTS ─────────────────────────────────
-     Two stacks of absolutely-positioned labels around the cross-
-     section. Left = HABITABLE FLOORS / AMENITY / PARKING brackets.
-     Right = height markers with horizontal lead lines. Both stacks
-     are pointer-events: none so the tower stays interactive.
+  /* floating swatch + section badge, bottom-left over the tower */
+  .tower-badge {
+    position: absolute;
+    left: 72px; bottom: 48px;
+    z-index: 5;
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 18px 10px 12px;
+    background: rgba(252, 250, 244, 0.82);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--hair-lo);
+    border-radius: 999px;
+    box-shadow: var(--card-shadow);
+    pointer-events: none;
+  }
+  .tower-badge .sw {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: linear-gradient(135deg, var(--accent-a), var(--accent-b));
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4), 0 2px 6px rgba(40,28,10,0.18);
+    flex-shrink: 0;
+  }
+  .tower-badge .tx { display: flex; flex-direction: column; gap: 2px; line-height: 1; }
+  .tower-badge .tx .nm {
+    font-family: 'Inter', sans-serif; font-weight: 600;
+    font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--onyx-100);
+  }
+  .tower-badge .tx .sb {
+    font-family: 'Inter', sans-serif; font-weight: 400;
+    font-size: 8.5px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--taupe-400);
+  }
 
-     Band % (from inspecting tower-elevation.png 512×950, top→bottom):
-       Terrace   ≈  0–3%
-       Mansion   ≈  3–7%
-       Sky Res   ≈  7–50% (large)
-       Mid Res   ≈ 50–77% (large)
-       Amenity   ≈ 77–90%
-       Parking   ≈ 90–98% (trees take last ~2%)
-  */
-  /* The image (tower-elevation.png) is 512×950, rendered at
-     height: 100% (800px) via object-fit: contain → effective
-     rendered width ≈ 431px and centered in the .elev-img-wrap
-     (which is 648px wide). To pin callouts to the IMAGE edges
-     (not the wrap edges) we anchor against 50% with a half-image
-     offset (~215px). This keeps callouts visually adjacent to
-     the tower regardless of wrap padding. */
-  .elev-callouts {
-    position: absolute; top: 0; bottom: 0;
+  /* ── ALTITUDE LINE OVERLAY ────────────────────────────────────────
+     Dashed gold leader drawn from the slider handle (right) across to
+     the lit section on the tower (left). Y follows the handle; the
+     pill carries the current level. */
+  .altitude-overlay {
+    position: absolute;
+    left: 0; top: 0;
+    width: 1440px; height: 900px;
     pointer-events: none;
     z-index: 6;
-  }
-  .elev-callouts-left  {
-    right: calc(50% + 216px);
-    width: 92px;
-  }
-  .elev-callouts-left .ec-text {
-    font-size: 9px;
-    letter-spacing: 0.18em;
-    line-height: 1.3;
-  }
-  .elev-callouts-right {
-    left:  calc(50% + 220px);
-    width: 110px;
-  }
-
-  /* LEFT: bracket callout — text at vertical centre of the band,
-     bracket spans the full band height on the right edge. The wrapper
-     uses `top` (band start %) + `height` (band span %); the bracket is
-     a 100%-height vertical stroke with horizontal ticks at top/bottom,
-     and the text floats vertically-centred to its left. */
-  .ec-callout {
-    position: absolute;
-    right: 0;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .ec-callout .ec-text {
-    flex: 1;
-    text-align: right;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 10px;
-    line-height: 1.25;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--taupe-400);
-  }
-  .ec-callout .ec-text .ec-text-em {
-    color: var(--onyx-100);
-    display: block;
-  }
-  .ec-callout .ec-bracket {
-    flex-shrink: 0;
-    width: 8px;
-    height: 100%;
-    display: block;
     overflow: visible;
-    color: var(--gold-500);
+    transform: translateZ(0);          /* own compositing layer → no flicker */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
-
-  /* RIGHT: height marker — short horizontal hairline + text block */
-  .ec-marker {
-    position: absolute;
-    left: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transform: translateY(-50%);
-  }
-  .ec-marker .ec-line {
-    display: inline-block;
-    width: 14px; height: 1px;
-    background: var(--gold-500);
-    opacity: 0.6;
-    flex-shrink: 0;
-  }
-  .ec-marker .ec-mtext {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 10.5px;
-    line-height: 1.15;
-    letter-spacing: 0.04em;
-    color: var(--onyx-700);
-    font-variant-numeric: tabular-nums;
-    text-align: left;
-    white-space: nowrap;
-  }
-  .ec-marker .ec-mtext small {
-    display: block;
-    font-size: 8.5px;
-    letter-spacing: 0.32em;
-    text-transform: uppercase;
-    color: var(--taupe-400);
-    margin-top: 2px;
-    font-variant-numeric: normal;
-  }
-
-  /* Altitude/zone labels — duplicated in the elevation image now, hide */
-  .alt-zones, .alt-marks { display: none !important; }
-  .alt-zones-OFF {
-    position: absolute;
-    top: 0; bottom: 0;
-    left: 0;
-    width: 130px;
-    display: flex; flex-direction: column;
-    justify-content: space-between;
-    padding: 12px 0;
-    pointer-events: none;
-    z-index: 5;
-  }
-  .alt-zone {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 9px;
-    letter-spacing: 0.32em;
-    text-transform: uppercase;
-    color: var(--onyx-100);
-    line-height: 1.5;
-    position: relative;
-    padding-right: 22px;
-    text-align: right;
-  }
-  .alt-zone .strong {
-    display: block;
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 500;
-    font-size: 18px;
-    letter-spacing: 0.01em;
-    color: var(--gold-500);
-    text-transform: none;
-    margin-bottom: 2px;
-  }
-  .alt-zone .sub {
-    display: block;
-    color: var(--taupe-400);
-    font-size: 8.5px;
-    letter-spacing: 0.28em;
-    margin-top: 2px;
-  }
-  .alt-zone::after {
-    content: '›';
-    position: absolute;
-    right: 4px; top: 4px;
-    color: var(--gold-500);
-    font-size: 14px;
-    line-height: 1;
+  /* Straight, thick horizontal indicator that tracks the handle's Y.
+     Cheap to repaint: a solid stroke driven only by y attributes — no
+     dash-offset redraw loop, no blur. transform compositing hint keeps
+     drag smooth on Tab. */
+  .altitude-overlay .alt-line {
+    stroke: var(--gold-500);
+    stroke-width: 3;
+    stroke-linecap: round;
     opacity: 0.7;
+    fill: none;
+    will-change: transform;
   }
-
-  /* Right elevation labels (metres + SERVICE callouts) — absolute */
-  .alt-marks {
-    position: absolute;
-    top: 0; bottom: 0;
-    right: 0;
-    width: 170px;
-    padding: 12px 0;
-    pointer-events: none;
-    z-index: 5;
+  .altitude-overlay .alt-dot {
+    fill: var(--gold-500);
+    opacity: 0.9;
   }
-  .alt-mark {
-    position: absolute;
-    left: 0;
-    transform: translateY(-50%);
-    display: flex; align-items: center; gap: 10px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 9.5px;
-    letter-spacing: 0.32em;
-    text-transform: uppercase;
-    color: var(--onyx-100);
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
+  .altitude-overlay .alt-pill {
+    fill: var(--paper);
+    stroke: var(--gold-500);
+    stroke-width: 0.75;
+    opacity: 0.96;
   }
-  .alt-mark::before {
-    content: '';
-    position: absolute;
-    left: -90px;
-    top: 50%;
-    width: 80px;
-    height: 1px;
-    background-image: linear-gradient(90deg,
-      var(--gold-500) 0, var(--gold-500) 2px,
-      transparent 2px, transparent 6px);
-    background-size: 6px 1px;
-    background-repeat: repeat-x;
-    opacity: 0.45;
-  }
-  .alt-mark .m {
+  .altitude-overlay .alt-pill-text {
     font-family: 'Cormorant Garamond', serif;
     font-style: italic;
     font-weight: 500;
-    font-size: 13px;
+    font-size: 16px;
+    fill: var(--gold-500);
     letter-spacing: 0.01em;
-    text-transform: none;
-    color: var(--gold-500);
+    dominant-baseline: middle;
+    text-anchor: middle;
   }
-  .alt-mark .tag {
-    font-size: 8.5px;
-    letter-spacing: 0.32em;
-    color: var(--taupe-400);
-  }
-  .alt-mark .tag.svc {
-    color: var(--gold-500);
-  }
-  .alt-mark.active .m { color: var(--onyx-700); }
-  .alt-mark.active::before { opacity: 0.85; }
 
-  /* ── RIGHT RAIL : FLOOR SELECTOR + VIEW FLOOR PLAN CTA ────────── */
-  /* The right rail is a vertical stack:
-     [Floor Selector card]  (fills available height)
-     [VIEW FLOOR PLAN CTA] (fixed height, bottom)
-     The two pieces sit in the same column with a 14px gap. */
+  /* ── RIGHT HALF : FLOOR SELECTOR (slider) + CTA ───────────────────
+     The right rail is a vertical stack:
+       [Floor Selector card]  (fills available height)
+       [View Floor Plan CTA]  (fixed height, bottom) */
   .right-rail {
     position: absolute;
-    top: 110px; right: 72px;
-    width: 280px;
-    bottom: 30px;
+    top: 104px; right: 72px;
+    width: 300px;
+    bottom: 36px;
     z-index: 5;
     display: flex; flex-direction: column;
     gap: 14px;
@@ -752,58 +395,74 @@
     min-height: 0;
     background: var(--paper);
     border: 1px solid var(--hair-lo);
-    border-radius: 14px;
+    border-radius: 16px;
     padding: 22px 22px 18px;
     box-shadow: var(--card-shadow);
     display: flex; flex-direction: column;
+    position: relative;
+  }
+  .fs-card::before {
+    content: '';
+    position: absolute; top: 0; left: 22px; right: 22px; height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent-a), var(--accent-b));
+    opacity: 0.85;
   }
   .fs-head {
-    display: flex; flex-direction: column; gap: 4px;
+    display: flex; flex-direction: column; gap: 5px;
     margin-bottom: 14px;
+    flex-shrink: 0;
   }
   .fs-eyebrow {
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 10px;
-    letter-spacing: 0.5em;
-    text-transform: uppercase;
+    font-weight: 500; font-size: 10px;
+    letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500);
   }
   .fs-title {
     font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 500;
-    font-size: 22px;
+    font-style: italic; font-weight: 500;
+    font-size: 22px; line-height: 1.1;
     color: var(--onyx-700);
-    line-height: 1.1;
   }
 
   /* Slider track region */
   .fs-track-wrap {
     flex: 1;
     display: flex;
-    gap: 14px;
+    gap: 12px;
     align-items: stretch;
     position: relative;
     margin: 8px 4px 12px;
+    min-height: 0;
   }
-  /* Left side labels (every 10th floor) */
+  /* Left side labels */
   .fs-labels {
-    width: 22px;
+    width: 56px;
     position: relative;
     flex-shrink: 0;
   }
   .fs-label {
     position: absolute;
-    right: 2px;
+    right: 4px;
     transform: translateY(50%);
     font-family: 'Inter', sans-serif;
     font-weight: 500;
     font-size: 9px;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.14em;
     color: var(--gold-500);
     font-variant-numeric: tabular-nums;
     line-height: 1;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .fs-label .lab-kick {
+    display: block;
+    font-size: 7px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--taupe-400);
+    margin-bottom: 2px;
   }
   /* The colour-banded track */
   .fs-track {
@@ -811,38 +470,30 @@
     flex: 1;
     background: var(--bone-50);
     border: 1px solid var(--hair-lo);
-    border-radius: 6px;
+    border-radius: 7px;
     overflow: hidden;
     cursor: pointer;
     box-shadow: inset 0 1px 3px rgba(20,14,6,0.08);
   }
   .fs-band {
     position: absolute; left: 0; right: 0;
-    transition: filter 280ms ease, box-shadow 280ms ease;
+    transition: filter 280ms ease, box-shadow 280ms ease, opacity 280ms ease;
   }
-  .fs-band.dim {
-    filter: saturate(0.35) brightness(0.95);
-  }
-  .fs-band.highlight {
+  .fs-band.is-active {
     box-shadow: inset 0 0 0 1.5px rgba(148,111,56,0.55),
-                inset 0 0 14px rgba(255,210,74,0.30);
-    filter: saturate(1.25) brightness(1.05);
+                inset 0 0 18px rgba(255,210,74,0.30);
+    filter: saturate(1.18) brightness(1.06);
   }
-  /* Floor number hint inside the residential band */
-  .fs-band-num {
-    position: absolute;
-    left: 6px;
-    transform: translateY(-50%);
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 8px;
-    letter-spacing: 0.16em;
-    color: rgba(74, 56, 28, 0.55);
-    font-variant-numeric: tabular-nums;
+  /* faint divider lines between bands so individual levels read */
+  .fs-band::after {
+    content: '';
+    position: absolute; left: 0; right: 0; top: 0;
+    height: 1px;
+    background: rgba(255,255,255,0.30);
     pointer-events: none;
   }
 
-  /* Right side ticks (every 5th floor) */
+  /* Right side ticks */
   .fs-ticks {
     width: 12px;
     position: relative;
@@ -854,7 +505,7 @@
     width: 6px;
     height: 1px;
     background: var(--gold-500);
-    opacity: 0.55;
+    opacity: 0.5;
     transform: translateY(50%);
   }
   .fs-tick.major {
@@ -885,6 +536,7 @@
     box-shadow: 0 10px 22px rgba(80,58,28,0.32),
                 0 4px 10px rgba(40,28,10,0.16);
   }
+  .fs-handle:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--gold-500), 0 6px 14px rgba(80,58,28,0.22); }
   .fs-handle-label {
     font-family: 'Cormorant Garamond', serif;
     font-style: italic;
@@ -893,20 +545,21 @@
     color: var(--onyx-700);
     letter-spacing: 0.01em;
     pointer-events: none;
+    white-space: nowrap;
   }
   .fs-handle::before {
     content: '';
     position: absolute;
-    left: -28px; top: 50%;
-    width: 18px; height: 1px;
+    left: -26px; top: 50%;
+    width: 16px; height: 1px;
     background: var(--gold-500);
     opacity: 0.6;
   }
   .fs-handle::after {
     content: '';
     position: absolute;
-    right: -28px; top: 50%;
-    width: 18px; height: 1px;
+    right: -26px; top: 50%;
+    width: 16px; height: 1px;
     background: var(--gold-500);
     opacity: 0.6;
   }
@@ -915,14 +568,20 @@
     display: flex; align-items: center; justify-content: space-between;
     padding-top: 12px;
     border-top: 1px dashed var(--hair-lo);
+    flex-shrink: 0;
   }
   .fs-foot-label {
     font-family: 'Inter', sans-serif;
     font-weight: 500;
     font-size: 9px;
-    letter-spacing: 0.36em;
+    letter-spacing: 0.30em;
     text-transform: uppercase;
     color: var(--taupe-400);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .fs-foot-label .dot {
+    width: 9px; height: 9px; border-radius: 3px;
+    background: linear-gradient(135deg, var(--accent-a), var(--accent-b));
   }
   .fs-foot-num {
     font-family: 'Cormorant Garamond', serif;
@@ -930,23 +589,14 @@
     font-weight: 500;
     font-size: 18px;
     color: var(--gold-500);
+    font-variant-numeric: tabular-nums;
   }
 
-  /* ── BOTTOM BAR ───────────────────────────────────────────────── */
-  /* Drag hint + chevrons removed — bottom-centre area is intentionally
-     empty. CTA lives in the right rail, Quick Jump was removed. */
-
-  /* CTA — lives inside the right rail, stacked directly under
-     the Floor Selector card. Same width as the card, slightly rounded
-     rectangle (14px) to echo the card geometry. Single-row layout:
-       LEFT  : current floor as a Cormorant italic numeral (e.g. "L 26")
-       RIGHT : VIEW FLOOR PLAN small caps + arrow
-     The two halves sit side-by-side with breathing room between them. */
+  /* ── View Floor Plan CTA ──────────────────────────────────────── */
   .cta {
     display: flex; align-items: center; justify-content: space-between;
-    gap: 24px;
+    gap: 20px;
     width: 100%;
-    min-width: 240px;
     padding: 16px 22px;
     background: linear-gradient(180deg, var(--paper) 0%, rgba(217, 185, 122, 0.08) 100%);
     border: 1.5px solid var(--gold-500);
@@ -959,8 +609,7 @@
     font-size: 11px;
     letter-spacing: 0.42em;
     text-transform: uppercase;
-    transition: background 220ms ease, transform 220ms ease,
-                box-shadow 220ms ease;
+    transition: background 220ms ease, transform 220ms ease, box-shadow 220ms ease;
     box-shadow:
       0 18px 36px -10px rgba(80, 58, 28, 0.22),
       0 8px 16px  -6px  rgba(80, 58, 28, 0.16),
@@ -977,84 +626,25 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.72);
   }
   .cta-floor-label {
-    display: inline-flex;
-    align-items: center;
-    flex-shrink: 0;
+    display: inline-flex; align-items: center; flex-shrink: 0;
     font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 500;
-    font-size: 32px;
-    letter-spacing: 0.01em;
-    color: var(--gold-500);
-    text-transform: none;
-    line-height: 1;
-  }
-  .cta-action {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 11px;
-    letter-spacing: 0.42em;
-    line-height: 1.2;
-    color: var(--onyx-700);
+    font-style: italic; font-weight: 500;
+    font-size: 30px; letter-spacing: 0.01em;
+    color: var(--gold-500); text-transform: none; line-height: 1;
     white-space: nowrap;
   }
+  .cta-action {
+    display: inline-flex; align-items: center; gap: 12px; flex-shrink: 0;
+    font-family: 'Inter', sans-serif; font-weight: 600;
+    text-transform: uppercase; font-size: 11px;
+    letter-spacing: 0.40em; line-height: 1.2;
+    color: var(--onyx-700); white-space: nowrap;
+  }
   .cta-arrow {
-    color: var(--gold-500);
-    font-size: 20px;
-    line-height: 1;
-    transition: transform 240ms ease;
-    flex-shrink: 0;
+    color: var(--gold-500); font-size: 20px; line-height: 1;
+    transition: transform 240ms ease; flex-shrink: 0;
   }
   .cta:hover .cta-arrow { transform: translateX(5px); }
-
-  /* ── ALTITUDE LINE OVERLAY ────────────────────────────────────── */
-  /* Thin dashed gold line drawn from the slider handle leftward across
-     the stage to the tower. Updates Y position + animates drawing when
-     the floor changes. Sits above the elevation but below the chrome. */
-  .altitude-overlay {
-    position: absolute;
-    left: 0; top: 0;
-    width: 1440px; height: 900px;
-    pointer-events: none;
-    z-index: 6;
-    overflow: visible;
-  }
-  .altitude-overlay .alt-line {
-    stroke: var(--gold-500);
-    stroke-width: 1;
-    stroke-dasharray: 4 5;
-    opacity: 0.65;
-    fill: none;
-    transition: opacity 220ms ease;
-  }
-  .altitude-overlay .alt-line.drawing {
-    animation: altLineDraw 420ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
-  }
-  @keyframes altLineDraw {
-    from { stroke-dashoffset: 520; }
-    to   { stroke-dashoffset: 0; }
-  }
-  .altitude-overlay .alt-pill {
-    fill: var(--paper);
-    stroke: var(--gold-500);
-    stroke-width: 0.75;
-    opacity: 0.95;
-  }
-  .altitude-overlay .alt-pill-text {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 500;
-    font-size: 16px;
-    fill: var(--gold-500);
-    letter-spacing: 0.01em;
-    dominant-baseline: middle;
-    text-anchor: middle;
-  }
 
   /* ── Veil ─────────────────────────────────────────────────────── */
   .veil {
@@ -1088,14 +678,12 @@
         document.body.style.setProperty('--reveal-x', x + '%');
         document.body.style.setProperty('--reveal-y', y + '%');
         document.body.classList.add('is-arriving');
-        setTimeout(() => {
-          document.body.classList.remove('is-arriving');
-        }, 1000);
+        setTimeout(() => { document.body.classList.remove('is-arriving'); }, 1000);
       });
     } catch (e) { /* no-op */ }
   })();
 
-  // ── Stage scaler — scale-to-fit (contain). Fixes iPad13 side overflow.
+  // ── Stage scaler — scale-to-fit (contain). ──────────────────────
   (function () {
     const W = 1440, H = 900;
     function scale() {
@@ -1155,7 +743,7 @@
 <!-- Embassy Citadel wordmark — same SVG symbol as home -->
 <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
   <symbol id="ec-wordmark" viewBox="0 0 1000 500">
-    <path fill="currentColor" d="M159.33,281.18c21.84,0,39.83,9.17,51.2,29.73l-8.99,8.81c-8.24-15.96-20.37-26.61-41.1-26.61-26.42,0-45.88,19.83-45.88,54.32s21.84,53.77,45.88,53.77c20,0,32.48-9.35,41.29-26.79l8.99,6.24c-11.57,22.39-29.18,32.67-51.93,32.67-35.62,0-64.79-26.06-64.79-65.15s29-66.98,65.33-66.98M263,411.47h-17.99v-128.46h17.99v128.46ZM344.76,293.84h-49.36v-10.83h116.71v10.83h-49.37v117.63h-17.98v-117.63ZM489.38,371.47h-53.22l-16.89,40.01h-13.03l55.6-129.56h8.63l55.42,129.56h-19.45l-17.07-40.01ZM440.38,361.2h44.59l-22.39-52.86-22.21,52.86ZM548.47,411.47v-128.46h39.27c44.59,0,71.75,24.59,71.75,63.87s-27.71,64.59-70.47,64.59h-40.55ZM586.26,293.48h-19.82v107.54h20.73c33.77,0,52.5-19.64,52.5-54.13s-18.73-53.41-53.42-53.41M696.09,283.02h88.46v11.01h-70.48v45.88h52.5v11.01h-52.5v49.55h72.87v11.01h-90.85v-128.46ZM820.48,283.02h17.98v117.45h67.54v11.01h-85.52v-128.46ZM165.15,163.71h44.47l-12.19-21.11h-32.29v9.3h-37.64l-6.82,11.81h44.46ZM165.15,137.95h29.6l-12.19-21.11h-17.42v9.3h-22.78l-6.81,11.8h29.59ZM212.31,168.35h-47.16v9.3h-52.52l-6.81,11.81h118.67l-12.18-21.11ZM165.15,86.69l-14.73,25.51h29.46l-14.73-25.51ZM598.55,95.83h-8.85l-39.44,93.24-.16.39h9.98l11.29-26.45h41.86l12.33,26.45h16.59l-43.52-93.47-.08-.16ZM575.43,153.48l15.96-37.36,17.4,37.36h-33.36ZM703.89,140.44c-4.09-2.31-8.58-4.3-13.35-5.86-4.6-1.52-8.93-3.14-12.85-4.82-3.8-1.64-6.99-3.52-9.51-5.63-2.23-1.86-3.3-4.29-3.3-7.41,0-1.76.38-3.42,1.14-4.94.76-1.52,1.92-2.88,3.43-4.03,1.58-1.19,3.58-2.17,5.94-2.92,2.38-.75,5.17-1.13,8.3-1.13,5.2,0,9.65,1.09,13.25,3.26,3.41,2.06,5.37,5.26,5.99,9.75l.21,1.62h12.59l-.35-2.18c-.56-3.44-1.84-6.58-3.8-9.33-1.93-2.71-4.4-5.03-7.33-6.91-2.89-1.86-6.22-3.26-9.86-4.22-3.61-.94-7.43-1.41-11.34-1.41s-8.06.55-11.78,1.61c-3.73,1.09-7.09,2.7-9.96,4.78-2.92,2.13-5.28,4.86-6.99,8.09-1.72,3.25-2.59,7-2.59,11.15,0,5.48,1.44,9.99,4.29,13.4,2.72,3.26,6.17,6.01,10.25,8.17,3.99,2.1,8.34,3.91,12.95,5.38,4.44,1.43,8.62,3.06,12.41,4.86,3.69,1.74,6.76,3.88,9.16,6.36,2.23,2.3,3.32,5.37,3.32,9.34,0,4.92-1.72,8.39-5.23,10.61-3.73,2.36-8.86,3.56-15.23,3.56-5.1,0-9.23-.67-12.22-1.97-2.98-1.29-5.27-2.83-6.78-4.58-1.53-1.75-2.57-3.56-3.08-5.38-.56-1.96-.87-3.61-.96-4.92l-.1-1.77h-12.47l.1,1.96c.17,3.97,1.23,7.64,3.15,10.88,1.88,3.22,4.49,5.99,7.75,8.24,3.2,2.2,7,3.94,11.3,5.14,4.27,1.2,8.98,1.8,14.02,1.8s9.82-.63,13.98-1.88c4.19-1.26,7.84-3.09,10.85-5.46,3.03-2.39,5.41-5.33,7.09-8.73,1.66-3.41,2.5-7.23,2.5-11.36,0-5.71-1.48-10.49-4.39-14.19-2.8-3.55-6.34-6.56-10.52-8.94M791.17,140.44c-4.08-2.31-8.57-4.29-13.34-5.86-4.6-1.52-8.93-3.14-12.85-4.82-3.79-1.64-6.99-3.52-9.51-5.63-2.23-1.86-3.3-4.29-3.3-7.41,0-1.76.38-3.41,1.14-4.94.76-1.52,1.91-2.88,3.43-4.03,1.57-1.19,3.57-2.17,5.93-2.92,2.37-.75,5.17-1.13,8.31-1.13,5.2,0,9.64,1.09,13.25,3.26,3.41,2.06,5.37,5.26,5.98,9.75l.23,1.62h12.59l-.36-2.18c-.57-3.44-1.84-6.58-3.8-9.33-1.93-2.71-4.4-5.04-7.33-6.91-2.91-1.86-6.21-3.26-9.87-4.22-3.6-.94-7.41-1.41-11.32-1.41s-8.07.55-11.78,1.61c-3.75,1.08-7.1,2.7-9.97,4.78-2.92,2.13-5.27,4.86-6.98,8.09-1.74,3.25-2.59,7-2.59,11.15,0,5.48,1.44,9.99,4.27,13.4,2.72,3.26,6.18,6.01,10.26,8.17,3.98,2.09,8.34,3.91,12.95,5.38,4.45,1.43,8.62,3.06,12.42,4.86,3.68,1.74,6.74,3.88,9.14,6.36,2.24,2.3,3.33,5.37,3.33,9.34,0,4.92-1.71,8.39-5.23,10.61-3.74,2.36-8.86,3.56-15.23,3.56-5.11,0-9.22-.67-12.22-1.97-2.97-1.29-5.27-2.83-6.78-4.58-1.52-1.75-2.55-3.56-3.07-5.38-.56-1.96-.89-3.61-.96-4.92l-.1-1.77h-12.47l.1,1.96c.17,3.98,1.23,7.64,3.16,10.88,1.88,3.22,4.49,5.99,7.75,8.24,3.2,2.2,7,3.93,11.3,5.14,4.27,1.2,8.97,1.8,14.02,1.8s9.82-.63,13.98-1.88c4.19-1.26,7.84-3.09,10.84-5.46,3.05-2.39,5.43-5.33,7.09-8.73,1.67-3.41,2.51-7.23,2.51-11.36,0-5.71-1.48-10.49-4.4-14.19-2.8-3.55-6.34-6.56-10.52-8.94M883.84,95.83l-26.61,45.9-25.38-45.9h-17.53l32.39,58.22v35.41h15.44v-36.56l32.96-57.07h-11.28ZM260.45,189.46h63.75v-10.82h-48.31v-33.86h41.77v-9.66h-41.77v-28.46h48.31v-10.82h-63.75v93.63ZM514.3,139.46c15.02-.74,20.68-9.33,21.98-11.97,1.32-2.69,1.99-5.59,1.99-8.59,0-2.63-.56-5.34-1.69-8.05-1.12-2.7-2.85-5.19-5.13-7.43-2.26-2.22-5.19-4.05-8.71-5.47-3.51-1.41-7.67-2.13-12.34-2.13h-35.5v93.63h35.67c5.97,0,11.09-.8,15.23-2.37,4.2-1.59,7.62-3.69,10.21-6.27,2.6-2.58,4.5-5.56,5.66-8.85,1.14-3.23,1.73-6.52,1.73-9.81,0-5.26-2.3-9.55-4.68-12.77-2.28-3.12-9.49-9.97-24.43-9.93M490.35,105.24h16.21c3.08,0,5.73.43,7.84,1.29,2.11.83,3.82,1.95,5.13,3.28,1.29,1.33,2.26,2.87,2.84,4.57.61,1.76.94,3.54.94,5.29,0,2.19-.45,4.27-1.31,6.15-.87,1.88-2.1,3.53-3.64,4.89-1.58,1.38-3.41,2.48-5.46,3.25-2.05.77-4.26,1.16-6.59,1.16h-15.97v-29.88ZM526.37,170.36c-.96,2.08-2.26,3.86-3.87,5.31s-3.52,2.55-5.71,3.27c-2.24.75-4.67,1.12-7.2,1.12h-19.23v-35.52h14.73c3.98,0,7.44.52,10.31,1.55,2.84,1.03,5.2,2.4,7.03,4.1,1.8,1.69,3.16,3.66,4.04,5.87.9,2.26,1.36,4.65,1.36,7.14,0,2.7-.49,5.13-1.44,7.17M398.8,157.6l-37.19-61.62-.07-.15h-11.74v93.63h9.41v-68.6l36.18,59.29,37.1-58.94v68.25h15.44v-93.63h-11.86l-37.27,61.77Z"/>
+    <path fill="currentColor" d="M159.33,281.18c21.84,0,39.83,9.17,51.2,29.73l-8.99,8.81c-8.24-15.96-20.37-26.61-41.1-26.61-26.42,0-45.88,19.83-45.88,54.32s21.84,53.77,45.88,53.77c20,0,32.48-9.35,41.29-26.79l8.99,6.24c-11.57,22.39-29.18,32.67-51.93,32.67-35.62,0-64.79-26.06-64.79-65.15s29-66.98,65.33-66.98M263,411.47h-17.99v-128.46h17.99v128.46ZM344.76,293.84h-49.36v-10.83h116.71v10.83h-49.37v117.63h-17.98v-117.63ZM489.38,371.47h-53.22l-16.89,40.01h-13.03l55.6-129.56h8.63l55.42,129.56h-19.45l-17.07-40.01ZM440.38,361.2h44.59l-22.39-52.86-22.21,52.86ZM548.47,411.47v-128.46h39.27c44.59,0,71.75,24.59,71.75,63.87s-27.71,64.59-70.47,64.59h-40.55ZM586.26,293.48h-19.82v107.54h20.73c33.77,0,52.5-19.64,52.5-54.13s-18.73-53.41-53.42-53.41M696.09,283.02h88.46v11.01h-70.48v45.88h52.5v11.01h-52.5v49.55h72.87v11.01h-90.85v-128.46ZM820.48,283.02h17.98v117.45h67.54v11.01h-85.52v-128.46ZM165.15,163.71h44.47l-12.19-21.11h-32.29v9.3h-37.64l-6.82,11.81h44.46ZM165.15,137.95h29.6l-12.19-21.11h-17.42v9.3h-22.78l-6.81,11.8h29.59ZM212.31,168.35h-47.16v9.3h-52.52l-6.81,11.81h118.67l-12.18-21.11ZM165.15,86.69l-14.73,25.51h29.46l-14.73-25.51ZM598.55,95.83h-8.85l-39.44,93.24-.16.39h9.98l11.29-26.45h41.86l12.33,26.45h16.59l-43.52-93.47-.08-.16ZM575.43,153.48l15.96-37.36,17.4,37.36h-33.36ZM703.89,140.44c-4.09-2.31-8.58-4.3-13.35-5.86-4.6-1.52-8.93-3.14-12.85-4.82-3.8-1.64-6.99-3.52-9.51-5.63-2.23-1.86-3.3-4.29-3.3-7.41,0-1.76.38-3.42,1.14-4.94.76-1.52,1.92-2.88,3.43-4.03,1.58-1.19,3.58-2.17,5.94-2.92,2.38-.75,5.17-1.13,8.3-1.13,5.2,0,9.65,1.09,13.25,3.26,3.41,2.06,5.37,5.26,5.99,9.75l.21,1.62h12.59l-.35-2.18c-.56-3.44-1.84-6.58-3.8-9.33-1.93-2.71-4.4-5.03-7.33-6.91-2.89-1.86-6.22-3.26-9.86-4.22-3.61-.94-7.43-1.41-11.34-1.41s-8.06.55-11.78,1.61c-3.73,1.09-7.09,2.7-9.96,4.78-2.92,2.13-5.28,4.86-6.99,8.09-1.72,3.25-2.59,7-2.59,11.15,0,5.48,1.44,9.99,4.29,13.4,2.72,3.26,6.17,6.01,10.25,8.17,3.99,2.1,8.34,3.91,12.95,5.38,4.44,1.43,8.62,3.06,12.41,4.86,3.69,1.74,6.76,3.88,9.16,6.36,2.23,2.3,3.32,5.37,3.32,9.34,0,4.92-1.72,8.39-5.23,10.61-3.73,2.36-8.86,3.56-15.23,3.56-5.1,0-9.23-.67-12.22-1.97-2.98-1.29-5.27-2.83-6.78-4.58-1.53-1.75-2.57-3.56-3.08-5.38-.56-1.96-.87-3.61-.96-4.92l-.1-1.77h-12.47l.1,1.96c.17,3.97,1.23,7.64,3.15,10.88,1.88,3.22,4.49,5.99,7.75,8.24,3.2,2.2,7,3.94,11.3,5.14,4.27,1.2,8.98,1.8,14.02,1.8s9.82-.63,13.98-1.88c4.19-1.26,7.84-3.09,10.85-5.46,3.03-2.39,5.41-5.33,7.09-8.73,1.66-3.41,2.5-7.23,2.5-11.36,0-5.71-1.48-10.49-4.39-14.19-2.8-3.55-6.34-6.56-10.52-8.94M791.17,140.44c-4.08-2.31-8.57-4.29-13.34-5.86-4.6-1.52-8.93-3.14-12.85-4.82-3.79-1.64-6.99-3.52-9.51-5.63-2.23-1.86-3.3-4.29-3.3-7.41,0-1.76.38-3.41,1.14-4.94.76-1.52,1.91-2.88,3.43-4.03,1.57-1.19,3.57-2.17,5.93-2.92,2.37-.75,5.17-1.13,8.31-1.13,5.2,0,9.64,1.09,13.25,3.26,3.41,2.06,5.37,5.26,5.98,9.75l.23,1.62h12.59l-.36-2.18c-.57-3.44-1.84-6.58-3.8-9.33-1.93-2.71-4.4-5.04-7.33-6.91-2.91-1.86-6.21-3.26-9.87-4.22-3.6-.94-7.41-1.41-11.32-1.41s-8.07.55-11.78,1.61c-3.75,1.08-7.1,2.7-9.97,4.78-2.92,2.13-5.27,4.86-6.98,8.09-1.74,3.25-2.59,7-2.59,11.15,0,5.48,1.44,9.99,4.27,13.4,2.72,3.26,6.18,6.01,10.26,8.17,3.98,2.09,8.34,3.91,12.95,5.38,4.45,1.43,8.62,3.06,12.42,4.86,3.68,1.74,6.74,3.88,9.14,6.36,2.24,2.3,3.33,5.37,3.33,9.34,0,4.92-1.71,8.39-5.23,10.61-3.74,2.36-8.86,3.56-15.23,3.56-5.11,0-9.22-.67-12.22-1.97-2.97-1.29-5.27-2.83-6.78-4.58-1.52-1.75-2.55-3.56-3.07-5.38-.56-1.96-.89-3.61-.96-4.92l-.1-1.77h-12.47l.1,1.96c.17,3.98,1.23,7.64,3.16,10.88,1.88,3.22,4.49,5.99,7.75,8.24,3.2,2.2,7,3.93,11.3,5.14,4.27,1.2,8.97,1.8,14.02,1.8s9.82-.63,13.98-1.88c4.19-1.26,7.84-3.09,10.84-5.46,3.05-2.39,5.43-5.33,7.09-8.73,1.67-3.41,2.51-7.23,2.51-11.36,0-5.71-1.48-10.49-4.4-14.19-2.8-3.55-6.34-6.56-10.52-8.94M883.84,95.83l-26.61,45.9-25.38-45.9h-17.53l32.39,58.22v35.41h15.44v-93.63h-11.28ZM260.45,189.46h63.75v-10.82h-48.31v-33.86h41.77v-9.66h-41.77v-28.46h48.31v-10.82h-63.75v93.63ZM514.3,139.46c15.02-.74,20.68-9.33,21.98-11.97,1.32-2.69,1.99-5.59,1.99-8.59,0-2.63-.56-5.34-1.69-8.05-1.12-2.7-2.85-5.19-5.13-7.43-2.26-2.22-5.19-4.05-8.71-5.47-3.51-1.41-7.67-2.13-12.34-2.13h-35.5v93.63h35.67c5.97,0,11.09-.8,15.23-2.37,4.2-1.59,7.62-3.69,10.21-6.27,2.6-2.58,4.5-5.56,5.66-8.85,1.14-3.23,1.73-6.52,1.73-9.81,0-5.26-2.3-9.55-4.68-12.77-2.28-3.12-9.49-9.97-24.43-9.93M490.35,105.24h16.21c3.08,0,5.73.43,7.84,1.29,2.11.83,3.82,1.95,5.13,3.28,1.29,1.33,2.26,2.87,2.84,4.57.61,1.76.94,3.54.94,5.29,0,2.19-.45,4.27-1.31,6.15-.87,1.88-2.1,3.53-3.64,4.89-1.58,1.38-3.41,2.48-5.46,3.25-2.05.77-4.26,1.16-6.59,1.16h-15.97v-29.88ZM526.37,170.36c-.96,2.08-2.26,3.86-3.87,5.31s-3.52,2.55-5.71,3.27c-2.24.75-4.67,1.12-7.2,1.12h-19.23v-35.52h14.73c3.98,0,7.44.52,10.31,1.55,2.84,1.03,5.2,2.4,7.03,4.1,1.8,1.69,3.16,3.66,4.04,5.87.9,2.26,1.36,4.65,1.36,7.14,0,2.7-.49,5.13-1.44,7.17M398.8,157.6l-37.19-61.62-.07-.15h-11.74v93.63h9.41v-68.6l36.18,59.29,37.1-58.94v68.25h15.44v-93.63h-11.86l-37.27,61.77Z"/>
   </symbol>
 </svg>
 
@@ -1184,197 +772,80 @@
       </div>
     </header>
 
-    <!-- ── Left rail ─────────────────────────────────────────── -->
-    <aside class="left-rail">
-      <div class="lr-eyebrow">Explore by Floors</div>
-      <h1 class="lr-headline">
-        Select a floor.<br/>
-        Explore your<br/>
-        <span class="em">future view.</span>
-      </h1>
-      <div class="lr-divider"></div>
-      <div class="lr-sub">79 Floors of Refined Living</div>
-      <p class="lr-body">
-        Discover elevated living with panoramic views, considered
-        amenities and meticulous design.
-      </p>
+    <!-- ── Left half : the tower ──────────────────────────────── -->
+    <section class="tower-panel" aria-label="Tower — selected section lit">
+      <svg id="towerSvg" viewBox="0 0 720 900" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs>
+          <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop id="accentStopA" offset="0%"  stop-color="#E67E22"/>
+            <stop id="accentStopB" offset="100%" stop-color="#F1C40F"/>
+          </linearGradient>
+          <!-- Static accent ring: a soft wide stroke at low opacity reads as a
+               glow without an feGaussianBlur filter (filters force expensive
+               re-rasterisation on every stage repaint → flicker on Tab). -->
+          <linearGradient id="accentGradSoft" x1="0" y1="0" x2="1" y2="1">
+            <stop id="accentStopSoftA" offset="0%"  stop-color="#E67E22"/>
+            <stop id="accentStopSoftB" offset="100%" stop-color="#F1C40F"/>
+          </linearGradient>
+          <!-- clip = the active section shape (in tower-image local coords) -->
+          <clipPath id="activeClip"><rect id="activeClipRect" x="0" y="0" width="0" height="0"/></clipPath>
+        </defs>
 
-      <!-- CODE INDEX -->
-      <div class="code-index" id="codeIndex">
-        <div class="ci-head">
-          <span class="ci-title">Code Index</span>
-          <span class="ci-num">06 Zones · 79 Floors</span>
-        </div>
-        <div class="ci-rows" id="ciRows">
-          <div class="ci-row" data-cat="terrace">
-            <span class="ci-swatch" style="background: var(--band-terrace)"></span>
-            <span class="ci-label">Terrace</span>
-            <span class="ci-range">L 78 – L 79</span>
-          </div>
-          <div class="ci-row" data-cat="amenity-mansion">
-            <span class="ci-swatch" style="background: var(--band-amenity-mansion)"></span>
-            <span class="ci-label">Mansion Entry</span>
-            <span class="ci-range">L 74 – L 77</span>
-          </div>
-          <div class="ci-row" data-cat="residential">
-            <span class="ci-swatch" style="background: var(--band-residential)"></span>
-            <span class="ci-label">Sky Residences</span>
-            <span class="ci-range">L 44 – L 73 · 3.9m</span>
-          </div>
-          <div class="ci-row" data-cat="residential">
-            <span class="ci-swatch" style="background: var(--band-residential)"></span>
-            <span class="ci-label">Mid Residences</span>
-            <span class="ci-range">L 15 – L 43 · 3.6m</span>
-          </div>
-          <div class="ci-row" data-cat="amenity">
-            <span class="ci-swatch" style="background: var(--band-amenity)"></span>
-            <span class="ci-label">Amenity Levels</span>
-            <span class="ci-range">L 10 – L 14</span>
-          </div>
-          <div class="ci-row" data-cat="parking">
-            <span class="ci-swatch" style="background: var(--band-parking)"></span>
-            <span class="ci-label">Parking Podiums</span>
-            <span class="ci-range">L 1 – L 9</span>
-          </div>
-        </div>
-        <div class="ci-foot">
-          <span>›</span>
-          <span>Tap a code to filter floors</span>
-        </div>
-      </div>
-    </aside>
-
-    <!-- ── Center : elevation drawing ─────────────────────────── -->
-    <section class="elevation" aria-label="Tower elevation">
-      <div class="elev-img-wrap">
-        <img class="elev-img" src="assets/tower-elevation.png"
-             alt="Embassy Citadel — architectural cross-section showing colour-coded floor bands"
-             draggable="false" />
-
-        <!-- LEFT-side HABITABLE FLOORS callouts. Each wrapper spans the
-             vertical extent of its band; the bracket SVG fills the
-             wrapper height, the text auto-centres. -->
-        <div class="elev-callouts elev-callouts-left" aria-hidden="true">
-          <!-- 30 HABITABLE FLOORS — Sky Residences (yellow upper) -->
-          <div class="ec-callout" style="top: 8%; height: 38%;">
-            <div class="ec-text">
-              <span class="ec-text-em">30 Habitable Floors</span>
-              3.9M F/F Ht.
-            </div>
-            <svg class="ec-bracket" viewBox="0 0 8 100" preserveAspectRatio="none" aria-hidden="true">
-              <path d="M 7 0 L 1 0 L 1 100 L 7 100"
-                    fill="none" stroke="currentColor"
-                    stroke-width="1.5"
-                    vector-effect="non-scaling-stroke" />
-            </svg>
-          </div>
-
-          <!-- 29 HABITABLE FLOORS — Mid Residences (yellow lower) -->
-          <div class="ec-callout" style="top: 50%; height: 27%;">
-            <div class="ec-text">
-              <span class="ec-text-em">29 Habitable Floors</span>
-              3.6M F/F Ht.
-            </div>
-            <svg class="ec-bracket" viewBox="0 0 8 100" preserveAspectRatio="none" aria-hidden="true">
-              <path d="M 7 0 L 1 0 L 1 100 L 7 100"
-                    fill="none" stroke="currentColor"
-                    stroke-width="1.5"
-                    vector-effect="non-scaling-stroke" />
-            </svg>
-          </div>
-
-          <!-- 5 AMENITY LEVELS — light green -->
-          <div class="ec-callout" style="top: 77%; height: 13%;">
-            <div class="ec-text">
-              <span class="ec-text-em">5 Amenity Lvls</span>
-            </div>
-            <svg class="ec-bracket" viewBox="0 0 8 100" preserveAspectRatio="none" aria-hidden="true">
-              <path d="M 7 0 L 1 0 L 1 100 L 7 100"
-                    fill="none" stroke="currentColor"
-                    stroke-width="1.5"
-                    vector-effect="non-scaling-stroke" />
-            </svg>
-          </div>
-
-          <!-- 9 PARKING PODIUMS — gray -->
-          <div class="ec-callout" style="top: 90%; height: 8%;">
-            <div class="ec-text">
-              <span class="ec-text-em">9 Parking Podiums</span>
-            </div>
-            <svg class="ec-bracket" viewBox="0 0 8 100" preserveAspectRatio="none" aria-hidden="true">
-              <path d="M 7 0 L 1 0 L 1 100 L 7 100"
-                    fill="none" stroke="currentColor"
-                    stroke-width="1.5"
-                    vector-effect="non-scaling-stroke" />
-            </svg>
-          </div>
-        </div>
-
-        <!-- RIGHT-side height markers — short horizontal hairline + text.
-             `top` % aligns the hairline with the corresponding Y-coord
-             on the cross-section. -->
-        <div class="elev-callouts elev-callouts-right" aria-hidden="true">
-          <div class="ec-marker" style="top: 2%;">
-            <span class="ec-line"></span>
-            <div class="ec-mtext">+304.20M<small>Terr</small></div>
-          </div>
-          <div class="ec-marker" style="top: 6%;">
-            <span class="ec-line"></span>
-            <div class="ec-mtext">+292.00M<small>Amen</small></div>
-          </div>
-          <div class="ec-marker" style="top: 28%;">
-            <span class="ec-line"></span>
-            <div class="ec-mtext">+206.10M<small>Service</small></div>
-          </div>
-          <div class="ec-marker" style="top: 50%;">
-            <span class="ec-line"></span>
-            <div class="ec-mtext">+101.60M<small>Service</small></div>
-          </div>
-          <div class="ec-marker" style="top: 77%;">
-            <span class="ec-line"></span>
-            <div class="ec-mtext">+62.60M<small>Service</small></div>
-          </div>
-          <div class="ec-marker" style="top: 86%;">
-            <span class="ec-line"></span>
-            <div class="ec-mtext">+43.00M<small>Service</small></div>
-          </div>
-          <div class="ec-marker" style="top: 90%;">
-            <span class="ec-line"></span>
-            <div class="ec-mtext">+36.00M</div>
-          </div>
-          <div class="ec-marker" style="top: 96%;">
-            <span class="ec-line"></span>
-            <div class="ec-mtext">+6.20M</div>
-          </div>
-          <div class="ec-marker" style="top: 99%;">
-            <span class="ec-line"></span>
-            <div class="ec-mtext">+0.00M</div>
-          </div>
-        </div>
-      </div>
-
+        <!-- towerImgGroup is positioned at runtime so the 2752×2064 render
+             fills the left-half panel at a natural large size (fit by height). -->
+        <g id="towerImgGroup">
+          <!-- base tower, dimmed -->
+          <image id="towerImg" href="assets/inventory/tower-types.webp"
+                 x="0" y="0" width="2752" height="2064"
+                 style="opacity:0.40; filter:saturate(0.5) brightness(1.03);"/>
+          <!-- active section, full colour, revealed by its clip -->
+          <g clip-path="url(#activeClip)">
+            <image href="assets/inventory/tower-types.webp"
+                   x="0" y="0" width="2752" height="2064"
+                   style="filter:saturate(1.14) brightness(1.05);"/>
+          </g>
+          <!-- accent glow (soft wide stroke, no filter) + crisp ring -->
+          <rect id="activeRing" x="0" y="0" width="0" height="0"
+                fill="none" stroke="url(#accentGradSoft)" stroke-width="22"
+                opacity="0.22"/>
+          <rect id="activeRing2" x="0" y="0" width="0" height="0"
+                fill="none" stroke="url(#accentGrad)" stroke-width="5" opacity="0.92"/>
+        </g>
+      </svg>
     </section>
 
-    <!-- ── Altitude overlay (line + label) ────────────────────── -->
+    <!-- editorial header over the tower -->
+    <div class="tower-head">
+      <div class="th-eyebrow" id="thEyebrow">Inventory · By Section</div>
+      <h1 class="th-title" id="thTitle">Residential <span class="em">Floor</span></h1>
+      <p class="th-sub" id="thSub">Choose a level within this section to view its plan.</p>
+    </div>
+
+    <!-- section badge bottom-left over the tower -->
+    <div class="tower-badge">
+      <span class="sw" aria-hidden="true"></span>
+      <span class="tx">
+        <span class="nm" id="badgeName">Residential</span>
+        <span class="sb" id="badgeSub">Lit on the tower</span>
+      </span>
+    </div>
+
+    <!-- ── Altitude leader line (handle → tower) ──────────────── -->
     <svg class="altitude-overlay" id="altOverlay" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true">
-      <!-- Dashed line connects the slider handle (right) to the tower's
-           visual mid-band. With the bare cross-section centred around
-           x≈580 in the .elevation box, x1=580 lands the L-pill cleanly
-           on the tower face; line runs to x=1088 (handle left edge). -->
-      <line  class="alt-line" id="altLine"
-             x1="580" x2="1088" y1="450" y2="450" />
-      <g     id="altLabel" transform="translate(580, 450)">
-        <rect class="alt-pill" x="-32" y="-13" width="64" height="26" rx="13" ry="13" />
-        <text class="alt-pill-text" id="altLabelText" x="0" y="1">L 26</text>
+      <line class="alt-line" id="altLine" x1="360" x2="1080" y1="450" y2="450" />
+      <circle class="alt-dot" id="altDot" cx="360" cy="450" r="4.5" />
+      <g id="altLabel" transform="translate(360, 450)">
+        <rect class="alt-pill" id="altPill" x="-34" y="-13" width="68" height="26" rx="13" ry="13" />
+        <text class="alt-pill-text" id="altLabelText" x="0" y="1">L 45</text>
       </g>
     </svg>
 
-    <!-- ── Right rail : floor selector + View Floor Plan CTA ──── -->
+    <!-- ── Right half : floor selector (slider) + CTA ─────────── -->
     <aside class="right-rail">
       <div class="fs-card">
         <div class="fs-head">
           <span class="fs-eyebrow">Floor Selector</span>
-          <span class="fs-title">Choose your level</span>
+          <span class="fs-title" id="fsTitle">Choose your level</span>
         </div>
 
         <div class="fs-track-wrap">
@@ -1386,23 +857,19 @@
         </div>
 
         <div class="fs-foot">
-          <span class="fs-foot-label">Total Floors</span>
-          <span class="fs-foot-num">79</span>
+          <span class="fs-foot-label"><span class="dot" aria-hidden="true"></span><span id="fsFootType">Residential</span></span>
+          <span class="fs-foot-num" id="fsFootNum">45</span>
         </div>
       </div>
 
-      <!-- View Floor Plan CTA — sits directly below the Floor Selector,
-           same width, 14px radius to echo the card. -->
-      <a class="cta" id="ctaView" href="floor-units.html?floor=26">
-        <span class="cta-floor-label" id="ctaFloorLabel">L 26</span>
+      <a class="cta" id="ctaView" href="floor-units.html">
+        <span class="cta-floor-label" id="ctaFloorLabel">L 45</span>
         <span class="cta-action">
           View Floor Plan
           <span class="cta-arrow">→</span>
         </span>
       </a>
     </aside>
-
-    <!-- Bottom-centre drag hint + chevrons removed — area intentionally clean. -->
 
     <!-- Cream fade veil -->
     <div class="veil" id="veil"></div>
@@ -1411,157 +878,273 @@
 </div>
 
 <script>
-  // ── Floor-band model ────────────────────────────────────────────
-  // Matches the real Embassy Citadel elevation (from the client brief):
-  //   L78-L79  Terrace               (+292M → +304.20M)
-  //   L74-L77  Amenity/Mansion Entry (4 floors, service + arrival)
-  //   L44-L73  Sky Residences        (30 habitable @ 3.9m F/F)
-  //   L15-L43  Mid Residences        (29 habitable @ 3.6m F/F)
-  //   L10-L14  Amenity Levels        (5 amenity levels @ +36-43M)
-  //   L1-L9    Parking Podiums       (9 podium levels @ +6.20-36M)
-  //   Total: 79 floors above ground
-  const BANDS = [
-    { name: 'TERRACE',           lo: 78, hi: 79, cat: 'terrace',          color: 'var(--band-terrace)' },
-    { name: 'MANSION ENTRY',     lo: 74, hi: 77, cat: 'amenity-mansion',  color: 'var(--band-amenity-mansion)' },
-    { name: 'SKY RESIDENCES',    lo: 44, hi: 73, cat: 'residential',      color: 'var(--band-residential)' },
-    { name: 'MID RESIDENCES',    lo: 15, hi: 43, cat: 'residential',      color: 'var(--band-residential)' },
-    { name: 'AMENITY LEVELS',    lo: 10, hi: 14, cat: 'amenity',          color: 'var(--band-amenity)' },
-    { name: 'PARKING PODIUMS',   lo:  1, hi:  9, cat: 'parking',          color: 'var(--band-parking)' },
-  ];
-  const FLOOR_MIN = 1;
-  const FLOOR_MAX = 79;
-  const TOTAL = FLOOR_MAX - FLOOR_MIN + 1;  // 79 discrete levels
-
-  // ── State ──────────────────────────────────────────────────────
-  const state = {
-    floor: 26,
-    activeCat: null,
-    dragging: false,
+  // ── SECTION → LEVELS (inlined from INVENTORY_SPEC.md; defaults) ─────
+  // Listed top-to-bottom (descending) for display.
+  const SECTION_LEVELS = {
+    mansion:     [79, 78, 77, 76, 75, 74, 73, 72],
+    residential: [71,69,68,67,66,65,64,62,61,60,59,58,57,54,53,52,51,50,49,47,46,45,44,43,42,40,39,38,37,36,35,33,32,31,30,29,28,25,24,23,22,21,20,18,17],
+    refuge:      [70, 63, 55, 48, 41, 34, 26, 19],
+    amenity:     [79, 15, 14, 13, 12, 10],
+    service:     [11],
+    parking:     ['P9','P8','P7','P6','P5','P4','P3','P2','P1'],
+    entrance:    ['Ground'],
+    basement:    ['B1','B2','B3'],
   };
 
-  // ── Utility: format floor display ──────────────────────────────
-  function floorLabel(n) { return 'L' + n; }
-  function floorLongLabel(n) {
-    if (n >= 78)      return 'Terrace · L' + n;
-    if (n >= 74)      return 'Mansion Entry · L' + n;
-    if (n >= 44)      return 'Sky Residence · L' + n;
-    if (n >= 15)      return 'Mid Residence · L' + n;
-    if (n >= 10)      return 'Amenity · L' + n;
-    return 'Parking · L' + n;
-  }
-  function floorCat(n) {
-    for (const b of BANDS) if (n >= b.lo && n <= b.hi) return b.cat;
-    return null;
+  // ── Per-type metadata: display name + accent gradient ──────────────
+  const SECTION_META = {
+    mansion:     { name: 'Mansion Level',          word: 'Mansion',     em: 'Level',    kick: 'Mansion',   a: '#C0392B', b: '#E67E22', blurb: 'Sky residences at the crown of the tower.' },
+    residential: { name: 'Residential Floor',      word: 'Residential', em: 'Floor',    kick: 'Residence', a: '#E67E22', b: '#F1C40F', blurb: 'The core habitable floors of the tower.' },
+    refuge:      { name: 'Refuge Area',            word: 'Refuge',      em: 'Area',     kick: 'Refuge',    a: '#16A085', b: '#2ECC71', blurb: 'Code-mandated refuge levels through the height.' },
+    amenity:     { name: 'Amenity Floor',          word: 'Amenity',     em: 'Floor',    kick: 'Amenity',   a: '#C0398A', b: '#E8788F', blurb: 'Shared amenity and arrival levels.' },
+    service:     { name: 'Service Floor',          word: 'Service',     em: 'Floor',    kick: 'Service',   a: '#5D6D7E', b: '#AEB6BF', blurb: 'Building services level.' },
+    parking:     { name: 'Residential Parking',    word: 'Residential', em: 'Parking',  kick: 'Parking',   a: '#2E6FC4', b: '#36C6D3', blurb: 'Podium parking for residents.' },
+    entrance:    { name: 'Double-Height Entrance', word: 'Arrival',     em: 'Entrance', kick: 'Arrival',   a: '#7DBE3C', b: '#B7E27A', blurb: 'The double-height arrival lobby.' },
+    basement:    { name: 'Basement Level',         word: 'Basement',    em: 'Level',    kick: 'Basement',  a: '#4B4FB0', b: '#8E5BC9', blurb: 'Lower basement levels.' },
+  };
+
+  // ── Section bounding boxes in the render's pixel space (2752×2064) ──
+  // Computed from the polygon/path/rect coords in inventory-types.svg.
+  const SECTION_BOX = {
+    mansion:     { x: 1177.66, y: 243.32,  w: 348.81, h: 252.39 },
+    residential: { x: 1177.66, y: 343.67,  w: 348.81, h: 556.67 },
+    refuge:      { x: 1177.66, y: 806.67,  w: 348.81, h: 668.64 },
+    amenity:     { x: 1177.66, y: 1453.86, w: 380.20, h: 135.06 },
+    parking:     { x: 1165.68, y: 1502.19, w: 392.18, h: 219.44 },
+    entrance:    { x: 1280.93, y: 1721.63, w: 66.65,  h: 53.52  },
+    basement:    { x: 1165.68, y: 1775.14, w: 410.30, h: 40.14  },
+    service:     { x: 1177.66, y: 343.67,  w: 348.81, h: 556.67 },
+  };
+
+  // ── Read selection ─────────────────────────────────────────────────
+  let sectionKey = 'residential';
+  try { sectionKey = sessionStorage.getItem('ec.section') || 'residential'; } catch (e) {}
+  if (!SECTION_META[sectionKey]) sectionKey = 'residential';
+
+  const meta   = SECTION_META[sectionKey];
+  const levels = (SECTION_LEVELS[sectionKey] || []).slice();   // top → bottom
+  const box    = SECTION_BOX[sectionKey] || SECTION_BOX.residential;
+  const N       = Math.max(1, levels.length);
+
+  // ── Apply accent palette to CSS + SVG gradient ─────────────────────
+  document.documentElement.style.setProperty('--accent-a', meta.a);
+  document.documentElement.style.setProperty('--accent-b', meta.b);
+  document.getElementById('accentStopA').setAttribute('stop-color', meta.a);
+  document.getElementById('accentStopB').setAttribute('stop-color', meta.b);
+  document.getElementById('accentStopSoftA').setAttribute('stop-color', meta.a);
+  document.getElementById('accentStopSoftB').setAttribute('stop-color', meta.b);
+
+  // ── Header copy + badges ───────────────────────────────────────────
+  document.getElementById('thTitle').innerHTML = meta.word + ' <span class="em">' + meta.em + '</span>';
+  document.getElementById('thSub').textContent = meta.blurb + ' Choose a level to view its plan.';
+  document.getElementById('badgeName').textContent = meta.name;
+  document.getElementById('fsFootType').textContent = meta.name;
+  document.getElementById('fsFootNum').textContent = N;
+
+  // ── Position the tower render in the left-half panel ────────────────
+  // Fit the 2752×2064 image by HEIGHT into the 720×900 SVG viewBox so it
+  // stands tall (natural large size), pulled toward the left/centre of
+  // the panel. Then place the active clip + ring around the section box,
+  // all in the same scaled/translated coordinate space.
+  let towerScale = 1, towerTx = 0, towerTy = 0;
+  (function placeTower() {
+    const IMG_W = 2752, IMG_H = 2064;
+    const VB_W = 720, VB_H = 900;
+    // Fit by height with a little top/bottom breathing room.
+    const usableH = VB_H * 0.86;
+    const s = usableH / IMG_H;               // height-fit scale
+    towerScale = s;
+    const drawW = IMG_W * s;
+    // Centre the (tall) image horizontally within the panel; nudge right
+    // so the tower body sits toward the panel's centre, near the slider.
+    towerTx = (VB_W - drawW) / 2 + 40;
+    towerTy = (VB_H - IMG_H * s) / 2;
+
+    const g = document.getElementById('towerImgGroup');
+    g.setAttribute('transform', 'translate(' + towerTx + ',' + towerTy + ') scale(' + s + ')');
+
+    // Active clip + ring around the real section box (image pixel coords).
+    const clip = document.getElementById('activeClipRect');
+    const ring = document.getElementById('activeRing');
+    const ring2 = document.getElementById('activeRing2');
+    const cpad = 8;
+    [clip, ring, ring2].forEach(el => {
+      el.setAttribute('x', box.x - cpad);
+      el.setAttribute('y', box.y - cpad);
+      el.setAttribute('width',  box.w + cpad * 2);
+      el.setAttribute('height', box.h + cpad * 2);
+    });
+    ring.setAttribute('rx', '14'); ring2.setAttribute('rx', '14');
+  })();
+
+  // Section centre in STAGE coordinates (1440×900) — anchor for the
+  // dashed leader line's left endpoint. The tower panel occupies stage
+  // x:[0,720], y:[0,900], and its SVG viewBox is 720×900 → 1:1 with the
+  // panel pixels, so image→panel→stage is just the group transform.
+  function sectionCentreStage() {
+    const cx = box.x + box.w / 2;
+    const cy = box.y + box.h / 2;
+    return {
+      x: towerTx + cx * towerScale,            // panel x == stage x (panel at left:0)
+      y: towerTy + cy * towerScale,
+    };
   }
 
-  // ── Render the track bands, ticks and labels ───────────────────
+  // ── Level label formatting ─────────────────────────────────────────
+  function levelShort(lv) {
+    if (typeof lv === 'string') return lv;                 // P3 / Ground / B1
+    return 'L' + lv;
+  }
+  function levelLong(lv) {
+    if (typeof lv === 'string') {
+      if (lv === 'Ground')   return 'Arrival · Ground';
+      if (lv[0] === 'P')     return 'Parking · ' + lv;
+      if (lv[0] === 'B')     return 'Basement · ' + lv;
+      return lv;
+    }
+    if (sectionKey === 'refuge')  return 'Refuge · ' + lv;
+    if (sectionKey === 'mansion') return 'Mansion · L' + lv;
+    if (sectionKey === 'amenity') return 'Amenity · L' + lv;
+    if (sectionKey === 'service') return 'Service · L' + lv;
+    return 'Level ' + lv;
+  }
+  // CTA / handle / pill formatting
+  function levelDisplay(lv) {
+    if (typeof lv === 'string') return lv;                 // Ground / P3 / B1
+    return 'L ' + lv;
+  }
+
+  // ── Slider geometry ────────────────────────────────────────────────
+  // Each level = one equal-height band. Band i (0=top) spans
+  //   top   = i/N * 100%
+  //   height= 1/N * 100%
+  // The selected index's value runs 0..N-1 (0 at top).
   const track   = document.getElementById('fsTrack');
   const labelsEl = document.getElementById('fsLabels');
   const ticksEl  = document.getElementById('fsTicks');
 
-  // Top of slider = highest floor (79), bottom = lowest (-5)
-  function pctForFloor(n) {
-    // returns 0..100 from TOP
-    // floor 79 → 0%, floor -5 → 100%
-    return ((FLOOR_MAX - n) / (TOTAL - 1)) * 100;
-  }
+  const state = { idx: 0, dragging: false };
+  // default selected: ec.floor if it's in this section, else first level.
+  (function defaultIdx() {
+    let init = 0;
+    try {
+      const f = sessionStorage.getItem('ec.floor');
+      if (f != null) {
+        const hit = levels.findIndex(lv => String(lv) === String(f));
+        if (hit >= 0) init = hit;
+      }
+    } catch (e) {}
+    state.idx = init;
+  })();
+
+  // pct (from top) of the CENTRE of band i
+  function pctForIdx(i) { return ((i + 0.5) / N) * 100; }
 
   function renderBands() {
     track.innerHTML = '';
-    BANDS.forEach(b => {
+    const bandH = 100 / N;
+    levels.forEach((lv, i) => {
       const div = document.createElement('div');
       div.className = 'fs-band';
-      div.dataset.cat = b.cat;
-      const top = pctForFloor(b.hi + 0.5);
-      const bot = pctForFloor(b.lo - 0.5);
-      div.style.top    = top + '%';
-      div.style.height = (bot - top) + '%';
-      div.style.background = b.color;
+      div.dataset.idx = i;
+      div.style.top    = (i * bandH) + '%';
+      div.style.height = bandH + '%';
+      // colour-coded: blend the section's accent A→B across the stack so
+      // the track reads as a smooth coded gradient (like the old bands).
+      const t = N === 1 ? 0.5 : i / (N - 1);
+      div.style.background = 'linear-gradient(90deg, ' +
+        mix(meta.a, meta.b, t) + ' 0%, ' + mix(meta.a, meta.b, Math.min(1, t + 0.18)) + ' 100%)';
       track.appendChild(div);
-
-      // For the big residential band, add tiny floor markers inside
-      if (b.cat === 'residential') {
-        [10, 20, 30, 40, 50, 60, 70].forEach(n => {
-          const tag = document.createElement('div');
-          tag.className = 'fs-band-num';
-          tag.style.top = pctForFloor(n) + '%';
-          tag.textContent = n;
-          div.appendChild(tag);
-        });
-      }
     });
-    // The handle (re-added each render so it sits above bands)
+    // handle on top
     const handle = document.createElement('div');
     handle.className = 'fs-handle';
     handle.id = 'fsHandle';
     handle.setAttribute('role', 'slider');
     handle.setAttribute('aria-orientation', 'vertical');
-    handle.setAttribute('aria-valuemin', String(FLOOR_MIN));
-    handle.setAttribute('aria-valuemax', String(FLOOR_MAX));
+    handle.setAttribute('aria-valuemin', '0');
+    handle.setAttribute('aria-valuemax', String(N - 1));
     handle.tabIndex = 0;
-    handle.innerHTML = '<span class="fs-handle-label" id="fsHandleLabel">26</span>';
+    handle.innerHTML = '<span class="fs-handle-label" id="fsHandleLabel"></span>';
     track.appendChild(handle);
+  }
+
+  // colour mix helper (hex → hex)
+  function mix(h1, h2, t) {
+    const a = hex(h1), b = hex(h2);
+    const r = Math.round(a[0] + (b[0] - a[0]) * t);
+    const g = Math.round(a[1] + (b[1] - a[1]) * t);
+    const bl = Math.round(a[2] + (b[2] - a[2]) * t);
+    return 'rgb(' + r + ',' + g + ',' + bl + ')';
+  }
+  function hex(h) {
+    h = h.replace('#', '');
+    return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
   }
 
   function renderLabels() {
     labelsEl.innerHTML = '';
-    // Major labels every 10
-    [-5, 0, 5, 10, 20, 30, 40, 50, 60, 70, 75, 79].forEach(n => {
-      const el = document.createElement('div');
-      el.className = 'fs-label';
-      el.style.top = pctForFloor(n) + '%';
-      el.textContent = floorLabel(n);
-      labelsEl.appendChild(el);
-    });
+    // choose a step so we show ~8-12 labels max for long lists
+    let step = 1;
+    if (N > 12) step = Math.ceil(N / 10);
+    for (let i = 0; i < N; i += step) {
+      addLabel(i);
+    }
+    // always label the last one
+    if ((N - 1) % step !== 0) addLabel(N - 1);
+  }
+  function addLabel(i) {
+    const el = document.createElement('div');
+    el.className = 'fs-label';
+    el.style.top = pctForIdx(i) + '%';
+    el.innerHTML = '<span class="lab-kick">' + meta.kick + '</span>' + levelShort(levels[i]);
+    labelsEl.appendChild(el);
   }
 
   function renderTicks() {
     ticksEl.innerHTML = '';
-    for (let n = FLOOR_MIN; n <= FLOOR_MAX; n += 5) {
+    let step = 1;
+    if (N > 16) step = Math.ceil(N / 16);
+    for (let i = 0; i < N; i += step) {
       const t = document.createElement('div');
-      t.className = 'fs-tick' + (n % 10 === 0 ? ' major' : '');
-      t.style.top = pctForFloor(n) + '%';
+      t.className = 'fs-tick' + (i % (step * 2) === 0 ? ' major' : '');
+      t.style.top = pctForIdx(i) + '%';
       ticksEl.appendChild(t);
     }
   }
 
-  // ── Handle position + visual sync ──────────────────────────────
+  // ── Sync handle + bands + CTA + leader line ─────────────────────────
   function syncHandle() {
     const handle = document.getElementById('fsHandle');
     const label  = document.getElementById('fsHandleLabel');
     if (!handle) return;
-    handle.style.top = pctForFloor(state.floor) + '%';
-    label.textContent = floorLabel(state.floor);
-    handle.setAttribute('aria-valuenow', String(state.floor));
-    handle.setAttribute('aria-valuetext', floorLongLabel(state.floor));
+    const lv = levels[state.idx];
 
-    // CTA — top line shows "L N" in Cormorant italic, bottom line is
-    // the static "View Floor Plan" label, click navigates to floor-plan.
+    handle.style.top = pctForIdx(state.idx) + '%';
+    label.textContent = levelDisplay(lv);
+    handle.setAttribute('aria-valuenow', String(state.idx));
+    handle.setAttribute('aria-valuetext', levelLong(lv));
+
+    // active band highlight
+    track.querySelectorAll('.fs-band').forEach((b, i) => {
+      b.classList.toggle('is-active', i === state.idx);
+    });
+
+    // CTA
     const ctaLabel = document.getElementById('ctaFloorLabel');
-    const cta      = document.getElementById('ctaView');
-    ctaLabel.textContent = 'L ' + state.floor;
-    cta.setAttribute('href', 'floor-units.html?floor=' + state.floor);
+    ctaLabel.textContent = levelDisplay(lv);
 
-    // Highlight matching elevation mark roughly by floor band
-    const marks = document.querySelectorAll('.alt-mark');
-    marks.forEach(m => m.classList.remove('active'));
-    const cat = floorCat(state.floor);
-    const idx = catToMarkIndex(cat);
-    if (idx >= 0 && marks[idx]) marks[idx].classList.add('active');
-
-    // Altitude line — Y position derived from slider handle's Y
-    // within the stage coordinate system (1440 × 900). The slider
-    // track sits inside the right-rail card; map handle pct → stage Y.
-    syncAltitudeLine();
+    syncLeaderLine();
   }
 
-  // ── Altitude overlay sync ──────────────────────────────────────
-  // The SVG uses viewBox="0 0 1440 900" and the stage is 1440×900,
-  // so SVG units == stage px. We compute the handle's Y in stage
-  // coordinates by reading its rect against the stage element and
-  // dividing out the current scale.
-  function syncAltitudeLine() {
+  // A straight, thick HORIZONTAL indicator line at the handle's current
+  // level. Both endpoints share the handle's Y (perfectly horizontal); the
+  // whole line — line, dot and pill — travels UP/DOWN with the handle. It is
+  // NOT anchored to a fixed tower section. Cheap: only x/y attrs change, no
+  // dash-offset redraw, no blur → smooth, no flicker.
+  function syncLeaderLine() {
     const line  = document.getElementById('altLine');
+    const dot   = document.getElementById('altDot');
     const label = document.getElementById('altLabel');
     const labelText = document.getElementById('altLabelText');
     const handle = document.getElementById('fsHandle');
@@ -1572,63 +1155,63 @@
     const stageRect  = stage.getBoundingClientRect();
     if (stageRect.height === 0) return;
     const scale = stageRect.height / 900;
-    const y = (handleRect.top + handleRect.height / 2 - stageRect.top) / scale;
 
-    // Clamp into stage bounds
-    const yClamped = Math.max(20, Math.min(880, y));
+    // handle centre + left edge in stage (1440×900) coords
+    const hy = (handleRect.top + handleRect.height / 2 - stageRect.top) / scale;
+    const hx = (handleRect.left - stageRect.left) / scale;   // left edge of handle
 
-    line.setAttribute('y1', yClamped);
-    line.setAttribute('y2', yClamped);
-    label.setAttribute('transform', 'translate(580, ' + yClamped + ')');
-    labelText.textContent = 'L ' + state.floor;
+    // Tower-side pointer is CONSTRAINED to the selected SECTION BOX: as the
+    // slider moves, the pointer maps the current floor to a position WITHIN
+    // that lit box on the tower — it never travels the full tower height.
+    const boxTopY = towerTy + box.y * towerScale;
+    const boxBotY = towerTy + (box.y + box.h) * towerScale;
+    const t = N > 1 ? ((state.idx + 0.5) / N) : 0.5;
+    const towerY = Math.max(boxTopY, Math.min(boxBotY, boxTopY + t * (boxBotY - boxTopY)));
+    const lx = towerTx + (box.x + box.w) * towerScale + 4;   // box right edge
+    const rx = Math.max(lx + 40, hx - 16);
+    const handleY = Math.max(20, Math.min(880, hy));
 
-    // Re-trigger the dashed draw animation
-    line.classList.remove('drawing');
-    // force reflow so the animation restarts
-    void line.getBoundingClientRect();
-    line.classList.add('drawing');
+    // line: slider handle (right, at handle Y) → in-box pointer (left, in box)
+    line.setAttribute('x1', lx);
+    line.setAttribute('y1', towerY);
+    line.setAttribute('x2', rx);
+    line.setAttribute('y2', handleY);
+
+    // dot = the pointer; sits on the section box and moves only within it
+    dot.setAttribute('cx', lx);
+    dot.setAttribute('cy', towerY);
+
+    // pill rides above the in-box pointer
+    const lv = levels[state.idx];
+    const disp = levelDisplay(lv);
+    labelText.textContent = disp;
+    const pillW = Math.max(56, disp.length * 9 + 28);
+    document.getElementById('altPill').setAttribute('width', pillW);
+    document.getElementById('altPill').setAttribute('x', -pillW / 2);
+    label.setAttribute('transform', 'translate(' + lx + ', ' + (towerY - 22) + ')');
   }
-  function catToMarkIndex(cat) {
-    // approximate mapping floor-band → which alt-mark to highlight
-    switch (cat) {
-      case 'terrace':         return 1;   // +304.20m
-      case 'amenity-mansion': return 2;   // +292.00m
-      case 'residential':     return 3;   // +206.10m (rough middle)
-      case 'amenity':         return 7;   // +38.00m
-      case 'parking':         return 8;   // +6.20m
-      case 'basement':        return 9;   // +0.00m
-      default: return -1;
-    }
-  }
 
-  // ── Pointer interactions ───────────────────────────────────────
-  function floorAtClientY(clientY) {
+  // ── Pointer interactions ───────────────────────────────────────────
+  function idxAtClientY(clientY) {
     const rect = track.getBoundingClientRect();
-    if (rect.height === 0) return state.floor;
+    if (rect.height === 0) return state.idx;
     let y = clientY - rect.top;
     y = Math.max(0, Math.min(rect.height, y));
-    const pct = y / rect.height;             // 0 = top
-    const n = Math.round(FLOOR_MAX - pct * (TOTAL - 1));
-    return Math.max(FLOOR_MIN, Math.min(FLOOR_MAX, n));
+    const i = Math.floor((y / rect.height) * N);
+    return Math.max(0, Math.min(N - 1, i));
   }
-  function setFloor(n) {
-    n = Math.max(FLOOR_MIN, Math.min(FLOOR_MAX, n));
-    if (n === state.floor) return;
-    state.floor = n;
+  function setIdx(i) {
+    i = Math.max(0, Math.min(N - 1, i));
+    if (i === state.idx) return;
+    state.idx = i;
     syncHandle();
   }
 
-  // Click on the track (anywhere) jumps the handle there
   track.addEventListener('click', e => {
-    // ignore if dragging just ended
-    if (track.dataset.justDragged === '1') {
-      track.dataset.justDragged = '';
-      return;
-    }
-    setFloor(floorAtClientY(e.clientY));
+    if (track.dataset.justDragged === '1') { track.dataset.justDragged = ''; return; }
+    setIdx(idxAtClientY(e.clientY));
   });
 
-  // Drag the handle (or anywhere on the track) — pointer events
   let dragId = null;
   track.addEventListener('pointerdown', e => {
     dragId = e.pointerId;
@@ -1636,11 +1219,11 @@
     track.setPointerCapture(e.pointerId);
     const handle = document.getElementById('fsHandle');
     if (handle) handle.classList.add('dragging');
-    setFloor(floorAtClientY(e.clientY));
+    setIdx(idxAtClientY(e.clientY));
   });
   track.addEventListener('pointermove', e => {
     if (!state.dragging || e.pointerId !== dragId) return;
-    setFloor(floorAtClientY(e.clientY));
+    setIdx(idxAtClientY(e.clientY));
   });
   function endDrag(e) {
     if (!state.dragging) return;
@@ -1655,66 +1238,42 @@
   track.addEventListener('pointerup', endDrag);
   track.addEventListener('pointercancel', endDrag);
 
-  // Keyboard: arrows on the handle (or anywhere if no input has focus)
+  // Keyboard: arrows move through the section's levels
   document.addEventListener('keydown', e => {
     const tag = (document.activeElement && document.activeElement.tagName) || '';
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-    if (e.key === 'ArrowUp')   { e.preventDefault(); setFloor(state.floor + 1); }
-    if (e.key === 'ArrowDown') { e.preventDefault(); setFloor(state.floor - 1); }
-    if (e.key === 'PageUp')    { e.preventDefault(); setFloor(state.floor + 5); }
-    if (e.key === 'PageDown')  { e.preventDefault(); setFloor(state.floor - 5); }
-    if (e.key === 'Home')      { e.preventDefault(); setFloor(FLOOR_MAX); }
-    if (e.key === 'End')       { e.preventDefault(); setFloor(FLOOR_MIN); }
+    if (e.key === 'ArrowUp')   { e.preventDefault(); setIdx(state.idx - 1); }   // up = higher floor (earlier in list)
+    if (e.key === 'ArrowDown') { e.preventDefault(); setIdx(state.idx + 1); }
+    if (e.key === 'PageUp')    { e.preventDefault(); setIdx(state.idx - 5); }
+    if (e.key === 'PageDown')  { e.preventDefault(); setIdx(state.idx + 5); }
+    if (e.key === 'Home')      { e.preventDefault(); setIdx(0); }
+    if (e.key === 'End')       { e.preventDefault(); setIdx(N - 1); }
+    if (e.key === 'Enter')     { e.preventDefault(); confirmFloor(); }
   });
 
-  // ── Code Index row click → highlight matching bands ────────────
-  document.getElementById('ciRows').addEventListener('click', e => {
-    const row = e.target.closest('.ci-row');
-    if (!row) return;
-    const cat = row.dataset.cat;
-    const allRows = document.querySelectorAll('.ci-row');
-    const bands   = track.querySelectorAll('.fs-band');
-    if (state.activeCat === cat) {
-      // toggle off
-      state.activeCat = null;
-      allRows.forEach(r => r.classList.remove('is-active'));
-      bands.forEach(b => { b.classList.remove('highlight'); b.classList.remove('dim'); });
-    } else {
-      state.activeCat = cat;
-      allRows.forEach(r => r.classList.toggle('is-active', r.dataset.cat === cat));
-      bands.forEach(b => {
-        if (b.dataset.cat === cat) {
-          b.classList.add('highlight');
-          b.classList.remove('dim');
-        } else {
-          b.classList.remove('highlight');
-          b.classList.add('dim');
-        }
-      });
-      // Jump handle to the middle of that band so the user sees the link
-      const band = BANDS.find(x => x.cat === cat);
-      if (band) {
-        const mid = Math.round((band.lo + band.hi) / 2);
-        setFloor(mid);
-      }
-    }
+  // ── Confirm → store floor + cream veil → floor-plan.html ────────────
+  function confirmFloor() {
+    const lv = levels[state.idx];
+    try { sessionStorage.setItem('ec.floor', String(lv)); } catch (e) {}
+    document.body.classList.add('is-leaving');
+    setTimeout(() => { window.location.href = 'floor-units.html'; }, 220);
+  }
+  document.getElementById('ctaView').addEventListener('click', e => {
+    e.preventDefault();
+    confirmFloor();
   });
 
-  // ── Back button (top-left) → cream veil → home.html ────────────
+  // ── Back navigation ────────────────────────────────────────────────
   document.getElementById('brandBack').addEventListener('click', e => {
     e.preventDefault();
     document.body.classList.add('is-leaving');
     setTimeout(() => { window.location.href = 'home.html'; }, 220);
   });
-
-  // ── Top-right reset → back to tower view ───────────────────────
   document.getElementById('topReset').addEventListener('click', e => {
     e.preventDefault();
     document.body.classList.add('is-leaving');
     setTimeout(() => { window.location.href = 'inventory.html'; }, 220);
   });
-
-  // ── Explicit BACK button (right) → inventory.html (drill-up) ───
   const ecBackBtn = document.getElementById('ecBackBtn');
   if (ecBackBtn) {
     const goBack = (e) => {
@@ -1726,30 +1285,19 @@
     ecBackBtn.addEventListener('touchend', goBack, { passive: false });
   }
 
-  // ── CTA navigation (cream veil) ────────────────────────────────
-  document.getElementById('ctaView').addEventListener('click', e => {
-    e.preventDefault();
-    const href = e.currentTarget.getAttribute('href');
-    document.body.classList.add('is-leaving');
-    setTimeout(() => { window.location.href = href; }, 220);
-  });
-
-  // ── Boot ───────────────────────────────────────────────────────
+  // ── Boot ───────────────────────────────────────────────────────────
   renderBands();
   renderLabels();
   renderTicks();
   syncHandle();
 
-  // Keep the altitude line aligned after layout settles + on resize.
-  // The slider's getBoundingClientRect depends on scale + fonts being
-  // ready, so re-sync on load and any future resize.
-  window.addEventListener('load',   () => { try { syncAltitudeLine(); } catch (e) {} });
-  window.addEventListener('resize', () => { try { syncAltitudeLine(); } catch (e) {} });
+  // The handle/leader geometry depends on layout + scale + fonts; re-sync.
+  window.addEventListener('load',   () => { try { syncLeaderLine(); } catch (e) {} });
+  window.addEventListener('resize', () => { try { syncLeaderLine(); } catch (e) {} });
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => { try { syncAltitudeLine(); } catch (e) {} });
+    document.fonts.ready.then(() => { try { syncLeaderLine(); } catch (e) {} });
   }
-  // Initial double-sync after one frame (scale runs on DOMContentLoaded).
-  requestAnimationFrame(() => { try { syncAltitudeLine(); } catch (e) {} });
+  requestAnimationFrame(() => { try { syncLeaderLine(); } catch (e) {} });
 </script>
 
 <!-- PWA-JS-START -->
@@ -1757,7 +1305,13 @@
   // Service worker registration (PWA + offline cache)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
+      var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});
+      var ecReloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if (ecReloaded || !ecHadCtrl) return;   // skip the first-ever claim
+        ecReloaded = true; window.location.reload();   // new version deployed -> refresh
+      });
     });
   }
   // iOS double-tap zoom guard
@@ -1768,11 +1322,9 @@
       if (now - lastTouchEnd <= 300) e.preventDefault();
       lastTouchEnd = now;
     }, { passive: false });
-    // Block pinch-zoom gesture events (iOS Safari)
     ['gesturestart','gesturechange','gestureend'].forEach(function(ev) {
       document.addEventListener(ev, function(e) { e.preventDefault(); }, { passive: false });
     });
-    // Cache --vh CSS var for iOS Safari URL-bar collapse handling
     function setVh() {
       var vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', vh + 'px');
@@ -1805,11 +1357,10 @@
     }
     if ('requestIdleCallback' in window) {
       requestIdleCallback(function() {
-        if (location.pathname.indexOf('home.html') !== -1) return;
-        if (document.querySelector('link[rel="prefetch"][href="home.html"]')) return;
+        if (document.querySelector('link[rel="prefetch"][href="floor-plan.html"]')) return;
         var link = document.createElement('link');
         link.rel = 'prefetch';
-        link.href = 'home.html';
+        link.href = 'floor-plan.html';
         document.head.appendChild(link);
       });
     }
@@ -1817,17 +1368,13 @@
 </script>
 <!-- PWA-JS-END -->
 <script>
-  /* ── BFCACHE / BACK-NAVIGATION GUARD ─────────────────────────────────
-     Tablets (iOS Safari, Samsung Internet, Chrome-Android) restore the
-     previous page from the back-forward cache with its DOM intact — including
-     the cream "is-leaving" veil that was set just before navigating away. That
-     left the restored screen BLANK on back. Clear the leaving/firing state
-     whenever the page is shown (including a bfcache restore) or on popstate. */
+  /* ── BFCACHE / BACK-NAVIGATION GUARD ───────────────────────────────── */
   (function () {
     function clearLeave() { document.body.classList.remove('is-leaving', 'is-firing'); }
     window.addEventListener('pageshow', clearLeave);
     window.addEventListener('popstate', clearLeave);
   })();
 </script>
+  <script src="assets/tools-dock.js"></script>
 </body>
 </html>

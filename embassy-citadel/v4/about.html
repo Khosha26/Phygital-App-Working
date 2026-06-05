@@ -66,7 +66,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-
 <style>
   :root {
     --paper:      #FCFAF4;
@@ -130,14 +129,24 @@
     position: fixed; inset: 0; overflow: hidden;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     display: flex; align-items: center; justify-content: center;
-    background:
-      url('assets/bg-paper.png') center/cover no-repeat,
-      radial-gradient(ellipse 80% 60% at 50% 45%, var(--paper) 0%, var(--bone-50) 55%, var(--bone-200) 100%) var(--paper);
+    isolation: isolate;
+    /* Flat paper — matches the stage's own paper edge so letterbox/pillarbox
+       margins (iPad 4:3, 65" 16:9) blend with no visible "cut". */
+    background: url('assets/bg-paper.png') center/cover no-repeat, var(--paper);
+  }
+  /* Full-bleed day-tint behind the stage so the margins shift hue in lock-step
+     with the stage's own day-tint — the seam never appears at any tint phase. */
+  #stage-wrap::before {
+    content: ''; position: absolute; inset: 0; z-index: 0;
+    pointer-events: none; mix-blend-mode: color;
+    background-color: rgba(255, 250, 240, 0.10);
+    animation: dayCycle 120s linear infinite;
   }
   #stage, .stage-inner {
     position: relative;
     width: 1440px; height: 900px;
     flex-shrink: 0;
+    z-index: 1;
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
@@ -1310,7 +1319,7 @@
 
       <!-- Hero circle (the tower) -->
       <div class="hero-circle" id="heroCircle">
-        <img id="heroImg" src="assets/photography/hero-tower-realistic.jpg" alt="Embassy Citadel — Tower" onerror="this.style.display='none'; this.parentNode.style.background='linear-gradient(160deg, #1F1B15 0%, #3A332A 60%, #1A1814 100%)';" />
+        <img id="heroImg" src="assets/client/gallery/ext-tower-03.webp" alt="Embassy Citadel — Tower" onerror="this.style.display='none'; this.parentNode.style.background='linear-gradient(160deg, #1F1B15 0%, #3A332A 60%, #1A1814 100%)';" />
 
         <div class="hero-caption">
           <div class="e">— The Project</div>
@@ -1398,7 +1407,7 @@
     <!-- ╔══ RIGHT COLUMN — swaps: Our Journey (Vision) ⇄ value write-up ══╗ -->
     <aside class="col-right">
       <!-- Our Journey — shown when VISION is selected (default) -->
-      <div class="right-view" id="journeyView">
+      <div class="right-view" id="journeyView" style="border-radius:8px;">
         <div class="eyebrow">— Our Journey</div>
         <div class="timeline" id="timeline">
           <div class="milestone" data-year="1993">
@@ -1511,7 +1520,7 @@
       </div>
 
       <div class="video-card" id="legacyCard">
-        <div class="bg" style="background-image: url('assets/photography/hero-tower-skyline-wide.jpg');"></div>
+        <div class="bg" style="background-image: url('assets/client/gallery/view-01.webp');"></div>
         <div class="veil"></div>
         <div class="content">
           <div class="title">A Legacy of Impact</div>
@@ -1598,18 +1607,18 @@
 
   // ── Popup content tables ───────────────────────────────────────
   const VALUE_CONTENT = {
-    vision:         { label: 'Our Vision',     body: "To be the world's most admired real estate developer, creating landmarks that transform lives and skylines.",                  thumb: 'assets/photography/brochure-p-10.jpg' },
-    quality:        { label: 'Quality',        body: 'Uncompromising standards from foundation to finish — every detail considered, every material curated.',                         thumb: 'assets/photography/brochure-p-11.jpg' },
-    people:         { label: 'People',         body: 'Our craftspeople, architects and engineers are the foundation of everything we build. Their hands shape our legacy.',           thumb: 'assets/photography/brochure-p-12.jpg' },
-    trust:          { label: 'Trust',          body: 'Three decades of delivering on what we promise. Built on transparency, integrity and considered action.',                        thumb: 'assets/photography/brochure-p-13.jpg' },
-    sustainability: { label: 'Sustainability', body: 'Green certifications, water reclamation, native landscaping. Building responsibly for generations to come.',                     thumb: 'assets/photography/brochure-p-14.jpg' },
+    vision:         { label: 'Our Vision',     body: "To be the world's most admired real estate developer, creating landmarks that transform lives and skylines.",                  thumb: 'assets/client/gallery/ext-tower-01.webp' },
+    quality:        { label: 'Quality',        body: 'Uncompromising standards from foundation to finish — every detail considered, every material curated.',                         thumb: 'assets/client/gallery/int-master-suite.webp' },
+    people:         { label: 'People',         body: 'Our craftspeople, architects and engineers are the foundation of everything we build. Their hands shape our legacy.',           thumb: 'assets/client/amenities/am-resident-living.webp' },
+    trust:          { label: 'Trust',          body: 'Three decades of delivering on what we promise. Built on transparency, integrity and considered action.',                        thumb: 'assets/client/gallery/lobby-1.webp' },
+    sustainability: { label: 'Sustainability', body: 'Green certifications, water reclamation, native landscaping. Building responsibly for generations to come.',                     thumb: 'assets/client/gallery/view-02.webp' },
   };
 
   const YEAR_CONTENT = {
-    '1993': { label: 'The Beginning',     body: 'Embassy Group is founded in Bangalore by Jitu Virwani. A vision to transform skylines, one considered project at a time.',                                 thumb: 'assets/photography/brochure-p-08.jpg' },
-    '2006': { label: 'Expanding Horizons',body: 'Embassy Manyata opens. New asset classes, new cities, landmark integrated developments — the work begins to scale.',                                       thumb: 'assets/photography/brochure-p-09.jpg' },
-    '2015': { label: 'Shaping Skylines',  body: "Considered projects that redefined urban living. Integrated business parks. India's first listed REIT in 2019. A new benchmark for institutional real estate.", thumb: 'assets/photography/brochure-p-11.jpg' },
-    '2024': { label: 'The Future',        body: 'Embassy Citadel rises on Worli sea-face. A single tower. A world unto itself. Our finest expression of everything we believe in.',                          thumb: 'assets/photography/hero-tower-realistic.jpg' },
+    '1993': { label: 'The Beginning',     body: 'Embassy Group is founded in Bangalore by Jitu Virwani. A vision to transform skylines, one considered project at a time.',                                 thumb: 'assets/client/gallery/lobby-2.webp' },
+    '2006': { label: 'Expanding Horizons',body: 'Embassy Manyata opens. New asset classes, new cities, landmark integrated developments — the work begins to scale.',                                       thumb: 'assets/client/gallery/ext-tower-02.webp' },
+    '2015': { label: 'Shaping Skylines',  body: "Considered projects that redefined urban living. Integrated business parks. India's first listed REIT in 2019. A new benchmark for institutional real estate.", thumb: 'assets/client/gallery/view-03.webp' },
+    '2024': { label: 'The Future',        body: 'Embassy Citadel rises on Worli sea-face. A single tower. A world unto itself. Our finest expression of everything we believe in.',                          thumb: 'assets/client/gallery/ext-tower-03.webp' },
   };
 
   // ── Shared popup show/position ─────────────────────────────────
@@ -1865,7 +1874,13 @@
   // Service worker registration (PWA + offline cache)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
+      var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});
+      var ecReloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if (ecReloaded || !ecHadCtrl) return;   // skip the first-ever claim
+        ecReloaded = true; window.location.reload();   // new version deployed -> refresh
+      });
     });
   }
   // iOS double-tap zoom guard
@@ -1936,5 +1951,6 @@
     window.addEventListener('popstate', clearLeave);
   })();
 </script>
+  <script src="assets/tools-dock.js"></script>
 </body>
 </html>

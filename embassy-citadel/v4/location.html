@@ -51,7 +51,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <style>
@@ -104,7 +103,10 @@
   html, body {
     margin: 0; padding: 0;
     width: 100%; height: 100%;
-    background: var(--paper);
+    /* Flat fill matching the map's own edge colour (#map background) so any
+       margin outside the full-bleed map blends with no gradient/tone seam
+       on iPad 4:3 / 65" 16:9. The map is fixed inset:0 above this. */
+    background: #E9DFC8;
     color: var(--onyx-700);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -129,8 +131,7 @@
     z-index: 0;
     background: #E9DFC8;
   }
-
-  /* ── Tile filters keyed off body[data-map-style] ──────────────── */
+/* ── Tile filters keyed off body[data-map-style] ──────────────── */
   body[data-map-style="warm"] .leaflet-tile {
     filter: sepia(0.55) hue-rotate(-12deg) saturate(0.75) brightness(1.04);
   }
@@ -369,7 +370,7 @@
   }
   .rail-section-eyebrow {
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 8.5px;
     letter-spacing: 0.5em;
     text-transform: uppercase;
@@ -901,7 +902,7 @@
 <meta name="format-detection" content="telephone=no">
 <!-- PWA-BLOCK-END -->
 </head>
-<body data-map-style="satellite">
+<body data-map-style="vector">
 
 <!-- Embassy Citadel wordmark — same SVG symbol as home -->
 <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -911,7 +912,7 @@
 </svg>
 
   <!-- ── MAP ───────────────────────────────────────────────────── -->
-  <div id="map"></div>
+  <div id="map" class=""></div>
   <div class="map-wash"></div>
   <svg id="line-overlay" preserveAspectRatio="none">
     <path class="line-path" d="" id="lineMain"></path>
@@ -1002,7 +1003,7 @@
             </div>
           </div>
 
-          <div class="poi-list" id="poiList"></div>
+          <div class="poi-list" id="poiList" style="border-radius:8px; min-height:48px;"></div>
         </div>
 
       </div>
@@ -1161,7 +1162,7 @@
     facing: new Set(),
     sort: 'time',
     activePoi: null,
-    mapStyle: 'satellite',
+    mapStyle: 'vector',
   };
 
   // ──────────────────────────────────────────────────────────
@@ -1250,7 +1251,7 @@
       b.classList.toggle('is-on', b.dataset.style === key);
     });
   }
-  setMapStyle('satellite');
+  setMapStyle('vector');
 
   // Wire the 3 toggle pills
   document.querySelectorAll('.st-pill').forEach(btn => {
@@ -1683,7 +1684,13 @@
   // Service worker registration (PWA + offline cache)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
+      var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});
+      var ecReloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if (ecReloaded || !ecHadCtrl) return;   // skip the first-ever claim
+        ecReloaded = true; window.location.reload();   // new version deployed -> refresh
+      });
     });
   }
   // iOS double-tap zoom guard
@@ -1747,5 +1754,6 @@
     window.addEventListener('popstate', clearLeave);
   })();
 </script>
+  <script src="assets/tools-dock.js"></script>
 </body>
 </html>

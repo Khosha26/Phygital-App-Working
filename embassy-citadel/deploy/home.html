@@ -61,7 +61,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-
 <style>
   :root {
     --paper:      #FCFAF4;
@@ -125,14 +124,16 @@
     position: fixed; inset: 0; overflow: hidden;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     display: flex; align-items: center; justify-content: center;
-    background:
-      url('assets/bg-paper.png') center/cover no-repeat,
-      radial-gradient(ellipse 80% 60% at 50% 45%, var(--paper) 0%, var(--bone-50) 55%, var(--bone-200) 100%) var(--paper);
+    isolation: isolate;
+    /* Flat paper — matches the stage's own paper edge exactly so the
+       letterbox/pillarbox margins (iPad 4:3, 65" 16:9) blend with no "cut". */
+    background: url('assets/bg-paper.png') center/cover no-repeat, var(--paper);
   }
   #stage, .stage-inner {
     position: relative;
     width: 1440px; height: 900px;
     flex-shrink: 0;
+    z-index: 1;
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
@@ -936,6 +937,15 @@
     margin: 0;
     white-space: nowrap;
   }
+  /* Long labels (e.g. "Project Overview") wrap to two tidy lines, sized down a
+     touch and tightened so they sit cleanly inside the squircle like the rest. */
+  .tile--long .tile-title {
+    white-space: normal;
+    font-size: 10px;
+    letter-spacing: 0.10em;
+    line-height: 1.04;
+    max-width: 86px;
+  }
   .tile-floor {
     font-family: 'Inter', sans-serif;
     font-weight: 500;
@@ -1214,12 +1224,140 @@
     to { opacity: 0; }
   }
 
+  /* ── FLOATING TOOLS SHORTCUT (bottom-right radial fan) ─────────────
+     A small circular FAB anchored bottom-right of the stage. Tapping it
+     fans three option chips out radially (arc up + left). Sits above the
+     tiles (z-index 7) but below the veil (z-index 99) so the cream-veil
+     transition still washes over it on navigate. Clip-safe: anchored with
+     enough inset that the 96px fan-radius stays inside the 1440×900 stage. */
+  .fab-tools {
+    position: absolute;
+    right: 38px; bottom: 80px;
+    width: 184px; height: 184px;
+    z-index: 7;
+    pointer-events: none;          /* only children take pointer events */
+  }
+  /* Main circular trigger — sits at the bottom-right corner of the wrapper */
+  .fab-btn {
+    position: absolute;
+    right: 0; bottom: 0;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    padding: 0;
+    pointer-events: auto;
+    cursor: pointer;
+    appearance: none; -webkit-appearance: none;
+    font-family: inherit;
+    display: grid; place-items: center;
+    color: var(--onyx-700);
+    background:
+      radial-gradient(ellipse 85% 60% at 50% -10%, rgba(255,255,255,0.9), transparent 65%),
+      linear-gradient(160deg, var(--paper) 0%, var(--bone-50) 55%, var(--bone-200) 100%);
+    border: 1.5px solid rgba(180, 145, 80, 0.55);
+    box-shadow:
+      10px 18px 34px -12px rgba(120, 95, 55, 0.26),
+       4px  8px 14px       rgba(70,  50, 22, 0.12),
+      inset 0  2px 0       rgba(255, 255, 255, 0.95),
+      inset 0 -10px 18px   rgba(190, 168, 130, 0.40);
+    transition: transform 320ms cubic-bezier(0.34, 1.4, 0.4, 1),
+                box-shadow 280ms ease, border-color 260ms ease;
+  }
+  .fab-btn:hover, .fab-btn:focus-visible {
+    border-color: rgba(180, 145, 80, 0.85);
+    box-shadow:
+      12px 22px 40px -12px rgba(120, 95, 55, 0.32),
+       4px  8px 14px       rgba(70,  50, 22, 0.14),
+       0 0 26px            rgba(217, 185, 122, 0.32),
+      inset 0  2px 0       rgba(255, 255, 255, 1),
+      inset 0 -10px 18px   rgba(190, 168, 130, 0.42);
+    outline: none;
+  }
+  .fab-btn .fab-icon {
+    width: 24px; height: 24px;
+    color: var(--gold-500);
+    transition: transform 380ms cubic-bezier(0.34, 1.4, 0.4, 1);
+  }
+  .fab-btn .fab-icon svg { width: 100%; height: 100%; display: block; }
+  /* When open, the wrench rotates a touch to signal active state */
+  .fab-tools.is-open .fab-btn .fab-icon { transform: rotate(135deg); }
+  .fab-tools.is-open .fab-btn {
+    border-color: rgba(180, 145, 80, 0.9);
+    box-shadow:
+      12px 22px 40px -12px rgba(120, 95, 55, 0.34),
+       0 0 30px            rgba(217, 185, 122, 0.40),
+      inset 0  2px 0       rgba(255, 255, 255, 1),
+      inset 0 -10px 18px   rgba(190, 168, 130, 0.44);
+  }
+
+  /* Radial option chips — positioned at the FAB centre, translated out on open */
+  .fab-opt {
+    position: absolute;
+    right: 6px; bottom: 6px;       /* anchored to the FAB centre (52/2 - chip/2 ≈) */
+    display: inline-flex; align-items: center; gap: 9px;
+    height: 40px; padding: 0 16px 0 13px;
+    border-radius: 999px;
+    pointer-events: none;          /* enabled only when open */
+    white-space: nowrap;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--onyx-700);
+    background:
+      radial-gradient(ellipse 90% 60% at 50% -20%, rgba(255,255,255,0.92), transparent 70%),
+      linear-gradient(165deg, var(--paper) 0%, var(--bone-50) 52%, var(--bone-200) 100%);
+    border: 1px solid rgba(180, 145, 80, 0.38);
+    box-shadow:
+      8px 14px 26px -10px rgba(120, 95, 55, 0.24),
+      3px  6px 10px       rgba(70,  50, 22, 0.10),
+      inset 0 1.5px 0     rgba(255, 255, 255, 0.9);
+    /* Closed: collapsed onto the FAB, invisible */
+    transform: translate(0, 0) scale(0.5);
+    opacity: 0;
+    transform-origin: calc(100% - 20px) calc(100% - 20px);
+    transition: transform 420ms cubic-bezier(0.34, 1.5, 0.4, 1),
+                opacity 240ms ease;
+  }
+  .fab-opt .fab-opt-ic {
+    width: 18px; height: 18px;
+    color: var(--gold-500);
+    flex-shrink: 0;
+  }
+  .fab-opt .fab-opt-ic svg { width: 100%; height: 100%; display: block; }
+  .fab-opt .fab-opt-lbl {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 9.5px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--onyx-700);
+  }
+  .fab-opt:hover, .fab-opt:focus-visible {
+    border-color: rgba(180, 145, 80, 0.7);
+    box-shadow:
+      8px 16px 30px -10px rgba(120, 95, 55, 0.30),
+      0 0 20px            rgba(217, 185, 122, 0.30),
+      inset 0 1.5px 0     rgba(255, 255, 255, 1);
+    outline: none;
+  }
+  /* Open state: each chip springs out to its radial slot (set per-chip via --tx/--ty),
+     staggered via --d. Arc fans up + left from the corner anchor. */
+  .fab-tools.is-open .fab-opt {
+    pointer-events: auto;
+    opacity: 1;
+    transform: translate(var(--tx, 0), var(--ty, 0)) scale(1);
+    transition: transform 460ms cubic-bezier(0.34, 1.5, 0.4, 1) var(--d, 0ms),
+                opacity 260ms ease var(--d, 0ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fab-btn, .fab-btn .fab-icon, .fab-opt { transition: none; }
+    .fab-tools.is-open .fab-opt { transition: opacity 1ms; }
+  }
+
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .core, .bob, .mote { animation: none; }
     .px-layer, .tile { transition: none; }
   }
 
+  #fabTools{display:none !important;}
 </style>
 
 <script>
@@ -1332,7 +1470,7 @@
       <div class="ed-divider"></div>
       <p class="ed-para">Rising 312 meters above the city, Embassy Citadel is a rare union of stature and serenity.</p>
       <p class="ed-para">Where considered design meets uncompromising views, life unfolds in eight curated chapters.</p>
-      <div class="ed-stats">
+      <div class="ed-stats" style="padding:14px 16px; border-radius:8px;">
         <div class="ed-stat"><div class="num">312<span class="u">M</span></div><div class="lbl">Elevation</div></div>
         <div class="ed-stat"><div class="num">79</div><div class="lbl">Floors</div></div>
         <div class="ed-stat"><div class="num">158</div><div class="lbl">Residences</div></div>
@@ -1340,18 +1478,10 @@
       </div>
     </section>
 
-    <!-- ╔══ MANIFESTO LINE (above centerpiece) ══╗ -->
-    <div class="manifesto">
-      <span>Eight chapters.</span>
-      <span class="sep">·</span>
-      <span>One tower.</span>
-      <span class="sep">·</span>
-      <span class="em">A world unto itself.</span>
-    </div>
 
     <!-- ╔══ EDGE ORNAMENTS (rotated vertical text) ══╗ -->
     <div class="edge left">EMBASSY&nbsp;CITADEL&nbsp;&nbsp;·&nbsp;&nbsp;<span class="em">EST. 2026</span>&nbsp;&nbsp;·&nbsp;&nbsp;THE&nbsp;SOVEREIGN&nbsp;TOWER</div>
-    <div class="edge right">MAHARERA&nbsp;&nbsp;·&nbsp;&nbsp;<span class="em">P51900-30421</span>&nbsp;&nbsp;·&nbsp;&nbsp;A&nbsp;FRANK&nbsp;NOTE</div>
+    <div class="edge right">MAHARERA&nbsp;&nbsp;·&nbsp;&nbsp;<span class="em">PR1170002501931</span>&nbsp;&nbsp;·&nbsp;&nbsp;A&nbsp;FRANK&nbsp;NOTE</div>
 
     <!-- ╔══ CONSTELLATION STAGE ══╗ -->
     <div class="const-stage" id="constStage">
@@ -1380,11 +1510,9 @@
     <!-- ╔══ BHK availability pills (CTA button removed) ══╗ -->
     <div class="cta-wrap">
       <div class="cta-pills">
+        <span class="pill">3&nbsp;BHK</span>
+        <span class="pip"></span>
         <span class="pill">4&nbsp;BHK</span>
-        <span class="pip"></span>
-        <span class="pill">5&nbsp;BHK</span>
-        <span class="pip"></span>
-        <span class="pill">6&nbsp;BHK</span>
         <span class="pip"></span>
         <span>Selected&nbsp;Floors&nbsp;Open&nbsp;for&nbsp;Viewing</span>
       </div>
@@ -1401,6 +1529,29 @@
 
     <!-- Dust motes -->
     <div class="motes" id="motes"></div>
+
+    <!-- ╔══ FLOATING TOOLS SHORTCUT (radial fan: Price / EMI / FSI) ══╗ -->
+    <div class="fab-tools" id="fabTools">
+      <!-- Option chips (rendered first so the trigger sits on top) -->
+      <a class="fab-opt" data-href="tools.html?tool=price" tabindex="-1" role="button" aria-label="Open Price Sheet">
+        <span class="fab-opt-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h5"/></svg></span>
+        <span class="fab-opt-lbl">Price&nbsp;Sheet</span>
+      </a>
+      <a class="fab-opt" data-href="tools.html?tool=emi" tabindex="-1" role="button" aria-label="Open EMI Calculator">
+        <span class="fab-opt-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M8 7h8"/><path d="M8 12h2M11.5 12h2M15 12h2M8 16h2M11.5 16h2M15 16h2"/></svg></span>
+        <span class="fab-opt-lbl">EMI&nbsp;Calculator</span>
+      </a>
+      <a class="fab-opt" data-href="tools.html?tool=fsi" tabindex="-1" role="button" aria-label="Open FSI Calculator">
+        <span class="fab-opt-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 10h16M10 4v16"/><path d="M14 14l3 3"/></svg></span>
+        <span class="fab-opt-lbl">FSI&nbsp;Calculator</span>
+      </a>
+      <!-- Main trigger -->
+      <button class="fab-btn" id="fabBtn" type="button" role="button"
+              aria-haspopup="true" aria-expanded="false" aria-controls="fabTools"
+              aria-label="Tools — Price Sheet, EMI and FSI calculators">
+        <span class="fab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5a3.8 3.8 0 00-5 4.9l-6 6a1.6 1.6 0 002.3 2.3l6-6a3.8 3.8 0 004.9-5l-2.3 2.3-2.1-.6-.6-2.1z"/></svg></span>
+      </button>
+    </div>
 
     <!-- Veil flash -->
     <div class="veil" id="veil"></div>
@@ -1431,6 +1582,7 @@
     amenities: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M16 26c-6-4-10-9-10-13a6 6 0 0110-4 6 6 0 0110 4c0 4-4 9-10 13z"/><path d="M16 10v14"/></svg>',
     location:  '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M16 28s9-8 9-15a9 9 0 00-18 0c0 7 9 15 9 15z"/><circle cx="16" cy="13" r="3"/></svg>',
     tools:     '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4l5 5-5 5-5-5z"/><path d="M14 9l14 14-4 4-14-14"/><path d="M22 4l6 6-4 4-6-6z"/></svg>',
+    gre:       '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="5" width="16" height="23" rx="1.5"/><path d="M12 5V3.5a1 1 0 011-1h6a1 1 0 011 1V5"/><path d="M12 13h2M12 18h2M12 23h2"/><path d="M18 12.5l1.6 1.6 3-3.2M18 22.5l1.6 1.6 3-3.2"/></svg>',
     about:     '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="11" r="5"/><path d="M5 28c2-5 6-8 11-8s9 3 11 8"/></svg>',
   };
 
@@ -1461,10 +1613,10 @@
     { n: '06', title: 'Location',   floor: 'F00',        icon: 'location',   angle: 225,
       status: 'Eight minutes to the sea. Sixteen to the airport.',
       href: 'location.html' },
-    { n: '07', title: 'Tools',      floor: 'F00',        icon: 'tools',      angle: 270,
-      status: 'Calculators for the considered decision.',
-      href: 'tools.html' },
-    { n: '08', title: 'About',      floor: 'F01',        icon: 'about',      angle: 315,
+    { n: '07', title: 'GRE',        floor: 'F00',        icon: 'gre',        angle: 270,
+      status: 'A guided intake before your visit. A few considered questions.',
+      href: 'gre.html' },
+    { n: '08', title: 'Project Overview', floor: 'F01',  icon: 'about',      angle: 315,
       status: 'A single tower in Worli. A world unto itself.',
       href: 'about.html' },
   ];
@@ -1493,6 +1645,8 @@
     btn.style.setProperty('--fly-x', (Math.cos(angleRad) * FLY_DIST).toFixed(0) + 'px');
     btn.style.setProperty('--fly-y', (Math.sin(angleRad) * FLY_DIST).toFixed(0) + 'px');
     btn.style.setProperty('--entry-delay', (i * 80) + 'ms');
+    // Long titles (e.g. "Project Overview") wrap to two lines, scaled to fit
+    if (c.title.length > 11) btn.classList.add('tile--long');
     btn.innerHTML =
       '<span class="tile-num">' + c.n + '</span>' +
       '<span class="tile-icon" aria-hidden="true">' + ICONS[c.icon] + '</span>' +
@@ -1690,6 +1844,87 @@
     if (!pmRAF) pmRAF = requestAnimationFrame(pmTick);
   });
 
+  // ── Floating Tools shortcut (radial fan: Price / EMI / FSI) ──────
+  (function () {
+    const fab  = document.getElementById('fabTools');
+    const btn  = document.getElementById('fabBtn');
+    if (!fab || !btn) return;
+    const opts = Array.from(fab.querySelectorAll('.fab-opt'));
+
+    // Radial slots — fan up + left from the bottom-right corner anchor.
+    // Angles measured from the +x axis, going counter-clockwise into the
+    // upper-left quadrant. Radius keeps every chip inside the 184px wrapper
+    // (and therefore inside the stage), so it never clips.
+    const RADIUS = 100;
+    // Arc stays in the upper-left quadrant (100°–168°) so every chip fans
+    // UP + LEFT — none drift down toward the footer.
+    const ANGLES = [104, 134, 164]; // Price (top), EMI (mid), FSI (lower-left)
+    opts.forEach((opt, i) => {
+      const a = ANGLES[i] * Math.PI / 180;
+      // x grows to the LEFT (negative), y grows UPWARD (negative)
+      const dx = Math.cos(a) * RADIUS;   // cos is negative for 90°–180° → leftward
+      const dy = -Math.sin(a) * RADIUS;  // sin positive in this range → upward
+      opt.style.setProperty('--tx', dx.toFixed(1) + 'px');
+      opt.style.setProperty('--ty', dy.toFixed(1) + 'px');
+      opt.style.setProperty('--d', (i * 55) + 'ms');
+    });
+
+    function setOpen(open) {
+      fab.classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      opts.forEach((o, i) => {
+        // Stagger tabindex enable so closed chips are unreachable
+        o.tabIndex = open ? 0 : -1;
+      });
+      if (open) {
+        // focus first option for keyboard users on explicit key-open
+        // (only when opened via keyboard — pointer opens leave focus on btn)
+      }
+    }
+    function isOpen() { return fab.classList.contains('is-open'); }
+    function toggle() { setOpen(!isOpen()); }
+    function close()  { setOpen(false); }
+
+    btn.addEventListener('click', e => { e.stopPropagation(); toggle(); });
+    btn.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault(); e.stopPropagation();
+        const wasOpen = isOpen();
+        setOpen(!wasOpen);
+        if (!wasOpen && opts[0]) opts[0].focus();
+      } else if (e.key === 'Escape' && isOpen()) {
+        close();
+      }
+    });
+
+    // Each chip navigates with the app's cream-veil transition (veil sweeps
+    // from the FAB corner, matching the tile-fire behaviour).
+    function navigate(href) {
+      veilEl.style.setProperty('--vx', '92%');
+      veilEl.style.setProperty('--vy', '88%');
+      document.body.classList.add('is-leaving');
+      setTimeout(() => { window.location.href = href; }, 220);
+    }
+    opts.forEach(opt => {
+      const href = opt.dataset.href;
+      const go = e => { e.preventDefault(); e.stopPropagation(); navigate(href); };
+      opt.addEventListener('click', go);
+      opt.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { go(e); }
+        else if (e.key === 'Escape') { close(); btn.focus(); }
+      });
+    });
+
+    // Tap / click outside collapses the fan.
+    document.addEventListener('pointerdown', e => {
+      if (isOpen() && !fab.contains(e.target)) close();
+    });
+    // Escape anywhere closes.
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && isOpen()) { close(); btn.focus(); }
+    });
+  })();
+
   // ── Clock ────────────────────────────────────────────────────────
   function tickClock() {
     const d = new Date();
@@ -1705,7 +1940,13 @@
   // Service worker registration (PWA + offline cache)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
+      var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});
+      var ecReloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if (ecReloaded || !ecHadCtrl) return;   // skip the first-ever claim
+        ecReloaded = true; window.location.reload();   // new version deployed -> refresh
+      });
     });
   }
   // iOS double-tap zoom guard
@@ -1748,7 +1989,7 @@
     }
     // home.html → preload all 8 chapter tiles
     preloadNextScreens([
-      'gallery.html', 'inventory.html', 'floor-plan.html', 'tools.html',
+      'gallery.html', 'inventory.html', 'floor-plan.html', 'gre.html', 'tools.html',
       'amenities.html', 'masterplan.html', 'about.html', 'location.html'
     ]);
 
@@ -1772,5 +2013,6 @@
     window.addEventListener('popstate', clearLeave);
   })();
 </script>
+  <script src="assets/tools-dock.js"></script>
 </body>
 </html>

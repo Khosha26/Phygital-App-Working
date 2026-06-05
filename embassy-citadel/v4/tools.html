@@ -26,7 +26,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-
 <style>
   :root {
     --paper:      #FCFAF4;
@@ -91,14 +90,16 @@
     position: fixed; inset: 0; overflow: hidden;
     display: flex; align-items: center; justify-content: center;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-    background:
-      url('assets/bg-paper.png') center/cover no-repeat,
-      radial-gradient(ellipse 80% 60% at 50% 45%, var(--paper) 0%, var(--bone-50) 55%, var(--bone-200) 100%) var(--paper);
+    isolation: isolate;
+    /* Flat paper — matches the stage's own paper edge so letterbox/pillarbox
+       margins (iPad 4:3, 65" 16:9) blend with no visible "cut". */
+    background: url('assets/bg-paper.png') center/cover no-repeat, var(--paper);
   }
   #stage, .stage-inner {
     position: relative;
     width: 1440px; height: 900px;
     flex-shrink: 0;
+    z-index: 1;
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
@@ -188,8 +189,8 @@
   }
   .lr-eyebrow {
     font-family: 'Inter', sans-serif;
-    font-weight: 600; font-size: 10px;
-    letter-spacing: 0.55em; text-transform: uppercase;
+    font-weight: 500; font-size: 10px;
+    letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500);
     opacity: 0.85;
     margin-bottom: 6px;
@@ -318,10 +319,9 @@
     font-style: normal;
     font-size: 46px;
     line-height: 1;
-    letter-spacing: 0.01em;
+    letter-spacing: -0.01em;
     color: var(--onyx-700);
     margin: 0;
-    text-transform: uppercase;
   }
   .breadcrumb {
     display: flex; align-items: center; gap: 10px;
@@ -1325,7 +1325,7 @@
           </div>
         </div>
 
-        <div class="calc-row">
+        <div class="calc-row" style="border-radius:8px;">
           <div class="calc-card">
             <div class="calc-head"><span class="rupee">₹</span><span class="label">Loan Inputs</span></div>
 
@@ -1772,13 +1772,27 @@
 
   // Initial render
   applyPriceState();
+
+  // ── Open the requested tool from ?tool=price|emi|fsi ────────────────
+  (function () {
+    try {
+      const t = (new URLSearchParams(window.location.search).get('tool') || '').toLowerCase();
+      if (t === 'price' || t === 'emi' || t === 'fsi') setTool(t);
+    } catch (_) {}
+  })();
 </script>
 <!-- PWA-JS-START -->
 <script>
   // Service worker registration (PWA + offline cache)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
+      var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});
+      var ecReloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if (ecReloaded || !ecHadCtrl) return;   // skip the first-ever claim
+        ecReloaded = true; window.location.reload();   // new version deployed -> refresh
+      });
     });
   }
   // iOS double-tap zoom guard
@@ -1850,5 +1864,6 @@
     window.addEventListener('popstate', clearLeave);
   })();
 </script>
+  <script src="assets/tools-dock.js"></script>
 </body>
 </html>

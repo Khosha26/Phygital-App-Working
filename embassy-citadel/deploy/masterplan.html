@@ -42,7 +42,7 @@
     viewport when scaled (so you never see an empty gutter).
 
   Markers (13 total, % coords on site-plan.png)
-  · Buildings (3):     Tower A, Tower B, Tower C
+  · Buildings:          North Tower, South Tower, Wing A
   · Amenities (4):     Pool, Gym, Spa, Club House
   · Landscape (2):     Sculpted Garden, Sky Lawn
   · Water (1):         Reflective Pool
@@ -95,7 +95,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-
 <style>
   :root {
     --paper:      #FCFAF4;
@@ -156,14 +155,17 @@
     position: fixed; inset: 0; overflow: hidden;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     display: flex; align-items: center; justify-content: center;
-    background:
-      url('assets/bg-paper.png') center/cover no-repeat,
-      radial-gradient(ellipse 80% 60% at 50% 45%, var(--paper) 0%, var(--bone-50) 55%, var(--bone-200) 100%) var(--paper);
+    isolation: isolate;
+    /* Flat paper — matches the stage's own paper edge so the letterbox/
+       pillarbox margins (iPad 4:3, 65" 16:9) blend with no visible "cut".
+       (This screen has NO dayCycle keyframe, so no ::before tint per spec.) */
+    background: url('assets/bg-paper.png') center/cover no-repeat, var(--paper);
   }
   #stage, .stage-inner {
     position: relative;
     width: 1440px; height: 900px;
     flex-shrink: 0;
+    z-index: 1;
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
@@ -340,7 +342,7 @@
   }
   .lr-eyebrow {
     font-family: 'Inter', sans-serif;
-    font-weight: 500; font-size: 9px;
+    font-weight: 500; font-size: 10px;
     letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500);
     opacity: 0.85;
@@ -364,9 +366,9 @@
     font-family: 'Inter', sans-serif;
     font-weight: 400;
     font-size: 13px;
-    line-height: 1.55;
+    line-height: 1.65;
     color: var(--onyx-100);
-    opacity: 0.8;
+    opacity: 0.82;
     margin: 0 0 28px 0;
   }
 
@@ -448,11 +450,14 @@
     position: absolute;
     left: 0; top: 0;
     width: 100%; height: 100%;
-    object-fit: cover;             /* fill the full-bleed area */
+    object-fit: contain;           /* real extracted plan on transparent canvas — never stretch */
     object-position: center;
     display: block;
     pointer-events: none;
     -webkit-user-drag: none;
+    /* Crisp-up the washed-out render — subtle contrast + saturation lift,
+       a hair darker so the linework reads. Static (no animated tint loop). */
+    filter: contrast(1.08) saturate(1.06) brightness(0.99);
   }
   .mp-image-fallback {
     position: absolute; inset: 0;
@@ -470,41 +475,139 @@
     opacity: 0.7;
   }
 
-  /* Marker dot — anchored to .mp-stage so it scales with the map. */
+  /* ── MARKER ───────────────────────────────────────────────────────
+     Anchored to .mp-stage (tracks the map point on pan/zoom). The button
+     itself is a generous 36px hit-target (well over the 28px minimum);
+     a 30px bronze-ringed disc sits inside with a clear gold core dot and
+     an always-pulsing halo, so it unmistakably reads as "tap me". */
   .mp-marker {
     position: absolute;
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    background: rgba(252, 250, 244, 0.95);
-    border: 1.5px solid var(--gold-300);
+    width: 36px; height: 36px;          /* ≥28px hit area (36px) */
+    padding: 0;
+    border: none;
+    background: transparent;
     color: var(--gold-500);
-    display: grid; place-items: center;
     cursor: pointer;
     transform: translate(-50%, -50%);
-    box-shadow:
-      0 6px 14px -4px rgba(80, 58, 28, 0.32),
-      0 2px 4px rgba(40, 28, 10, 0.14);
-    transition: background 220ms ease, border-color 220ms ease,
-                box-shadow 220ms ease, opacity 240ms ease;
+    transition: transform 200ms cubic-bezier(0.22,1,0.36,1), opacity 240ms ease;
     z-index: 4;
+    -webkit-appearance: none; appearance: none;
+    touch-action: manipulation;
   }
+  /* The visible disc */
+  .mp-marker .mk-disc {
+    position: absolute; top: 50%; left: 50%;
+    width: 30px; height: 30px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 30%, var(--gold-300) 0%, var(--gold-500) 62%, var(--gold-600) 100%);
+    border: 1.5px solid var(--gold-200);
+    display: grid; place-items: center;
+    color: #FFFFFF;
+    box-shadow:
+      0 0 0 4px rgba(252, 250, 244, 0.7),     /* cream collar lifts it off the plan */
+      0 8px 16px -5px rgba(80, 58, 28, 0.45),
+      0 2px 5px rgba(40, 28, 10, 0.20),
+      inset 0 1px 1px rgba(255,255,255,0.40);
+    transition: background 200ms ease, border-color 200ms ease,
+                box-shadow 220ms ease, transform 200ms ease;
+  }
+  .mp-marker .mk-disc svg {
+    width: 14px; height: 14px; display: block;
+    stroke-width: 2;
+  }
+  /* Always-visible pulsing halo (the "tappable" affordance) */
+  .mp-marker::before {
+    content: '';
+    position: absolute; top: 50%; left: 50%;
+    width: 30px; height: 30px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1.5px solid var(--gold-300);
+    opacity: 0.6;
+    animation: markerPulse 2.4s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes markerPulse {
+    0%   { transform: translate(-50%,-50%) scale(1);    opacity: 0.6;  }
+    70%  { transform: translate(-50%,-50%) scale(1.9);  opacity: 0;    }
+    100% { transform: translate(-50%,-50%) scale(1.9);  opacity: 0;    }
+  }
+
+  /* Always-visible label chip below the disc */
+  .mp-marker .mk-label {
+    position: absolute; top: calc(50% + 20px); left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    padding: 3px 9px;
+    background: rgba(252, 250, 244, 0.94);
+    border: 1px solid var(--hair);
+    border-radius: 100px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600; font-size: 8px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--onyx-700);
+    box-shadow: 0 3px 8px -3px rgba(80,58,28,0.30);
+    pointer-events: none;
+    opacity: 0.92;
+    transition: opacity 200ms ease, transform 200ms ease, background 200ms ease;
+  }
+
   .mp-marker.is-hidden {
     opacity: 0;
     pointer-events: none;
   }
-  .mp-marker.is-active {
-    background: var(--paper);
+  /* Hover lift + brighten — obvious interactive feedback */
+  .mp-marker:hover { transform: translate(-50%, -50%) scale(1.06); }
+  .mp-marker:hover .mk-disc {
+    background: radial-gradient(circle at 38% 32%, #FFFFFF 0%, var(--paper) 50%, var(--bone-50) 100%);
     border-color: var(--gold-500);
-    z-index: 6;
     box-shadow:
-      0 0 0 3px rgba(201,165,103,0.32),
-      0 10px 24px -6px rgba(80, 58, 28, 0.45);
+      0 0 0 4px rgba(252, 250, 244, 0.75),
+      0 12px 22px -6px rgba(80, 58, 28, 0.50),
+      0 3px 7px rgba(40, 28, 10, 0.22),
+      inset 0 1px 1px rgba(255,255,255,0.9);
+  }
+  .mp-marker:hover .mk-label {
+    opacity: 1;
+    background: var(--paper);
+    transform: translateX(-50%) translateY(1px);
+  }
+  .mp-marker:focus-visible { outline: none; }
+  .mp-marker:focus-visible .mk-disc {
+    border-color: var(--gold-500);
+    box-shadow:
+      0 0 0 3px var(--gold-300),
+      0 8px 16px -5px rgba(80, 58, 28, 0.45);
+  }
+  .mp-marker:active { transform: translate(-50%, -50%) scale(0.94); }
+
+  /* Active marker — bronze-filled core + standing gold ring */
+  .mp-marker.is-active {
+    z-index: 6;
+  }
+  .mp-marker.is-active .mk-disc {
+    background: radial-gradient(circle at 38% 32%, var(--gold-200) 0%, var(--gold-400) 55%, var(--gold-500) 100%);
+    border-color: var(--gold-500);
+    color: var(--paper);
+    box-shadow:
+      0 0 0 4px rgba(252, 250, 244, 0.65),
+      0 0 18px rgba(217, 185, 122, 0.55),
+      0 10px 24px -6px rgba(80, 58, 28, 0.50),
+      inset 0 1px 1px rgba(255,255,255,0.5);
+  }
+  .mp-marker.is-active .mk-label {
+    opacity: 1;
+    background: var(--gold-500);
+    border-color: var(--gold-500);
+    color: var(--paper);
   }
   /* Gold radius ring — visible "spotlight area" around the active marker */
   .mp-marker.is-active::after {
     content: '';
-    position: absolute;
-    inset: -32px;          /* ring ~76px diameter around a 22px marker */
+    position: absolute; top: 50%; left: 50%;
+    width: 84px; height: 84px;
+    transform: translate(-50%, -50%);
     border-radius: 50%;
     border: 1.5px solid var(--gold-500);
     opacity: 0.55;
@@ -516,34 +619,8 @@
     animation: radiusBreath 2.6s ease-in-out infinite;
   }
   @keyframes radiusBreath {
-    0%, 100% { transform: scale(1);    opacity: 0.55; }
-    50%      { transform: scale(1.10); opacity: 0.80; }
-  }
-  .mp-marker:hover {
-    background: var(--paper);
-    border-color: var(--gold-500);
-  }
-  .mp-marker svg {
-    width: 11px; height: 11px;
-    display: block;
-  }
-  /* Pulse ring around the marker */
-  .mp-marker::before {
-    content: '';
-    position: absolute; inset: -6px;
-    border-radius: 50%;
-    border: 1px solid var(--gold-300);
-    opacity: 0.45;
-    animation: markerPulse 2.6s ease-in-out infinite;
-    pointer-events: none;
-  }
-  .mp-marker.is-active::before {
-    border-color: var(--gold-500);
-    opacity: 0.6;
-  }
-  @keyframes markerPulse {
-    0%, 100% { transform: scale(1);    opacity: 0.45; }
-    50%      { transform: scale(1.35); opacity: 0.10; }
+    0%, 100% { transform: translate(-50%,-50%) scale(1);    opacity: 0.55; }
+    50%      { transform: translate(-50%,-50%) scale(1.10); opacity: 0.80; }
   }
 
   /* Spotlight overlay */
@@ -557,7 +634,8 @@
   }
   .mp-spotlight.is-on {
     opacity: 1;
-    pointer-events: auto;
+    pointer-events: none;   /* click-through: lets you tap pin-to-pin; the
+                               canvas click handler still closes on bg tap */
   }
 
   /* Marker info card — positioned in canvas pixels */
@@ -1011,9 +1089,9 @@
       <div class="mp-canvas" id="mpCanvas">
         <div class="mp-stage" id="mpStage">
           <img class="mp-image" id="mpImage"
-               src="assets/masterplan/site-plan.png"
-               alt="Embassy Citadel site plan"
-               draggable="false" />
+               src="assets/floorplans-final/site/master-layout.webp"
+               alt="Embassy Citadel ground floor site plan"
+               decoding="async" draggable="false" />
           <div class="mp-image-fallback" id="mpFallback"><span>Site plan pending</span></div>
           <!-- Marker layer is populated by JS -->
         </div>
@@ -1105,7 +1183,7 @@
   // ─────────────────────────────────────────────────────────────
   const STATS = [
     { icon: 'pin',      num: '6.4+',  label: 'Acres of Land Parcel' },
-    { icon: 'building', num: '3',     label: 'Towers' },
+    { icon: 'building', num: '2',     label: 'Towers' },
     { icon: 'lotus',    num: '12+',   label: 'Amenity Zones' },
     { icon: 'tree',     num: '80%+',  label: 'Open Spaces' },
   ];
@@ -1183,57 +1261,63 @@
   // ─────────────────────────────────────────────────────────────
   // MARKERS — % coords on site-plan.png (12 markers)
   // ─────────────────────────────────────────────────────────────
+  // Coordinates are in % of the .mp-stage box (which fills the canvas).
+  // The plan art sits letterboxed inside that box via object-fit:contain
+  // (≈5.2% pillarbox each side at this aspect ratio), so these values were
+  // derived by reading each feature's pixel centre on master-layout.webp
+  // and converting through the contain transform — each marker lands ON its
+  // real feature in the rendered plan.
   const MARKERS = [
-    // Buildings (3) — towers in the central spine
-    { id: 't-a', cat: 'buildings', icon: 'building', label: 'Tower A',
-      desc: 'The North wing — sea-facing residences on the elevated podium.',
-      px: 38.0, py: 26.0 },
-    { id: 't-b', cat: 'buildings', icon: 'building', label: 'Tower B',
-      desc: 'The Central wing — the principal tower over the grand lobby.',
-      px: 50.0, py: 50.0 },
-    { id: 't-c', cat: 'buildings', icon: 'building', label: 'Tower C',
-      desc: 'The South wing — set above the wellness gardens.',
-      px: 62.0, py: 74.0 },
+    // Buildings (3) — along the central diagonal residential spine
+    { id: 't-a', cat: 'buildings', icon: 'building', label: 'North Tower',
+      desc: 'The north wing — residences on the elevated podium.',
+      px: 40.6, py: 47.5 },
+    { id: 't-b', cat: 'buildings', icon: 'building', label: 'South Tower',
+      desc: 'The south wing — rising over the grand lobby.',
+      px: 47.8, py: 55.5 },
+    { id: 't-c', cat: 'buildings', icon: 'building', label: 'Wing A',
+      desc: 'The adjacent residential wing.',
+      px: 62.0, py: 70.0 },
 
     // Amenities (4)
     { id: 'pool',  cat: 'amenities', icon: 'lotus', label: 'Lap Pool',
       desc: 'A 25-metre infinity pool aligned to the western light.',
-      px: 32.0, py: 56.0 },
+      px: 41.5, py: 57.5 },
     { id: 'gym',   cat: 'amenities', icon: 'lotus', label: 'Gymnasium',
       desc: 'A double-height fitness pavilion with terrace yoga deck.',
-      px: 70.0, py: 42.0 },
+      px: 54.9, py: 51.5 },
     { id: 'spa',   cat: 'amenities', icon: 'lotus', label: 'Spa & Hammam',
       desc: 'Treatment suites, vitality pool, and a quiet meditation room.',
-      px: 76.0, py: 60.0 },
+      px: 69.3, py: 66.5 },
     { id: 'club',  cat: 'amenities', icon: 'lotus', label: 'Club House',
       desc: 'Members lounge, library, and a private dining room.',
-      px: 44.0, py: 64.0 },
+      px: 36.1, py: 43.5 },
 
     // Landscape (2)
     { id: 'gard',  cat: 'landscape', icon: 'tree', label: 'Sculpted Garden',
       desc: 'A walking garden of native flora and stone water elements.',
-      px: 22.0, py: 38.0 },
+      px: 75.5, py: 71.0 },
     { id: 'lawn',  cat: 'landscape', icon: 'tree', label: 'Sky Lawn',
       desc: 'An elevated lawn for sunrise practice and quiet gatherings.',
-      px: 56.0, py: 30.0 },
+      px: 45.5, py: 22.5 },
 
     // Water (1)
     { id: 'refl',  cat: 'water', icon: 'water', label: 'Reflective Pool',
       desc: 'A still water mirror at the grand arrival, framing the tower.',
-      px: 48.0, py: 82.0 },
+      px: 50.0, py: 60.0 },
 
     // Pathways (1)
     { id: 'jog',   cat: 'pathways', icon: 'walk', label: 'Jogging Loop',
       desc: 'A 1.1 km tree-lined loop tracing the perimeter of the site.',
-      px: 84.0, py: 48.0 },
+      px: 32.1, py: 72.0 },
 
     // Access (2)
     { id: 'main',  cat: 'access', icon: 'car', label: 'Main Gate',
       desc: 'The principal arrival from the sea-face boulevard.',
-      px: 14.0, py: 88.0 },
+      px: 15.5, py: 85.5 },
     { id: 'svc',   cat: 'access', icon: 'car', label: 'Service Gate',
       desc: 'A discreet rear approach for service and staff.',
-      px: 88.0, py: 90.0 },
+      px: 69.7, py: 22.0 },
   ];
 
   // ─────────────────────────────────────────────────────────────
@@ -1272,19 +1356,17 @@
     el.dataset.id = m.id;
     el.dataset.cat = m.cat;
     el.dataset.label = m.label;
+    el.setAttribute('aria-label', m.label);
     el.style.left = m.px + '%';
     el.style.top  = m.py + '%';
-    el.innerHTML = ICONS[m.icon] || ICONS.pin;
+    el.innerHTML =
+      '<span class="mk-disc">' + (ICONS[m.icon] || ICONS.pin) + '</span>' +
+      '<span class="mk-label">' + m.label + '</span>';
     el.addEventListener('click', (e) => {
       e.stopPropagation();
-      // Multi-touch: if already zoomed in, just show that marker's info
-      // (no re-zoom, no spotlight). If at default zoom, do the full
-      // focus-zoom-and-spotlight reveal.
-      if (scale > 1.01) {
-        showMarkerInfo(m);
-      } else {
-        focusMarker(m);
-      }
+      // Selecting any pin always re-centres it on screen with the full
+      // focus-zoom + spotlight reveal (popup sits right above the pin).
+      focusMarker(m);
     });
     stage.appendChild(el);
     markerEls[m.id] = el;
@@ -1303,8 +1385,12 @@
   let scale = 1, tx = 0, ty = 0;
 
   function getCanvasSize() {
-    const r = canvas.getBoundingClientRect();
-    return { w: r.width, h: r.height };
+    // Use layout (offset) size, NOT getBoundingClientRect: the whole screen is
+    // a 1440x900 stage scaled to fit big displays. getBoundingClientRect would
+    // return post-scale pixels, but tx/ty operate in pre-scale design pixels —
+    // mixing them makes the focused pin drift on larger screens. offsetWidth/
+    // Height are unaffected by CSS transforms, so they match the tx/ty space.
+    return { w: canvas.offsetWidth, h: canvas.offsetHeight };
   }
 
   function clampPan() {
@@ -1428,7 +1514,7 @@
   // SMART CARD PLACEMENT — try right/left/below/above based on space,
   // and ensure the card never overlaps the marker or its gold ring.
   // ─────────────────────────────────────────────────────────────
-  const CARD_W = 220, CARD_H = 130, MARKER_HALO = 48, GAP = 14, PAD = 16;
+  const CARD_W = 220, CARD_H = 130, MARKER_HALO = 46, GAP = 14, PAD = 16;
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
   function placeCardSmart(mx, my, cw, ch) {
     // mx, my = marker SCREEN position in canvas pixels
@@ -1460,6 +1546,25 @@
     };
   }
 
+  // Place the card ABOVE the marker, horizontally centred on it, clamped to the
+  // canvas, never overlapping the disc/gold-ring. Falls back to below only when
+  // there genuinely isn't room above.
+  function placeCardAbove(mx, my, cw, ch) {
+    const left = clamp(mx - CARD_W / 2, PAD, cw - CARD_W - PAD);
+    let top = my - MARKER_HALO - GAP - CARD_H;        // sit above the halo
+    if (top < PAD) top = my + MARKER_HALO + GAP;      // no room up top -> drop below
+    top = clamp(top, PAD, ch - CARD_H - PAD);
+    return { left, top };
+  }
+
+  // Aim the spotlight's bright centre at a specific canvas-pixel point.
+  function setSpotlightAt(mx, my, cw, ch) {
+    const px = (mx / cw) * 100, py = (my / ch) * 100;
+    spotlight.style.background =
+      'radial-gradient(circle at ' + px.toFixed(2) + '% ' + py.toFixed(2) + '%, ' +
+      'transparent 0%, transparent 10%, rgba(20, 14, 6, 0.12) 18%, rgba(20, 14, 6, 0.55) 36%, rgba(20, 14, 6, 0.7) 100%)';
+  }
+
   // Marker's CURRENT screen position in canvas pixels (accounting for tx/ty/scale)
   function markerScreenPos(m) {
     const { w, h } = getCanvasSize();
@@ -1488,22 +1593,21 @@
 
     const targetScale = 2.5;
     const { w, h } = getCanvasSize();
-    // After transform, the marker lands at canvas centre.
+    // Land the marker EXACTLY at the canvas centre. We intentionally skip
+    // clampPan() here — clamping would shove edge pins off-centre, which is
+    // the bug. The dark spotlight vignette covers any plan-edge gap, so the
+    // selected pin always sits dead-centre of the screen.
     tx = w / 2 - (m.px / 100) * w * targetScale;
     ty = h / 2 - (m.py / 100) * h * targetScale;
     scale = targetScale;
-    clampPan();
     applyTransform(true);
     wasFocusedZoom = true;
 
-    // Spotlight centred (marker is at centre after the zoom)
-    spotlight.style.background =
-      'radial-gradient(circle at 50% 50%, ' +
-      'transparent 0%, transparent 10%, rgba(20, 14, 6, 0.12) 18%, rgba(20, 14, 6, 0.55) 36%, rgba(20, 14, 6, 0.7) 100%)';
+    // Marker is now at the exact canvas centre → spotlight + card anchor there.
+    setSpotlightAt(w / 2, h / 2, w, h);
     spotlight.classList.add('is-on');
 
-    // Smart placement around the centred marker (avoids the gold ring)
-    const placement = placeCardSmart(w / 2, h / 2, w, h);
+    const placement = placeCardAbove(w / 2, h / 2, w, h);   // right above the pin
     infoCard.style.left = placement.left + 'px';
     infoCard.style.top  = placement.top  + 'px';
 
@@ -1529,7 +1633,7 @@
     // card still anchors to the nearest visible edge in that direction)
     const visMx = clamp(pos.x, 0, w);
     const visMy = clamp(pos.y, 0, h);
-    const placement = placeCardSmart(visMx, visMy, w, h);
+    const placement = placeCardAbove(visMx, visMy, w, h);
     infoCard.style.left = placement.left + 'px';
     infoCard.style.top  = placement.top  + 'px';
 
@@ -1653,7 +1757,13 @@
   // Service worker registration (PWA + offline cache)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
+      var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});
+      var ecReloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if (ecReloaded || !ecHadCtrl) return;   // skip the first-ever claim
+        ecReloaded = true; window.location.reload();   // new version deployed -> refresh
+      });
     });
   }
   // iOS double-tap zoom guard
@@ -1717,5 +1827,6 @@
     window.addEventListener('popstate', clearLeave);
   })();
 </script>
+  <script src="assets/tools-dock.js"></script>
 </body>
 </html>

@@ -6,25 +6,31 @@
 <title>Embassy Citadel — Inventory</title>
 
 <!--
-  INVENTORY v1 — Tower Selector
-  · Full-screen SVG rendering of the project (1448×1086 viewBox)
-  · Single transparent path overlay traces the tower silhouette
-  · Path is the "tap target" — stroke cycles yellow → orange → red
-    in a loop drawing the eye to it. Hover deepens the glow.
-  · Click navigates to the next inventory drill-down (placeholder
-    target until the next screen is built).
-  · Locked top-left back button → home.html with cream-veil fade.
+  INVENTORY v2 — Living Section selector
+  · Inline SVG (viewBox 0 0 2752 2064) scaled to ~820px tall inside the
+    1440×900 stage. Base layer = assets/inventory/tower-types.webp.
+  · 7 hit-shapes (exact coords from assets/inventory/inventory-types.svg)
+    overlay the render as real, keyboard-accessible buttons.
+  · Each section carries a per-type linearGradient + soft glow that animates
+    0 → 0.70 on hover and stays lit when selected. Thin bronze hover stroke.
+  · Gray leader-lines/dots from the source SVG anchor each type label
+    (swatch + name). A side COLOR INDEX legend lists all 8 types; the matching
+    row lights up when its section is hovered or selected.
+  · Click a section → sessionStorage 'ec.section' → inventory-floors.html.
+  · SECTION→LEVELS mapping inlined (shared with the floors screen).
+  · Keeps the stage scaler, #stage-wrap responsiveness, PWA blocks, and the
+    brand-back / topbar navigation.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-
 <style>
   :root {
     --paper: #FCFAF4; --bone: #F4F2ED; --bone-50: #F7F5EF; --bone-200: #E8E2D6;
     --gold-500: #946F38; --gold-300: #C9A567; --gold-200: #D9B97A;
     --onyx-700: #1A1814; --onyx-100: #3A332A; --taupe-400: #A89B86;
     --hair: rgba(148, 111, 56, 0.32);
+    --hair-hi: rgba(148, 111, 56, 0.55);
     --hair-lo: rgba(148, 111, 56, 0.16);
   }
   *, *::before, *::after { box-sizing: border-box; }
@@ -44,24 +50,28 @@
     position: fixed; inset: 0; overflow: hidden;
     display: flex; align-items: center; justify-content: center;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-    background:
-      url('assets/bg-paper.png') center/cover no-repeat,
-      radial-gradient(ellipse 80% 60% at 50% 45%, var(--paper), var(--bone-50) 55%, var(--bone-200) 100%) var(--paper);
+    isolation: isolate;
+    background: url('assets/bg-paper.png') center/cover no-repeat, var(--paper);
   }
   #stage, .stage-inner {
     position: relative;
     width: 1440px; height: 900px;
     flex-shrink: 0;
+    z-index: 1;
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
     will-change: transform;
     -webkit-backface-visibility: hidden; backface-visibility: hidden;
-    background: var(--bone);
+    background: transparent;
+    pointer-events: none;           /* chrome re-enables below; gaps pass to tower */
   }
+  .inv-head, .veil { pointer-events: none; }
+  .legend, .topbar, .ec-back-btn, .ec-brand-back, .legend-row { pointer-events: auto; }
 
-  /* ── PAPER BACKGROUND (matches home.html — sits beneath the SVG) ─ */
+  /* ── PAPER BACKGROUND (matches home.html) ─────────────────────── */
   .stage-bg {
+    display: none;
     position: absolute; inset: 0;
     pointer-events: none;
     z-index: 0;
@@ -72,81 +82,238 @@
     background-repeat: no-repeat;
   }
 
-  /* ── INVENTORY SVG (full screen) ──────────────────────────────── */
-  .inv-canvas {
+  /* ── HEADLINE / EYEBROW (top-centre over the section) ──────────── */
+  .inv-head {
     position: absolute;
-    left: 0; top: 0; right: 0; bottom: 0;
-    z-index: 1;
-    overflow: hidden;
-    /* Let the paper texture bleed through the SVG's cream backdrop */
-    mix-blend-mode: multiply;
-    /* Top + bottom mask so the SVG's hard horizontal edges dissolve
-       into the paper bg under the topbar / above the bottom margin. */
-    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 5%, #000 95%, transparent 100%);
-            mask-image: linear-gradient(180deg, transparent 0%, #000 5%, #000 95%, transparent 100%);
-  }
-  .inv-svg {
-    width: 100%; height: 100%;
-    /* Explicit min box so the <object> can never collapse to 0×0 on
-       tablets (which would render the tower invisible even when the
-       SVG loads fine). The .inv-canvas is full-stage, so 100% resolves
-       to the stage size; the min-* values are a hard floor. */
-    min-width: 100%; min-height: 100%;
-    display: block;
-    /* Lift overall vibrancy of the sepia tower raster slightly */
-    filter: brightness(1.08) contrast(1.05) saturate(1.05);
-  }
-  /* The <img> fallback (native + JS-swapped) fills the same box and
-     uses the same fit as the SVG so the tower looks identical. */
-  img.inv-svg {
-    object-fit: contain;
-    object-position: center center;
-    pointer-events: auto;
-    cursor: pointer;
-  }
-  /* Bone-coloured side fades blend the SVG's letterbox strips into the
-     paper bg seamlessly. Wider + harder near the edge, softer as it
-     reaches into the canvas — no visible vertical seam on L/R. */
-  .inv-canvas::before, .inv-canvas::after {
-    content: '';
-    position: absolute;
-    top: 0; bottom: 0;
-    width: 22%;
-    z-index: 3;
+    top: 96px; left: 56px;
+    z-index: 6;
+    display: flex; flex-direction: column; gap: 8px;
     pointer-events: none;
+    opacity: 0;
+    animation: headIn 900ms cubic-bezier(0.22, 1, 0.36, 1) 320ms forwards;
   }
-  .inv-canvas::before {
-    left: 0;
-    background: linear-gradient(90deg,
-      var(--bone) 0%,
-      var(--bone) 30%,
-      rgba(244, 242, 237, 0.85) 55%,
-      rgba(244, 242, 237, 0.45) 75%,
-      transparent 100%);
+  @media (prefers-reduced-motion: reduce){ .sect-fill,.sect-glow{ animation:none; opacity:.28 } }
+  @keyframes headIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
-  .inv-canvas::after {
-    right: 0;
-    background: linear-gradient(270deg,
-      var(--bone) 0%,
-      var(--bone) 30%,
-      rgba(244, 242, 237, 0.85) 55%,
-      rgba(244, 242, 237, 0.45) 75%,
-      transparent 100%);
-  }
-  /* While the SVG content document is loading, hold a paper colour */
-  .inv-svg-loading {
-    position: absolute; inset: 0;
-    display: grid; place-items: center;
-    background: var(--bone);
-    color: var(--taupe-400);
+  .inv-head .eyebrow {
     font-family: 'Inter', sans-serif;
-    font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase;
-    pointer-events: none;
-    transition: opacity 400ms ease;
+    font-weight: 500; font-size: 10px;
+    letter-spacing: 0.5em; text-transform: uppercase;
+    color: var(--gold-500); opacity: 0.85;
   }
-  .inv-svg-loading.is-hidden { opacity: 0; pointer-events: none; }
+  .inv-head .title {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic; font-weight: 400;
+    font-size: 46px; line-height: 1.02;
+    letter-spacing: -0.01em;
+    color: var(--onyx-700);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+  }
+  .inv-head .sub {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400; font-size: 11px;
+    letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--taupe-400);
+    margin-top: 2px;
+  }
 
-  /* ── TOP BAR (seamless — paper bg shows through) ────────────────── */
+  /* ── TOWER STAGE — inline SVG holder ──────────────────────────── */
+  /* Zoomed-in hero tower: holder enlarged + centered in the 1440×900
+     stage. viewBox 2752×2064 (1.333:1) preserved, so all sections,
+     leader-lines and labels scale proportionally and stay anchored.
+     Nudged slightly left so the slim right-side legend never collides. */
+  .inv-stage {
+    position: fixed; inset: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    display: block;
+    pointer-events: none;           /* container only; section hit-shapes re-enable */
+  }
+  .inv-stage svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+  /* The base tower render: lift vibrancy a touch to sit on paper */
+  .tower-base { filter: brightness(1.05) contrast(1.04) saturate(1.04); }
+
+  /* ── SECTION BUTTONS (hit shapes) ─────────────────────────────── */
+  .sect {
+    cursor: pointer;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: filter 240ms ease;
+  }
+  /* fill is the per-type gradient; ONLY opacity animates (cheap, GPU-composited).
+     No SVG filter here — the old animated feGaussianBlur was the flicker source. */
+  .sect-fill {
+    opacity: 0.10;
+    animation: sectPulse 3.8s ease-in-out infinite;
+    transition: opacity 320ms cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+    will-change: opacity;
+    transform: translateZ(0);            /* promote to its own GPU layer */
+    -webkit-backface-visibility: hidden; backface-visibility: hidden;
+  }
+  /* the soft outer glow halo — soft edge now comes from a STATIC CSS blur
+     (computed once, GPU-cached) instead of an animated SVG feGaussianBlur. */
+  .sect-glow {
+    opacity: 0.10;
+    animation: sectPulse 3.8s ease-in-out infinite;
+    transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+    filter: blur(11px);                  /* static soft halo, not animated */
+    will-change: opacity;
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden; backface-visibility: hidden;
+  }
+  /* the thin bronze stroke (idle invisible) */
+  .sect-edge {
+    fill: none;
+    stroke: var(--gold-500);
+    stroke-width: 4;
+    opacity: 0;
+    transition: opacity 240ms ease;
+    pointer-events: none;
+    vector-effect: non-scaling-stroke;
+  }
+  /* the invisible hit target sits on top so pointer events are reliable */
+  .sect-hit {
+    fill: rgba(0,0,0,0.001);
+    cursor: pointer;
+    outline: none;
+    pointer-events: auto;
+  }
+
+  /* auto-glow loop — solid bands breathe 10%↔60% on their own */
+  @keyframes sectPulse { 0%, 100% { opacity: 0.10; } 50% { opacity: 0.60; } }
+  .sect[data-type="mansion"]     .sect-fill, .sect[data-type="mansion"]     .sect-glow { animation-delay: 0s; }
+  .sect[data-type="residential"] .sect-fill, .sect[data-type="residential"] .sect-glow { animation-delay: -.5s; }
+  .sect[data-type="refuge"]      .sect-fill, .sect[data-type="refuge"]      .sect-glow { animation-delay: -1s; }
+  .sect[data-type="amenity"]     .sect-fill, .sect[data-type="amenity"]     .sect-glow { animation-delay: -1.5s; }
+  .sect[data-type="parking"]     .sect-fill, .sect[data-type="parking"]     .sect-glow { animation-delay: -2s; }
+  .sect[data-type="entrance"]    .sect-fill, .sect[data-type="entrance"]    .sect-glow { animation-delay: -2.5s; }
+  .sect[data-type="basement"]    .sect-fill, .sect[data-type="basement"]    .sect-glow { animation-delay: -3s; }
+
+  /* hover / focus / selected lighting — overrides the loop to a stable solid */
+  .sect.is-hot .sect-fill { opacity: 0.72; animation: none; }
+  .sect.is-hot .sect-glow { opacity: 0.66; animation: none; }
+  .sect.is-hot .sect-edge { opacity: 0.85; }
+
+  .sect.is-selected .sect-fill { opacity: 0.80; animation: none; }
+  .sect.is-selected .sect-glow { opacity: 0.78; animation: none; }
+  .sect.is-selected .sect-edge { opacity: 1; stroke-width: 5; }
+
+  .sect-hit:focus-visible { outline: none; }
+  .sect.is-focus .sect-fill { opacity: 0.72; animation: none; }
+  .sect.is-focus .sect-glow { opacity: 0.66; animation: none; }
+  .sect.is-focus .sect-edge { opacity: 0.95; }
+
+  /* ── LEADER-LINE LABELS (anchored to gray pointers) ───────────── */
+  .lead-line { stroke: var(--taupe-400); stroke-width: 2.4; opacity: 0.5; }
+  .lead-dot  { fill: var(--taupe-400); opacity: 0.6; }
+  .lead-line, .lead-dot { transition: stroke 240ms ease, fill 240ms ease, opacity 240ms ease; }
+
+  .lbl-grp { pointer-events: none; }
+  .lbl-grp .lbl-swatch { rx: 2; }
+  .lbl-grp .lbl-name {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600; font-size: 27px;
+    letter-spacing: 0.5px;
+    fill: var(--onyx-700);
+  }
+  .lbl-grp .lbl-kicker {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 17px;
+    letter-spacing: 3px; text-transform: uppercase;
+    fill: var(--taupe-400);
+  }
+  /* leader brightens to the type colour when its section is active */
+  .lead-grp.is-hot .lead-line { opacity: 0.95; }
+  .lead-grp.is-hot .lead-dot  { opacity: 1; }
+  .lead-grp.is-hot .lbl-name  { fill: var(--gold-500); }
+
+  /* ── SIDE COLOR INDEX LEGEND ──────────────────────────────────── */
+  /* Slimmer card so the enlarged tower stays the hero and never collides */
+  .legend {
+    position: absolute;
+    right: 28px; top: 50%;
+    transform: translateY(-50%);
+    z-index: 6;
+    width: 204px;
+    padding: 18px 16px 16px;
+    border: 1px solid var(--hair-lo);
+    border-radius: 13px;
+    background: linear-gradient(180deg, rgba(252,250,244,0.88), rgba(247,245,239,0.74));
+    backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
+    box-shadow: 0 12px 40px rgba(26,24,20,0.06);
+    opacity: 0;
+    animation: legIn 900ms cubic-bezier(0.22, 1, 0.36, 1) 520ms forwards;
+  }
+  @keyframes legIn {
+    from { opacity: 0; transform: translateY(-50%) translateX(10px); }
+    to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+  }
+  .legend-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 9px;
+    letter-spacing: 0.4em; text-transform: uppercase;
+    color: var(--gold-500);
+    margin-bottom: 11px;
+    padding-bottom: 9px;
+    border-bottom: 1px solid var(--hair-lo);
+  }
+  .legend-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 7px; margin: 0 -7px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 200ms ease;
+    min-height: 30px;
+  }
+  .legend-row + .legend-row { margin-top: 1px; }
+  .legend-row .sw {
+    width: 14px; height: 14px; border-radius: 3px;
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.18);
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .legend-row .nm {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 12.5px;
+    letter-spacing: 0.01em;
+    color: var(--onyx-100);
+    transition: color 200ms ease;
+  }
+  .legend-row .ct {
+    margin-left: auto;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 10px;
+    letter-spacing: 0.04em;
+    color: var(--taupe-400);
+    font-variant-numeric: tabular-nums;
+    transition: color 200ms ease;
+  }
+  .legend-row.is-disabled { opacity: 0.5; cursor: default; }
+  .legend-row.is-hot {
+    background: rgba(148,111,56,0.08);
+  }
+  .legend-row.is-hot .nm { color: var(--onyx-700); font-weight: 600; }
+  .legend-row.is-hot .ct { color: var(--gold-500); }
+  .legend-row.is-hot .sw {
+    transform: scale(1.18);
+    box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.18), 0 0 10px var(--glow, rgba(148,111,56,0.4));
+  }
+  .legend-hint {
+    margin-top: 12px; padding-top: 10px;
+    border-top: 1px solid var(--hair-lo);
+    font-family: 'Inter', sans-serif;
+    font-weight: 400; font-size: 9px;
+    letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--taupe-400);
+    text-align: center;
+  }
+
+  /* ── TOP BAR ──────────────────────────────────────────────────── */
   .topbar {
     position: absolute; top: 0; left: 0; right: 0; height: 76px;
     display: flex; align-items: center; justify-content: space-between;
@@ -156,7 +323,6 @@
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
   }
-  /* Unified left-side brand-back */
   .ec-brand-back {
     display: flex; align-items: center; gap: 14px;
     text-decoration: none; color: inherit; cursor: pointer;
@@ -166,32 +332,6 @@
   }
   .ec-brand-back:hover { opacity: 0.78; transform: translateX(-1px); }
   .ec-brand-back:focus-visible { outline: none; opacity: 0.78; }
-  .ec-brand-back .brand-diamond {
-    width: 18px; height: 18px;
-    position: relative; display: inline-block;
-    transform: rotate(45deg);
-    border: 1px solid var(--gold-500);
-    background: linear-gradient(135deg, var(--gold-200) 0%, var(--gold-500) 100%);
-    box-shadow: 0 0 6px rgba(148,111,56,0.20);
-    flex-shrink: 0;
-  }
-  .ec-brand-back .brand-diamond::before {
-    content: ''; position: absolute; inset: 3px;
-    border: 0.5px solid rgba(255,255,255,0.55); background: transparent;
-  }
-  .ec-brand-back .brand-text { display: flex; flex-direction: column; gap: 2px; line-height: 1; }
-  .ec-brand-back .brand-text .name {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 500; font-size: 22px;
-    color: var(--onyx-700); letter-spacing: 0.04em;
-  }
-  .ec-brand-back .brand-text .loc {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500; font-size: 9px;
-    letter-spacing: 0.4em; text-transform: uppercase;
-    color: var(--gold-500);
-  }
-  /* Right-side BACK button */
   .ec-back-btn {
     display: inline-flex; align-items: center; gap: 8px;
     min-width: 92px; min-height: 44px;
@@ -214,197 +354,15 @@
   .ec-back-btn:active { transform: scale(0.96); }
   .ec-back-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--gold-500); }
   .ec-back-btn .arr { font-size: 13px; line-height: 1; transform: translateY(-0.5px); letter-spacing: 0; }
-  /* ── TAP RESPONSIVENESS — interactive surfaces inside the app ── */
   button, [role="button"], a[href] {
     -webkit-tap-highlight-color: transparent;
     user-select: none; -webkit-user-select: none;
     touch-action: manipulation;
   }
-  svg .tap, svg [data-tap], svg [role="button"], svg path[id*="tower"] { pointer-events: all; cursor: pointer; }
-  /* Kill any focus ring / blue tap-highlight box on the clickable tower SVG */
-  .inv-canvas, .inv-svg, #invSvg, object.inv-svg, img.inv-svg, #invSvgImgFallback {
-    -webkit-tap-highlight-color: transparent;
-    outline: none !important;
-    -webkit-user-select: none; user-select: none;
-    -webkit-user-drag: none;
-  }
-  .inv-canvas:focus, .inv-svg:focus, #invSvg:focus, img.inv-svg:focus,
-  .inv-canvas:focus-visible, .inv-svg:focus-visible, #invSvg:focus-visible,
-  img.inv-svg:focus-visible {
-    outline: none !important; box-shadow: none !important;
-  }
-  .brand {
-    position: absolute;
-    top: 38px; left: 44px;
-    z-index: 12; /* above topbar (8) and SVG canvas (1) */
-    display: flex; align-items: center; gap: 14px;
-    text-decoration: none; color: inherit; cursor: pointer;
-    transition: opacity 240ms ease, transform 240ms ease;
-    transform: translateY(-50%);
-  }
-  .brand:hover { opacity: 0.72; transform: translateY(-50%) translateX(-1px); }
-  .brand::after {
-    content: '← Home';
-    position: absolute;
-    left: 100%; top: 50%;
-    transform: translate(8px, -50%);
-    font-family: 'Inter', sans-serif;
-    font-weight: 500; font-size: 8.5px;
-    letter-spacing: 0.4em; text-transform: uppercase;
-    color: var(--gold-500);
-    opacity: 0; white-space: nowrap;
-    transition: opacity 260ms ease, transform 260ms ease;
-    pointer-events: none;
-  }
-  .brand:hover::after, .brand:focus-visible::after {
-    opacity: 0.85;
-    transform: translate(12px, -50%);
-  }
-  .brand-wordmark {
-    width: 130px; height: 36px;
-    color: var(--onyx-700);
-  }
+  .brand-wordmark { width: 130px; height: 36px; color: var(--onyx-700); }
   .brand-wordmark svg { width: 100%; height: 100%; display: block; }
-  .top-eyebrow {
-    font-family: 'Inter', sans-serif;
-    font-weight: 400; font-size: 9px;
-    letter-spacing: 0.55em; text-transform: uppercase;
-    color: var(--gold-500); opacity: 0.78;
-  }
-  .top-right {
-    display: flex; align-items: center; gap: 14px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 400; font-size: 10px;
-    letter-spacing: 0.32em; text-transform: uppercase;
-    color: var(--onyx-100); opacity: 0.78;
-    font-variant-numeric: tabular-nums;
-  }
-  .live-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--gold-300);
-    box-shadow: 0 0 8px rgba(217,185,122,0.6);
-    animation: livePulse 2.6s ease-in-out infinite;
-  }
-  @keyframes livePulse {
-    0%, 100% { opacity: 0.55; transform: scale(1); }
-    50%      { opacity: 1;    transform: scale(1.18); }
-  }
-  /* ── RIGHT-SIDE "PICK THE TOWER" CTA with animated arrow ─────── */
-  .inv-cta {
-    position: absolute;
-    right: 70px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 8;
-    display: flex; align-items: center; gap: 26px;
-    pointer-events: none;
-    opacity: 0;
-    animation: ctaFadeIn 900ms cubic-bezier(0.22, 1, 0.36, 1) 600ms forwards;
-  }
-  @keyframes ctaFadeIn {
-    from { opacity: 0; transform: translateY(-50%) translateX(10px); }
-    to   { opacity: 1; transform: translateY(-50%) translateX(0); }
-  }
-  /* The pointer line + arrow — sits LEFT of text, points further left toward tower */
-  .inv-cta-line {
-    position: relative;
-    width: 220px;
-    height: 60px;
-    display: flex; align-items: center;
-  }
-  /* Dashed gold track */
-  .inv-cta-line::before {
-    content: '';
-    position: absolute;
-    left: 56px; right: 0;
-    top: 50%;
-    height: 1.5px;
-    background-image: linear-gradient(90deg,
-      var(--gold-500) 0, var(--gold-500) 5px, transparent 5px, transparent 12px);
-    background-size: 12px 1.5px;
-    background-repeat: repeat-x;
-    opacity: 0.55;
-  }
-  /* Flowing pulse traveling RIGHT→LEFT along the track */
-  .inv-cta-line::after {
-    content: '';
-    position: absolute;
-    left: 0; right: 0;
-    top: 50%;
-    height: 3px;
-    margin-top: -1.5px;
-    background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(255, 210, 74, 0.85) 35%,
-      #FFE0A0 50%,
-      rgba(255, 210, 74, 0.85) 65%,
-      transparent 100%);
-    background-size: 60% 100%;
-    background-repeat: no-repeat;
-    background-position: 120% 0;
-    filter: blur(0.5px);
-    box-shadow: 0 0 8px rgba(255, 210, 74, 0.85);
-    animation: ctaFlow 1.8s ease-in-out infinite;
-  }
-  @keyframes ctaFlow {
-    0%   { background-position: 120% 0; opacity: 0; }
-    20%  { opacity: 1; }
-    80%  { opacity: 1; }
-    100% { background-position: -120% 0; opacity: 0; }
-  }
-  /* Arrow head at the LEFT end of the line — large, matches headline weight */
-  .inv-cta-arrow {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 56px; height: 56px;
-    color: var(--gold-500);
-    filter: drop-shadow(0 0 10px rgba(255, 210, 74, 0.7))
-            drop-shadow(0 0 20px rgba(255, 210, 74, 0.35));
-    animation: ctaNudge 1.8s ease-in-out infinite;
-  }
-  @keyframes ctaNudge {
-    0%, 100% { transform: translateY(-50%) translateX(0);    }
-    50%      { transform: translateY(-50%) translateX(-14px); }
-  }
-  .inv-cta-arrow svg { width: 100%; height: 100%; display: block; }
 
-  /* The text block (right of the line) */
-  .inv-cta-text {
-    text-align: right;
-    display: flex; flex-direction: column; gap: 6px;
-  }
-  .inv-cta-eyebrow {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500; font-size: 10px;
-    letter-spacing: 0.5em; text-transform: uppercase;
-    color: var(--gold-500);
-    opacity: 0.78;
-    margin-bottom: 4px;
-  }
-  .inv-cta-headline {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic; font-weight: 400;
-    font-size: 56px;
-    line-height: 1.0;
-    letter-spacing: -0.005em;
-    color: var(--onyx-700);
-    white-space: nowrap;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
-  }
-  .inv-cta-headline .em {
-    color: var(--gold-500);
-  }
-  .inv-cta-sub {
-    font-family: 'Inter', sans-serif;
-    font-weight: 400; font-size: 11px;
-    letter-spacing: 0.36em; text-transform: uppercase;
-    color: var(--taupe-400);
-    margin-top: 6px;
-  }
-
-  /* ── Veil (cream fade, matches paper bg) ─────────────────────── */
+  /* ── Veil (cream fade) ────────────────────────────────────────── */
   .veil {
     position: absolute; inset: 0;
     background: var(--bone);
@@ -416,12 +374,13 @@
   body.is-leaving .veil { opacity: 1; }
 
   @media (prefers-reduced-motion: reduce) {
-    .live-dot, .inv-hint .pip { animation: none; }
+    .inv-head, .legend { animation: none; opacity: 1; transform: translateY(-50%); }
+    .inv-head { transform: none; }
   }
 </style>
 
 <script>
-  // Stage scaler — scale-to-fit (contain). Fixes iPad13 side overflow.
+  // Stage scaler — scale-to-fit (contain).
   (function () {
     const W = 1440, H = 900;
     function scale() {
@@ -486,28 +445,266 @@
 </svg>
 
 <div id="stage-wrap">
+    <!-- ── TOWER: inline SVG (viewBox = source 0 0 2752 2064) ───────── -->
+    <div class="inv-stage">
+      <svg viewBox="0 0 2752 2064" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Embassy Citadel tower section selector">
+        <defs>
+          <!-- Feather mask: contained scene fades into the paper at its edges,
+               so there is no hard rectangular cut — just the tower on paper. -->
+          <radialGradient id="featherMask" cx="50%" cy="50%" r="62%">
+            <stop offset="0%"  stop-color="#fff"/>
+            <stop offset="72%" stop-color="#fff"/>
+            <stop offset="100%" stop-color="#000"/>
+          </radialGradient>
+          <linearGradient id="featherV" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#000"/>
+            <stop offset="9%"   stop-color="#fff"/>
+            <stop offset="91%"  stop-color="#fff"/>
+            <stop offset="100%" stop-color="#000"/>
+          </linearGradient>
+          <mask id="sceneFeather" maskUnits="userSpaceOnUse" x="0" y="0" width="2752" height="2064">
+            <rect x="0" y="0" width="2752" height="2064" fill="url(#featherV)"/>
+            <rect x="0" y="0" width="2752" height="2064" fill="url(#featherMask)" style="mix-blend-mode:multiply"/>
+          </mask>
+          <!-- Per-type gradients -->
+          <linearGradient id="g-mansion" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#C0392B"/><stop offset="1" stop-color="#E67E22"/>
+          </linearGradient>
+          <linearGradient id="g-residential" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#E67E22"/><stop offset="1" stop-color="#F1C40F"/>
+          </linearGradient>
+          <linearGradient id="g-refuge" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#16A085"/><stop offset="1" stop-color="#2ECC71"/>
+          </linearGradient>
+          <linearGradient id="g-amenity" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#C0398A"/><stop offset="1" stop-color="#E8788F"/>
+          </linearGradient>
+          <linearGradient id="g-parking" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2E6FC4"/><stop offset="1" stop-color="#36C6D3"/>
+          </linearGradient>
+          <linearGradient id="g-entrance" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#7DBE3C"/><stop offset="1" stop-color="#B7E27A"/>
+          </linearGradient>
+          <linearGradient id="g-basement" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#4B4FB0"/><stop offset="1" stop-color="#8E5BC9"/>
+          </linearGradient>
+          <!-- (Animated feGaussianBlur glow removed — it re-rendered the blur
+               every frame on the Tab and caused the flicker. Glow is now a cheap
+               opacity-breathing solid fill, see .sect-glow / @keyframes sectPulse.) -->
+        </defs>
+
+        <!-- BASE TOWER RENDER — masked so its rectangular edges feather into
+             the paper (no hard cut). meet (contain) keeps the whole tower
+             visible; the feather hides the letterboxed margins seamlessly. -->
+        <g mask="url(#sceneFeather)">
+          <image class="tower-base" x="0" y="0" width="2752" height="2064"
+                 href="assets/inventory/tower-types.webp"
+                 preserveAspectRatio="xMidYMid meet"></image>
+        </g>
+
+        <!-- ── SECTION BUTTONS — exact coords from inventory-types.svg ──
+             Each group: glow (blurred dup) + gradient fill + bronze edge
+             + invisible hit shape on top. -->
+
+        <!-- MANSION (cls-7, top) -->
+        <g class="sect" data-type="mansion" id="sect-mansion">
+          <polygon class="sect-glow" fill="url(#g-mansion)"
+            points="1177.66 495.71 1424.85 329.98 1442.7 320.63 1526.47 447.23 1526.47 389.45 1441.85 243.32 1429.1 258.18 1422.31 247.99 1330.55 323.61 1328 369.51 1294.86 396.67 1271.92 369.51 1183.56 444.25 1186.96 453.6 1177.66 457.85 1177.66 495.71"/>
+          <polygon class="sect-fill" fill="url(#g-mansion)"
+            points="1177.66 495.71 1424.85 329.98 1442.7 320.63 1526.47 447.23 1526.47 389.45 1441.85 243.32 1429.1 258.18 1422.31 247.99 1330.55 323.61 1328 369.51 1294.86 396.67 1271.92 369.51 1183.56 444.25 1186.96 453.6 1177.66 457.85 1177.66 495.71"/>
+          <polygon class="sect-edge"
+            points="1177.66 495.71 1424.85 329.98 1442.7 320.63 1526.47 447.23 1526.47 389.45 1441.85 243.32 1429.1 258.18 1422.31 247.99 1330.55 323.61 1328 369.51 1294.86 396.67 1271.92 369.51 1183.56 444.25 1186.96 453.6 1177.66 457.85 1177.66 495.71"/>
+          <polygon class="sect-hit" role="button" tabindex="0" aria-label="Mansion Level"
+            points="1177.66 495.71 1424.85 329.98 1442.7 320.63 1526.47 447.23 1526.47 389.45 1441.85 243.32 1429.1 258.18 1422.31 247.99 1330.55 323.61 1328 369.51 1294.86 396.67 1271.92 369.51 1183.56 444.25 1186.96 453.6 1177.66 457.85 1177.66 495.71"/>
+        </g>
+
+        <!-- RESIDENTIAL (cls-4) -->
+        <g class="sect" data-type="residential" id="sect-residential">
+          <polygon class="sect-glow" fill="url(#g-residential)"
+            points="1177.66 900.34 1427.41 784.05 1452.17 784.05 1526.47 842.2 1526.47 471.8 1445.71 343.67 1427.41 349.06 1177.66 517.03 1177.66 900.34"/>
+          <polygon class="sect-fill" fill="url(#g-residential)"
+            points="1177.66 900.34 1427.41 784.05 1452.17 784.05 1526.47 842.2 1526.47 471.8 1445.71 343.67 1427.41 349.06 1177.66 517.03 1177.66 900.34"/>
+          <polygon class="sect-edge"
+            points="1177.66 900.34 1427.41 784.05 1452.17 784.05 1526.47 842.2 1526.47 471.8 1445.71 343.67 1427.41 349.06 1177.66 517.03 1177.66 900.34"/>
+          <polygon class="sect-hit" role="button" tabindex="0" aria-label="Residential Floor"
+            points="1177.66 900.34 1427.41 784.05 1452.17 784.05 1526.47 842.2 1526.47 471.8 1445.71 343.67 1427.41 349.06 1177.66 517.03 1177.66 900.34"/>
+        </g>
+
+        <!-- REFUGE — upper (cls-5) -->
+        <g class="sect" data-type="refuge" data-refuge="1" id="sect-refuge-upper">
+          <polygon class="sect-glow" fill="url(#g-refuge)"
+            points="1177.66 1313.81 1423.1 1261.05 1448.94 1261.05 1526.47 1303.04 1525.39 890.65 1526.47 873.42 1452.17 806.67 1428.48 806.67 1177.66 920.8 1177.66 1313.81"/>
+          <polygon class="sect-fill" fill="url(#g-refuge)"
+            points="1177.66 1313.81 1423.1 1261.05 1448.94 1261.05 1526.47 1303.04 1525.39 890.65 1526.47 873.42 1452.17 806.67 1428.48 806.67 1177.66 920.8 1177.66 1313.81"/>
+          <polygon class="sect-edge"
+            points="1177.66 1313.81 1423.1 1261.05 1448.94 1261.05 1526.47 1303.04 1525.39 890.65 1526.47 873.42 1452.17 806.67 1428.48 806.67 1177.66 920.8 1177.66 1313.81"/>
+          <polygon class="sect-hit" role="button" tabindex="0" aria-label="Refuge Area"
+            points="1177.66 1313.81 1423.1 1261.05 1448.94 1261.05 1526.47 1303.04 1525.39 890.65 1526.47 873.42 1452.17 806.67 1428.48 806.67 1177.66 920.8 1177.66 1313.81"/>
+        </g>
+
+        <!-- REFUGE — lower (cls-5) -->
+        <g class="sect" data-type="refuge" data-refuge="1" id="sect-refuge-lower">
+          <polygon class="sect-glow" fill="url(#g-refuge)"
+            points="1177.66 1475.31 1427.41 1439.78 1453.25 1439.78 1526.47 1466.7 1526.47 1326.73 1446.79 1289.04 1422.02 1289.04 1177.66 1331.03 1177.66 1475.31"/>
+          <polygon class="sect-fill" fill="url(#g-refuge)"
+            points="1177.66 1475.31 1427.41 1439.78 1453.25 1439.78 1526.47 1466.7 1526.47 1326.73 1446.79 1289.04 1422.02 1289.04 1177.66 1331.03 1177.66 1475.31"/>
+          <polygon class="sect-edge"
+            points="1177.66 1475.31 1427.41 1439.78 1453.25 1439.78 1526.47 1466.7 1526.47 1326.73 1446.79 1289.04 1422.02 1289.04 1177.66 1331.03 1177.66 1475.31"/>
+          <polygon class="sect-hit" role="button" tabindex="0" aria-label="Refuge Area"
+            points="1177.66 1475.31 1427.41 1439.78 1453.25 1439.78 1526.47 1466.7 1526.47 1326.73 1446.79 1289.04 1422.02 1289.04 1177.66 1331.03 1177.66 1475.31"/>
+        </g>
+
+        <!-- AMENITY (cls-3) -->
+        <g class="sect" data-type="amenity" id="sect-amenity">
+          <polygon class="sect-glow" fill="url(#g-amenity)"
+            points="1177.66 1490.35 1424.67 1453.86 1449.93 1453.86 1527.12 1480.53 1536.41 1481.7 1525.15 1490.35 1526.17 1502.19 1536.41 1510.03 1525.15 1522.67 1536.41 1527.79 1550.75 1538.03 1550.75 1552.37 1557.86 1561.83 1557.86 1576.88 1478.48 1561.83 1179.7 1588.92 1177.66 1490.35"/>
+          <polygon class="sect-fill" fill="url(#g-amenity)"
+            points="1177.66 1490.35 1424.67 1453.86 1449.93 1453.86 1527.12 1480.53 1536.41 1481.7 1525.15 1490.35 1526.17 1502.19 1536.41 1510.03 1525.15 1522.67 1536.41 1527.79 1550.75 1538.03 1550.75 1552.37 1557.86 1561.83 1557.86 1576.88 1478.48 1561.83 1179.7 1588.92 1177.66 1490.35"/>
+          <polygon class="sect-edge"
+            points="1177.66 1490.35 1424.67 1453.86 1449.93 1453.86 1527.12 1480.53 1536.41 1481.7 1525.15 1490.35 1526.17 1502.19 1536.41 1510.03 1525.15 1522.67 1536.41 1527.79 1550.75 1538.03 1550.75 1552.37 1557.86 1561.83 1557.86 1576.88 1478.48 1561.83 1179.7 1588.92 1177.66 1490.35"/>
+          <polygon class="sect-hit" role="button" tabindex="0" aria-label="Amenity Floor"
+            points="1177.66 1490.35 1424.67 1453.86 1449.93 1453.86 1527.12 1480.53 1536.41 1481.7 1525.15 1490.35 1526.17 1502.19 1536.41 1510.03 1525.15 1522.67 1536.41 1527.79 1550.75 1538.03 1550.75 1552.37 1557.86 1561.83 1557.86 1576.88 1478.48 1561.83 1179.7 1588.92 1177.66 1490.35"/>
+        </g>
+
+        <!-- PARKING (cls-1, path) -->
+        <g class="sect" data-type="parking" id="sect-parking">
+          <path class="sect-glow" fill="url(#g-parking)"
+            d="M1165.68,1691.11h11.99l9.46-6.88,7.74,3.44,8.6,12.9,11.18,8.6,4.3-8.6v-9.46l12.9-14.62h18.06l13.76,8.6v7.74l9.46,16.34,7.79,12.45h140.16l24.94-5.57v-30.11s2.58-12.9,5.16-9.46,6.88-.58,6.88-.58v-10.6l6.02-13.76,10.32-11.18,9.46-5.16,10.32,7.74,8.6,18.92,6.88,12.9,10.32,7.74,11.18,1.72,9.46-12.04v-24.08s5.16-4.3,7.74-4.3,9.46.86,9.46.86v-9.46l-6.88-8.6,6.88-26.67v-23.05l-79.38-15.05-304.26,27.59,2.1,11.21-6.31,7.01.7,9.11-.7,16.82,2.1,18.22-1.4,11.91v20.32l-5.04,7.08Z"/>
+          <path class="sect-fill" fill="url(#g-parking)"
+            d="M1165.68,1691.11h11.99l9.46-6.88,7.74,3.44,8.6,12.9,11.18,8.6,4.3-8.6v-9.46l12.9-14.62h18.06l13.76,8.6v7.74l9.46,16.34,7.79,12.45h140.16l24.94-5.57v-30.11s2.58-12.9,5.16-9.46,6.88-.58,6.88-.58v-10.6l6.02-13.76,10.32-11.18,9.46-5.16,10.32,7.74,8.6,18.92,6.88,12.9,10.32,7.74,11.18,1.72,9.46-12.04v-24.08s5.16-4.3,7.74-4.3,9.46.86,9.46.86v-9.46l-6.88-8.6,6.88-26.67v-23.05l-79.38-15.05-304.26,27.59,2.1,11.21-6.31,7.01.7,9.11-.7,16.82,2.1,18.22-1.4,11.91v20.32l-5.04,7.08Z"/>
+          <path class="sect-edge"
+            d="M1165.68,1691.11h11.99l9.46-6.88,7.74,3.44,8.6,12.9,11.18,8.6,4.3-8.6v-9.46l12.9-14.62h18.06l13.76,8.6v7.74l9.46,16.34,7.79,12.45h140.16l24.94-5.57v-30.11s2.58-12.9,5.16-9.46,6.88-.58,6.88-.58v-10.6l6.02-13.76,10.32-11.18,9.46-5.16,10.32,7.74,8.6,18.92,6.88,12.9,10.32,7.74,11.18,1.72,9.46-12.04v-24.08s5.16-4.3,7.74-4.3,9.46.86,9.46.86v-9.46l-6.88-8.6,6.88-26.67v-23.05l-79.38-15.05-304.26,27.59,2.1,11.21-6.31,7.01.7,9.11-.7,16.82,2.1,18.22-1.4,11.91v20.32l-5.04,7.08Z"/>
+          <path class="sect-hit" role="button" tabindex="0" aria-label="Residential Parking"
+            d="M1165.68,1691.11h11.99l9.46-6.88,7.74,3.44,8.6,12.9,11.18,8.6,4.3-8.6v-9.46l12.9-14.62h18.06l13.76,8.6v7.74l9.46,16.34,7.79,12.45h140.16l24.94-5.57v-30.11s2.58-12.9,5.16-9.46,6.88-.58,6.88-.58v-10.6l6.02-13.76,10.32-11.18,9.46-5.16,10.32,7.74,8.6,18.92,6.88,12.9,10.32,7.74,11.18,1.72,9.46-12.04v-24.08s5.16-4.3,7.74-4.3,9.46.86,9.46.86v-9.46l-6.88-8.6,6.88-26.67v-23.05l-79.38-15.05-304.26,27.59,2.1,11.21-6.31,7.01.7,9.11-.7,16.82,2.1,18.22-1.4,11.91v20.32l-5.04,7.08Z"/>
+        </g>
+
+        <!-- ENTRANCE (cls-2, rect) -->
+        <g class="sect" data-type="entrance" id="sect-entrance">
+          <rect class="sect-glow" fill="url(#g-entrance)"
+            x="1280.93" y="1721.63" width="66.65" height="53.52"/>
+          <rect class="sect-fill" fill="url(#g-entrance)"
+            x="1280.93" y="1721.63" width="66.65" height="53.52"/>
+          <rect class="sect-edge"
+            x="1280.93" y="1721.63" width="66.65" height="53.52"/>
+          <rect class="sect-hit" role="button" tabindex="0" aria-label="Double-Height Entrance"
+            x="1280.93" y="1721.63" width="66.65" height="53.52"/>
+        </g>
+
+        <!-- BASEMENT (cls-6, bottom) -->
+        <g class="sect" data-type="basement" id="sect-basement">
+          <polygon class="sect-glow" fill="url(#g-basement)"
+            points="1165.68 1804.87 1165.68 1784.06 1280.93 1775.14 1420.77 1775.14 1575.98 1782.58 1575.98 1815.28 1423.84 1815.28 1271.71 1815.28 1165.68 1804.87"/>
+          <polygon class="sect-fill" fill="url(#g-basement)"
+            points="1165.68 1804.87 1165.68 1784.06 1280.93 1775.14 1420.77 1775.14 1575.98 1782.58 1575.98 1815.28 1423.84 1815.28 1271.71 1815.28 1165.68 1804.87"/>
+          <polygon class="sect-edge"
+            points="1165.68 1804.87 1165.68 1784.06 1280.93 1775.14 1420.77 1775.14 1575.98 1782.58 1575.98 1815.28 1423.84 1815.28 1271.71 1815.28 1165.68 1804.87"/>
+          <polygon class="sect-hit" role="button" tabindex="0" aria-label="Basement Level"
+            points="1165.68 1804.87 1165.68 1784.06 1280.93 1775.14 1420.77 1775.14 1575.98 1782.58 1575.98 1815.28 1423.84 1815.28 1271.71 1815.28 1165.68 1804.87"/>
+        </g>
+
+        <!-- ── LEADER LINES + DOTS + LABELS (from source cls-9 pointers) ──
+             Right-side leaders: mansion, residential(upper res band area),
+             refuge(lower right). Left-side leaders: residential(upper-left),
+             refuge, parking. Labels anchored at the dot ends. -->
+
+        <!-- MANSION leader (right, y≈313) -->
+        <g class="lead-grp" data-type="mansion">
+          <line class="lead-line" x1="1493.72" y1="312.97" x2="1764.53" y2="312.97"/>
+          <circle class="lead-dot" cx="1780.91" cy="312.97" r="16.38"/>
+          <g class="lbl-grp">
+            <rect class="lbl-swatch" x="1808" y="278" width="22" height="22" rx="3" fill="url(#g-mansion)"/>
+            <text class="lbl-name" x="1840" y="297">Mansion Level</text>
+            <text class="lbl-kicker" x="1840" y="324">Sky residences</text>
+          </g>
+        </g>
+
+        <!-- RESIDENTIAL leader (left, y≈726) -->
+        <g class="lead-grp" data-type="residential">
+          <line class="lead-line" x1="883.41" y1="725.62" x2="1154.22" y2="725.62"/>
+          <circle class="lead-dot" cx="867.03" cy="725.62" r="16.38"/>
+          <g class="lbl-grp">
+            <rect class="lbl-swatch" x="612" y="691" width="22" height="22" rx="3" fill="url(#g-residential)"/>
+            <text class="lbl-name" x="644" y="710">Residential Floor</text>
+            <text class="lbl-kicker" x="644" y="737">Tower homes</text>
+          </g>
+        </g>
+
+        <!-- REFUGE leader (right, y≈1101) -->
+        <g class="lead-grp" data-type="refuge">
+          <line class="lead-line" x1="1557.26" y1="1101.19" x2="1828.06" y2="1101.19"/>
+          <circle class="lead-dot" cx="1844.44" cy="1101.19" r="16.38"/>
+          <g class="lbl-grp">
+            <rect class="lbl-swatch" x="1872" y="1067" width="22" height="22" rx="3" fill="url(#g-refuge)"/>
+            <text class="lbl-name" x="1904" y="1086">Refuge Area</text>
+            <text class="lbl-kicker" x="1904" y="1113">Service / safety levels</text>
+          </g>
+        </g>
+
+        <!-- AMENITY leader (left, y≈1521) -->
+        <g class="lead-grp" data-type="amenity">
+          <line class="lead-line" x1="883.41" y1="1521.39" x2="1154.22" y2="1521.39"/>
+          <circle class="lead-dot" cx="867.03" cy="1521.39" r="16.38"/>
+          <g class="lbl-grp">
+            <rect class="lbl-swatch" x="600" y="1487" width="22" height="22" rx="3" fill="url(#g-amenity)"/>
+            <text class="lbl-name" x="632" y="1506">Amenity Floor</text>
+            <text class="lbl-kicker" x="632" y="1533">Clubs &amp; wellness</text>
+          </g>
+        </g>
+
+        <!-- PARKING leader (right, y≈1625) -->
+        <g class="lead-grp" data-type="parking">
+          <line class="lead-line" x1="1557.26" y1="1625.35" x2="2027.39" y2="1625.35"/>
+          <circle class="lead-dot" cx="2043.77" cy="1625.35" r="16.38"/>
+          <g class="lbl-grp">
+            <rect class="lbl-swatch" x="2071" y="1591" width="22" height="22" rx="3" fill="url(#g-parking)"/>
+            <text class="lbl-name" x="2103" y="1610">Residential Parking</text>
+            <text class="lbl-kicker" x="2103" y="1637">Podium decks</text>
+          </g>
+        </g>
+
+        <!-- ENTRANCE leader (left, y≈1826) -->
+        <g class="lead-grp" data-type="entrance">
+          <line class="lead-line" x1="497.66" y1="1826.26" x2="1224.22" y2="1826.26"/>
+          <circle class="lead-dot" cx="481.66" cy="1826.26" r="16.38"/>
+          <g class="lbl-grp">
+            <rect class="lbl-swatch" x="214" y="1792" width="22" height="22" rx="3" fill="url(#g-entrance)"/>
+            <text class="lbl-name" x="246" y="1811">Double-Height Entrance</text>
+            <text class="lbl-kicker" x="246" y="1838">Ground arrival</text>
+          </g>
+        </g>
+
+        <!-- BASEMENT label (no source pointer — tidy left tag near base) -->
+        <g class="lead-grp" data-type="basement">
+          <line class="lead-line" x1="1003" y1="1900" x2="1160" y2="1860"/>
+          <circle class="lead-dot" cx="1003" cy="1900" r="13"/>
+          <g class="lbl-grp">
+            <rect class="lbl-swatch" x="724" y="1879" width="22" height="22" rx="3" fill="url(#g-basement)"/>
+            <text class="lbl-name" x="756" y="1898">Basement Level</text>
+            <text class="lbl-kicker" x="756" y="1925">Lower decks</text>
+          </g>
+        </g>
+
+      </svg>
+    </div>
   <div id="stage" class="stage-inner">
 
     <!-- Paper background (matches home.html — beneath everything) -->
     <div class="stage-bg"></div>
 
-    <!-- Full-screen inventory SVG.
-         The <object> embeds a 3.6 MB SVG (a base64 PNG + outline path).
-         On tablets (mobile Safari / Samsung Internet) a data-URI of this
-         size inside an <object> can render BLANK due to renderer memory
-         limits. Two safeguards:
-           1. A native <img> fallback INSIDE the <object> — shown by the
-              browser automatically if the object can't render.
-           2. A JS robustness guard (below) that, after ~1.2s, checks the
-              object's contentDocument for an <svg>; if missing, it swaps
-              in a full-box <img src="assets/inventory.svg"> with the same
-              tap-to-navigate behaviour. -->
-    <div class="inv-canvas">
-      <object class="inv-svg" id="invSvg" type="image/svg+xml" data="assets/inventory.svg" aria-label="Inventory tower selector">
-        <img class="inv-svg" id="invSvgImgFallback" src="assets/inventory.svg" alt="Embassy Citadel tower selector" draggable="false" />
-      </object>
-      <div class="inv-svg-loading" id="invLoading">Loading inventory</div>
+    <!-- Headline -->
+    <div class="inv-head">
+      <div class="eyebrow">Inventory · A Living Section</div>
+      <div class="title">Choose a level band</div>
+      <div class="sub">Tap a glowing band to see its floors</div>
     </div>
+
+
+    <!-- ── SIDE COLOR INDEX LEGEND ──────────────────────────────────── -->
+    <aside class="legend" aria-label="Colour index">
+      <div class="legend-title">Color Index</div>
+      <div id="legendRows"></div>
+      <div class="legend-hint">Tap a band on the tower</div>
+    </aside>
 
     <!-- Top bar -->
     <header class="topbar">
@@ -522,28 +719,61 @@
       </button>
     </header>
 
-    <!-- Right-side "Pick the Tower" CTA with animated arrow pointer -->
-    <div class="inv-cta" aria-hidden="true">
-      <div class="inv-cta-line">
-        <span class="inv-cta-arrow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 12 L4 12" />
-            <path d="M10 6 L4 12 L10 18" />
-          </svg>
-        </span>
-      </div>
-      <div class="inv-cta-text">
-        <div class="inv-cta-eyebrow">Selection</div>
-        <div class="inv-cta-headline">Pick the <span class="em">Tower</span></div>
-        <div class="inv-cta-sub">to view residences</div>
-      </div>
-    </div>
-
     <!-- Cream fade veil -->
     <div class="veil" id="veil"></div>
 
   </div>
 </div>
+
+<script>
+  /* ── SECTION → LEVELS MAPPING (shared with the floors screen) ──────
+     DEFAULTS — flagged for client confirmation. Levels listed
+     top-to-bottom (descending) for display. */
+  window.EC_SECTIONS = {
+    mansion: {
+      key: 'mansion', name: 'Mansion Level', kicker: 'Sky residences',
+      from: '#C0392B', to: '#E67E22', glow: 'rgba(230,126,34,0.55)',
+      levels: [79, 78, 77, 76, 75, 74, 73, 72]
+    },
+    residential: {
+      key: 'residential', name: 'Residential Floor', kicker: 'Tower homes',
+      from: '#E67E22', to: '#F1C40F', glow: 'rgba(241,196,15,0.55)',
+      levels: [71,69,68,67,66,65,64,62,61,60,59,58,57,54,53,52,51,50,49,47,46,45,44,43,42,40,39,38,37,36,35,33,32,31,30,29,28,25,24,23,22,21,20,18,17]
+    },
+    refuge: {
+      key: 'refuge', name: 'Refuge Area', kicker: 'Service / safety levels',
+      from: '#16A085', to: '#2ECC71', glow: 'rgba(46,204,113,0.55)',
+      levels: [70, 63, 55, 48, 41, 34, 26, 19]
+    },
+    service: {
+      key: 'service', name: 'Service Floor', kicker: 'Plant & utilities',
+      from: '#5D6D7E', to: '#AEB6BF', glow: 'rgba(174,182,191,0.55)',
+      levels: [11], legendOnly: true
+    },
+    amenity: {
+      key: 'amenity', name: 'Amenity Floor', kicker: 'Clubs & wellness',
+      from: '#C0398A', to: '#E8788F', glow: 'rgba(232,120,143,0.55)',
+      levels: [79, 15, 14, 13, 12, 10]
+    },
+    parking: {
+      key: 'parking', name: 'Residential Parking', kicker: 'Podium decks',
+      from: '#2E6FC4', to: '#36C6D3', glow: 'rgba(54,198,211,0.55)',
+      levels: ['P9','P8','P7','P6','P5','P4','P3','P2','P1']
+    },
+    entrance: {
+      key: 'entrance', name: 'Double-Height Entrance', kicker: 'Ground arrival',
+      from: '#7DBE3C', to: '#B7E27A', glow: 'rgba(125,190,60,0.55)',
+      levels: ['Ground']
+    },
+    basement: {
+      key: 'basement', name: 'Basement Level', kicker: 'Lower decks',
+      from: '#4B4FB0', to: '#8E5BC9', glow: 'rgba(142,91,201,0.55)',
+      levels: ['B1','B2','B3']
+    }
+  };
+  // Legend display order (top of tower → bottom)
+  window.EC_SECTION_ORDER = ['mansion','residential','refuge','service','amenity','parking','entrance','basement'];
+</script>
 
 <script>
   // ── Brand wordmark (top-left) → back to home with cream veil ────
@@ -559,192 +789,104 @@
     ecBackBtn.addEventListener('touchend', invNavBack, { passive: false });
   }
 
-  // ── Live clock (guarded — clock chip removed from topbar) ──────
-  function tickClock() {
-    const el = document.getElementById('clock');
-    if (!el) return;
-    const d = new Date();
-    el.textContent =
-      String(d.getHours()).padStart(2, '0') + ':' +
-      String(d.getMinutes()).padStart(2, '0') + ' IST';
-  }
-  tickClock();
-  setInterval(tickClock, 30000);
+  // ── Build the side legend from EC_SECTIONS ─────────────────────
+  (function buildLegend() {
+    const wrap = document.getElementById('legendRows');
+    if (!wrap) return;
+    window.EC_SECTION_ORDER.forEach(function (k) {
+      const s = window.EC_SECTIONS[k];
+      if (!s) return;
+      const row = document.createElement('div');
+      row.className = 'legend-row' + (s.legendOnly ? ' is-disabled' : '');
+      row.dataset.type = k;
+      row.style.setProperty('--glow', s.glow);
+      const count = s.legendOnly ? '—' : s.levels.length;
+      row.innerHTML =
+        '<span class="sw" style="background:linear-gradient(135deg,' + s.from + ',' + s.to + ')"></span>' +
+        '<span class="nm">' + s.name + '</span>' +
+        '<span class="ct">' + count + '</span>';
+      wrap.appendChild(row);
+    });
+  })();
 
-  // ── Inject styles + click handler into the embedded SVG ────────
-  // The SVG ships with a single transparent path that traces the
-  // tower silhouette. We make it the tap target, cycle its stroke
-  // colour yellow → orange → red, and route the click to the next
-  // inventory drill-down screen.
-  const obj = document.getElementById('invSvg');
-  const loading = document.getElementById('invLoading');
-  let towerReady = false;      // set true once <object> SVG verified
-  let fallbackDone = false;    // set true once <img> fallback installed
+  // ── Hover / select wiring across tower groups + legend rows ────
+  (function wireSections() {
+    const sectGroups = Array.from(document.querySelectorAll('.sect[data-type]'));
+    const leadGroups = Array.from(document.querySelectorAll('.lead-grp[data-type]'));
+    const legendRows = Array.from(document.querySelectorAll('.legend-row[data-type]'));
+    let selected = null;
 
-  // ── Shared navigation → floor selector, passing tap origin as % ──
-  // ox/oy are 0..100 viewport-relative so inventory-floors.html can
-  // originate its iris reveal at the exact tap point.
-  function navToFloors(clientX, clientY) {
-    const vw = window.innerWidth  || document.documentElement.clientWidth;
-    const vh = window.innerHeight || document.documentElement.clientHeight;
-    const ox = Math.max(0, Math.min(100, (clientX / vw) * 100));
-    const oy = Math.max(0, Math.min(100, (clientY / vh) * 100));
-    // Clear any leaving state first so forward nav never carries a veil.
-    document.body.classList.remove('is-leaving', 'is-firing');
-    window.location.href = 'inventory-floors.html?ox=' +
-      ox.toFixed(2) + '&oy=' + oy.toFixed(2);
-  }
+    function groupsFor(type) { return sectGroups.filter(g => g.dataset.type === type); }
+    function leadsFor(type)  { return leadGroups.filter(g => g.dataset.type === type); }
+    function rowFor(type)    { return legendRows.find(r => r.dataset.type === type); }
 
-  // ── <img> FALLBACK ──────────────────────────────────────────────
-  // Used when the <object>'s SVG fails to render on a tablet. Swaps the
-  // object for a plain <img> of the same file in the same box, wired
-  // with the same tap-to-navigate (coords computed from the bounding
-  // rect of the tap target). Idempotent.
-  function installImgFallback(reason) {
-    if (fallbackDone || towerReady) return;
-    fallbackDone = true;
-    try { obj.style.display = 'none'; } catch (_) {}
-    const canvas = document.querySelector('.inv-canvas');
-    if (!canvas) return;
-    let img = document.getElementById('invSvgImgFallbackActive');
-    if (!img) {
-      img = document.createElement('img');
-      img.id = 'invSvgImgFallbackActive';
-      img.className = 'inv-svg';
-      img.src = 'assets/inventory.svg';
-      img.alt = 'Embassy Citadel tower selector';
-      img.draggable = false;
-      img.addEventListener('click', (e) => navToFloors(e.clientX, e.clientY));
-      // Insert as the first child so it sits beneath the gradient edges.
-      canvas.insertBefore(img, canvas.firstChild);
+    function setHot(type, on) {
+      groupsFor(type).forEach(g => g.classList.toggle('is-hot', on));
+      leadsFor(type).forEach(g => g.classList.toggle('is-hot', on || (selected === type)));
+      const row = rowFor(type);
+      if (row) row.classList.toggle('is-hot', on || (selected === type));
     }
-    loading.classList.add('is-hidden');
-    console.warn('inventory.svg <object> fell back to <img>:', reason);
-  }
 
-  obj.addEventListener('load', () => {
-    try {
-      const doc = obj.contentDocument;
-      // contentDocument can be null/empty on tablets that refuse to
-      // render the large data-URI SVG → use the <img> fallback.
-      if (!doc || !doc.documentElement ||
-          doc.documentElement.tagName.toLowerCase() !== 'svg' ||
-          !doc.querySelector('svg, image, path')) {
-        installImgFallback('empty contentDocument on load');
-        return;
-      }
-      towerReady = true;
+    function select(type, originX, originY) {
+      const cfg = window.EC_SECTIONS[type];
+      if (!cfg || cfg.legendOnly) return;
+      selected = type;
+      sectGroups.forEach(g => g.classList.toggle('is-selected', g.dataset.type === type));
+      leadGroups.forEach(g => g.classList.toggle('is-hot', g.dataset.type === type));
+      legendRows.forEach(r => r.classList.toggle('is-hot', r.dataset.type === type));
+      // Store + navigate
+      try { sessionStorage.setItem('ec.section', type); } catch (_) {}
+      const vw = window.innerWidth || 1440, vh = window.innerHeight || 900;
+      const ox = Math.max(0, Math.min(100, ((originX || vw/2) / vw) * 100));
+      const oy = Math.max(0, Math.min(100, ((originY || vh/2) / vh) * 100));
+      document.body.classList.remove('is-leaving', 'is-firing');
+      document.body.classList.add('is-leaving');
+      setTimeout(function () {
+        window.location.href = 'inventory-floors.html?ox=' + ox.toFixed(2) + '&oy=' + oy.toFixed(2);
+      }, 200);
+    }
 
-      // Keep the SVG at its natural fit (contain) — user prefers no zoom.
-      // Side strips are handled by gradient overlays on .inv-canvas.
-      const svgRoot = doc.documentElement;
-      if (svgRoot && svgRoot.tagName.toLowerCase() === 'svg') {
-        svgRoot.style.width  = '100%';
-        svgRoot.style.height = '100%';
-      }
-
-      // Inject style into the SVG document — a gold light segment
-      // travels around the tower outline via stroke-dashoffset animation.
-      // Fill is barely visible; the perimeter shine is the focal effect.
-      const style = doc.createElementNS('http://www.w3.org/2000/svg', 'style');
-      style.textContent = `
-        svg { background: transparent; -webkit-tap-highlight-color: transparent; }
-        svg, svg * {
-          outline: none !important;
-          -webkit-tap-highlight-color: transparent !important;
-          -webkit-user-select: none; user-select: none;
-        }
-        svg :focus, svg :focus-visible, svg *:focus { outline: none !important; }
-        .cls-1, .cls-2 {
-          /* NO !important on fill — keyframe needs to interpolate it */
-          fill: rgba(255, 210, 74, 0);
-          stroke: #FFD24A !important;
-          stroke-width: 3 !important;
-          stroke-linecap: round !important;
-          stroke-linejoin: round !important;
-          stroke-miterlimit: 10 !important;
-          cursor: pointer;
-          filter: drop-shadow(0 0 6px rgba(255, 210, 74, 0.85))
-                  drop-shadow(0 0 16px rgba(255, 210, 74, 0.45))
-                  drop-shadow(0 0 36px rgba(255, 175, 80, 0.22));
-          /* Two simultaneous animations: outer outline tracer + inside-glow pulse */
-          animation: shineTravel 7s linear infinite,
-                     insideGlowPulse 3.4s ease-in-out infinite;
-          transition: stroke-width 220ms ease;
-        }
-        @keyframes shineTravel {
-          to { stroke-dashoffset: var(--path-length, -2000px); }
-        }
-        /* !important in @keyframes is IGNORED per CSS spec — keep these plain */
-        @keyframes insideGlowPulse {
-          0%, 100% { fill: rgba(255, 210, 74, 0); }
-          50%      { fill: rgba(255, 210, 74, 0.25); }
-        }
-        .cls-1:hover, .cls-2:hover {
-          stroke-width: 4.5 !important;
-        }
-      `;
-      doc.documentElement.appendChild(style);
-
-      // Find ALL tower paths and wire them as the tap target
-      const paths = doc.querySelectorAll('path.cls-1, path.cls-2, path');
-      // Configure the stroke-dasharray so a short bright segment travels
-      // around each path's full perimeter; stagger so multiple paths chase.
-      paths.forEach((path, i) => {
-        try {
-          const len = (typeof path.getTotalLength === 'function')
-            ? path.getTotalLength()
-            : 0;
-          if (len > 0) {
-            const seg = Math.max(120, Math.min(220, len * 0.06));
-            path.style.strokeDasharray = seg + ' ' + Math.max(1, len - seg);
-            path.style.setProperty('--path-length', (-len) + 'px');
-            // Stagger so the two outlines look like chasing lights
-            path.style.animationDelay = (i * -2.2) + 's';
-          }
-        } catch (_) { /* non-path elements ignored */ }
-        path.style.cursor = 'pointer';
-        path.style.outline = 'none';
-        try { path.setAttribute('tabindex', '-1'); path.setAttribute('focusable', 'false'); } catch (_) {}
-        path.addEventListener('click', (e) => {
+    // Tower hit shapes
+    sectGroups.forEach(function (g) {
+      const type = g.dataset.type;
+      const hit = g.querySelector('.sect-hit');
+      if (!hit) return;
+      g.addEventListener('mouseenter', () => setHot(type, true));
+      g.addEventListener('mouseleave', () => setHot(type, false));
+      hit.addEventListener('focus', () => { g.classList.add('is-focus'); setHot(type, true); });
+      hit.addEventListener('blur',  () => { g.classList.remove('is-focus'); setHot(type, false); });
+      hit.addEventListener('click', (e) => { e.preventDefault(); select(type, e.clientX, e.clientY); });
+      hit.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
           e.preventDefault();
-          // Capture tap position in viewport coords → % for iris reveal origin.
-          // The click event from inside an <object> SVG reports clientX/Y
-          // relative to the OUTER document, so we can use it directly.
-          navToFloors(e.clientX, e.clientY);
-        });
+          const r = hit.getBoundingClientRect();
+          select(type, r.left + r.width / 2, r.top + r.height / 2);
+        }
       });
+    });
 
-      // Hide the loading caption
-      loading.classList.add('is-hidden');
-    } catch (err) {
-      // Cross-document access can fail in some configs (e.g. the SVG is
-      // treated as a separate origin) — fall back to a plain <img> so the
-      // tower is always visible + tappable.
-      console.warn('Could not access inventory SVG:', err);
-      installImgFallback('contentDocument access threw: ' + err);
-    }
-  });
+    // Legend rows mirror hover + allow selection
+    legendRows.forEach(function (row) {
+      const type = row.dataset.type;
+      const cfg = window.EC_SECTIONS[type];
+      row.addEventListener('mouseenter', () => setHot(type, true));
+      row.addEventListener('mouseleave', () => setHot(type, false));
+      if (cfg && !cfg.legendOnly) {
+        row.addEventListener('click', () => {
+          const g = groupsFor(type)[0];
+          const r = g ? g.getBoundingClientRect() : { left: window.innerWidth/2, top: window.innerHeight/2, width: 0, height: 0 };
+          select(type, r.left + r.width / 2, r.top + r.height / 2);
+        });
+      }
+    });
+  })();
 
-  // ── ROBUSTNESS GUARD ───────────────────────────────────────────
-  // On tablets the <object> 'load' event may fire late, never, or with
-  // an empty document. After ~1.2s, if the tower hasn't been verified
-  // as rendered, swap in the <img> fallback so the tower NEVER vanishes.
-  setTimeout(() => {
-    if (towerReady || fallbackDone) return;
-    let ok = false;
-    try {
-      const doc = obj.contentDocument;
-      ok = !!(doc && doc.documentElement &&
-              doc.documentElement.tagName.toLowerCase() === 'svg' &&
-              doc.querySelector('svg, image, path'));
-    } catch (_) { ok = false; }   // cross-doc access blocked → not verifiable → fall back
-    if (ok) { towerReady = true; loading.classList.add('is-hidden'); }
-    else    { installImgFallback('1.2s guard: object not rendered'); }
-  }, 1200);
-
-  // Failsafe: hide loading after 5s even if nothing else fired
-  setTimeout(() => { loading.classList.add('is-hidden'); }, 5000);
+  // ── BFCACHE / back-navigation guard ────────────────────────────
+  (function () {
+    function clearLeave() { document.body.classList.remove('is-leaving', 'is-firing'); }
+    window.addEventListener('pageshow', clearLeave);
+    window.addEventListener('popstate', clearLeave);
+  })();
 </script>
 
 <!-- PWA-JS-START -->
@@ -752,7 +894,13 @@
   // Service worker registration (PWA + offline cache)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
+      var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});
+      var ecReloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if (ecReloaded || !ecHadCtrl) return;   // skip the first-ever claim
+        ecReloaded = true; window.location.reload();   // new version deployed -> refresh
+      });
     });
   }
   // iOS double-tap zoom guard
@@ -763,11 +911,9 @@
       if (now - lastTouchEnd <= 300) e.preventDefault();
       lastTouchEnd = now;
     }, { passive: false });
-    // Block pinch-zoom gesture events (iOS Safari)
     ['gesturestart','gesturechange','gestureend'].forEach(function(ev) {
       document.addEventListener(ev, function(e) { e.preventDefault(); }, { passive: false });
     });
-    // Cache --vh CSS var for iOS Safari URL-bar collapse handling
     function setVh() {
       var vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', vh + 'px');
@@ -798,32 +944,20 @@
     } else {
       wirePrefetch();
     }
-    // Idle: preload back-to-home
     if ('requestIdleCallback' in window) {
       requestIdleCallback(function() {
-        if (location.pathname.indexOf('home.html') !== -1) return;
-        if (document.querySelector('link[rel="prefetch"][href="home.html"]')) return;
-        var link = document.createElement('link');
-        link.rel = 'prefetch';
-        link.href = 'home.html';
-        document.head.appendChild(link);
+        ['inventory-floors.html','home.html'].forEach(function(href) {
+          if (document.querySelector('link[rel="prefetch"][href="' + href + '"]')) return;
+          var link = document.createElement('link');
+          link.rel = 'prefetch';
+          link.href = href;
+          document.head.appendChild(link);
+        });
       });
     }
   })();
 </script>
 <!-- PWA-JS-END -->
-<script>
-  /* ── BFCACHE / BACK-NAVIGATION GUARD ─────────────────────────────────
-     Tablets (iOS Safari, Samsung Internet, Chrome-Android) restore the
-     previous page from the back-forward cache with its DOM intact — including
-     the cream "is-leaving" veil that was set just before navigating away. That
-     left the restored screen BLANK on back. Clear the leaving/firing state
-     whenever the page is shown (including a bfcache restore) or on popstate. */
-  (function () {
-    function clearLeave() { document.body.classList.remove('is-leaving', 'is-firing'); }
-    window.addEventListener('pageshow', clearLeave);
-    window.addEventListener('popstate', clearLeave);
-  })();
-</script>
+  <script src="assets/tools-dock.js"></script>
 </body>
 </html>

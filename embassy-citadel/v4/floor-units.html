@@ -7,43 +7,46 @@
 
 <!--
   ──────────────────────────────────────────────────────────────────────
-  FLOOR UNITS v1 — assumptions + reasoning
+  FLOOR UNITS v2 — "Choose your residence"
   ──────────────────────────────────────────────────────────────────────
-  Reached from inventory-floors.html via the VIEW FLOOR PLAN CTA. The
-  ?floor=N param sets the floor token (e.g. 26 → "L 26", A-26xx units).
+  Reached from inventory-floors.html after a floor is confirmed
+  (sessionStorage 'ec.floor'). This screen is two coordinated halves:
 
   Layout (1440 × 900 stage, paper bg full-bleed)
-  · Top bar 76px — identical chrome to floor-plan/gallery:
-      LEFT  diamond + EMBASSY CITADEL + WORLI MUMBAI → home.html
-      RIGHT  prev (‹) + next (›) circular chips
-  · LEFT 60% (~864 px, x=0 y=76 → bottom) — the embedded SVG floor
-    plan (assets/floor-units.svg). 9 shape elements (3 rect + 1 polygon
-    + 5 path) — each represents a unit. Note: one of the paths is a
-    degenerate Move-only path (no draw); we skip it during wiring so
-    the 8 renderable shapes map cleanly to 8 of the 9 unit records;
-    the 9th unit-row stays in the right panel as A-2609 (a "premium
-    corner" that isn't visible at this scale). The renderable count is
-    therefore 8 ≤ 9, never the other way around.
-  · RIGHT 40% (~576 px) — unit-info panel: eyebrow + headline + 9-row
-    unit list with code, BHK + carpet, facing badge, indicative price.
+  · Top bar 76px — shared chrome:
+      LEFT   wordmark (brand-back) → home.html (cream veil)
+      RIGHT  BACK pill → inventory-floors.html (drill-up, cream veil)
 
-  Hover sync
-  · Hovering an SVG unit shape highlights the matching row in the list;
-    hovering a list row highlights the matching SVG shape. Both routes
-    (click row, click shape) navigate to unit-detail.html?unit=…&floor=N
-    via a cream-veil fade.
+  · HERO (left, ~62%) — the FULL TYPICAL FLOOR PLATE for the chosen
+    floor: EC_INV.floorToTypical(lvl).file, drawn object-fit:contain on
+    a clean paper card so the ENTIRE plate is visible, never cropped.
+    This is the focus of the screen. Floating eyebrow ("Choose your
+    residence") + big "Floor N" title sit over the card's top-left;
+    a small band tag (the plate's floor band) sits bottom-left.
 
-  Placeholders / to-wire-later
-  · Top-bar prev/next are visual-only on this screen (the SVG isn't a
-    stack of plans — clicking units does the navigation).
-  · The 9th unit (A-2609) doesn't have an SVG home; it sits in the
-    list as a tappable row. When/if the SVG is updated to expose 9
-    distinct shapes, the wiring index auto-extends.
+  · UNIT RAIL (right, ~38%) — one selectable card per residence on
+    this floor, from EC_INV.unitsOnFloor(lvl) (codes N01/N02/N03/
+    S01/S02/S03). Each card shows: code, wing (North/South from the
+    code's N/S), bedrooms, and usable carpet (sq.ft.). Selecting a
+    card sets ec.unit + ec.floor in sessionStorage and cream-veils to
+    unit-detail.html.
+
+  How units map to the floor
+  · The hero plate is the WHOLE floor (both wings). The right-rail
+    cards are the individually-purchasable residences sitting on that
+    plate. North-wing codes (N01–N03) and South-wing codes (S01–S03)
+    are split into two labelled groups in the rail so the spatial
+    read (which side of the plate) stays legible. Selecting a card =
+    choosing that residence on the displayed floor.
+
+  No prices anywhere. No marker badges. Cormorant for display,
+  Inter for body. Bronze used only as the decision accent on the
+  selected / hovered card.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-
+<script src="assets/inventory-data.js"></script>
 <style>
   :root {
     --paper:      #FCFAF4;
@@ -96,14 +99,14 @@
   /* ── Stage ─────────────────────────────────────────────────────── */
   #stage-wrap {
     position: fixed; inset: 0; overflow: hidden;
+    isolation: isolate;
     display: flex; align-items: center; justify-content: center;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-    background:
-      url('assets/bg-paper.png') center/cover no-repeat,
-      radial-gradient(ellipse 80% 60% at 50% 45%, var(--paper) 0%, var(--bone-50) 55%, var(--bone-200) 100%) var(--paper);
+    background: url('assets/bg-paper.png') center/cover no-repeat, var(--paper);
   }
   #stage, .stage-inner {
     position: relative;
+    z-index: 1;
     width: 1440px; height: 900px;
     flex-shrink: 0;
     transform-origin: center center;
@@ -147,7 +150,7 @@
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
   }
-  /* Unified right-side BACK button (added) */
+  /* Unified right-side BACK button */
   .ec-back-btn {
     display: inline-flex; align-items: center; gap: 8px;
     min-width: 92px; min-height: 44px;
@@ -171,19 +174,18 @@
   .ec-back-btn:active { transform: scale(0.96); }
   .ec-back-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--gold-500); }
   .ec-back-btn .arr { font-size: 13px; line-height: 1; transform: translateY(-0.5px); letter-spacing: 0; }
+
   /* ── TAP RESPONSIVENESS — interactive surfaces inside the app ── */
-  button, [role="button"], a[href], .unit-row, .pill {
+  button, [role="button"], a[href], .unit-card {
     -webkit-tap-highlight-color: transparent;
     user-select: none; -webkit-user-select: none;
     touch-action: manipulation;
   }
-  svg .tap, svg [data-tap], svg [role="button"], svg .unit-shape { pointer-events: all; cursor: pointer; }
   .brand-back {
     display: flex; align-items: center; gap: 14px;
     text-decoration: none; color: inherit; cursor: pointer;
     transition: opacity 240ms ease, transform 240ms ease;
     position: relative;
-    /* locked at top:38 left:44 (header padding 0 44px, height 76, items centered) */
   }
   .brand-back:hover { opacity: 0.78; transform: translateX(-1px); }
   .brand-back:focus-visible { outline: none; opacity: 0.78; }
@@ -202,202 +204,304 @@
   .brand-back:hover::after, .brand-back:focus-visible::after {
     opacity: 0.85; transform: translate(14px, -50%);
   }
-  .brand-diamond {
-    width: 18px; height: 18px;
-    position: relative; display: inline-block;
-    transform: rotate(45deg);
-    border: 1px solid var(--gold-500);
-    background: linear-gradient(135deg, var(--gold-200) 0%, var(--gold-500) 100%);
-    box-shadow: 0 0 6px rgba(148,111,56,0.20);
-  }
-  .brand-diamond::before {
-    content: ''; position: absolute; inset: 3px;
-    border: 0.5px solid rgba(255,255,255,0.55);
-    background: transparent;
-  }
-  .brand-text { display: flex; flex-direction: column; gap: 2px; line-height: 1; }
-  .brand-text .name {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 500; font-size: 22px;
-    color: var(--onyx-700); letter-spacing: 0.04em;
-  }
-  .brand-text .loc {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500; font-size: 9px;
-    letter-spacing: 0.4em; text-transform: uppercase;
-    color: var(--gold-500);
-  }
-  /* Canonical SVG wordmark (matches home.html) */
   .brand-wordmark {
     width: 130px; height: 36px;
     color: var(--onyx-700);
   }
   .brand-wordmark svg { width: 100%; height: 100%; display: block; }
 
-  /* Top-right cluster: three circular chips */
-  .top-chips { display: flex; align-items: center; gap: 10px; }
-  .tc {
-    width: 44px; height: 44px;
-    min-width: 44px; min-height: 44px;
-    border-radius: 999px;
-    background: rgba(252, 250, 244, 0.7);
-    border: 1px solid var(--hair-lo);
-    display: inline-flex; align-items: center; justify-content: center;
-    color: var(--gold-500);
-    cursor: pointer;
-    transition: background 220ms ease, color 220ms ease, transform 220ms ease, border-color 220ms ease;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px; line-height: 1;
-    user-select: none;
-  }
-  .tc:hover { background: var(--paper); color: var(--onyx-700); border-color: var(--hair); }
-  .tc:active { transform: scale(0.96); }
-
-  /* ── FULL-WIDTH — SVG floor plan canvas ────────────────────────── */
-  .plan-canvas {
+  /* ── BODY GRID — hero (left) + unit rail (right) ───────────────── */
+  .floor-stage {
     position: absolute;
-    left: 0; top: 76px;
-    right: 0; bottom: 0;
-    width: 100%;
+    left: 0; right: 0; top: 76px; bottom: 0;
+    display: grid;
+    grid-template-columns: 1fr 432px;
     z-index: 3;
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
-  }
-  .plan-canvas-inner {
-    position: relative;
-    width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: center;
-  }
-  /* The object element fills the inner area. preserveAspectRatio
-     defaults to xMidYMid meet on most SVGs; floor-units.svg's natural
-     viewBox is 0 0 1536 1024 so it letterboxes inside the inner box.
-     We use mix-blend-mode: multiply so the cream card bg of the bitmap
-     melts gently into the paper texture beneath, while preserving all
-     the architectural detail (walls, room outlines, code index rail).
-     The linear-gradient mask feathers the rectangular card edges so
-     they don't read as a hard card-on-paper seam — the bitmap dissolves
-     into the paper bg on all four sides. */
-  .plan-obj {
-    width: 100%; height: 100%;
-    display: block;
-    mix-blend-mode: multiply;
-    overflow: visible;
-    object-fit: contain;   /* keep the static <img> fallback un-stretched */
-    filter: contrast(1.06) brightness(0.99);
-    -webkit-mask-image:
-      linear-gradient(180deg, transparent 0%, black 6%, black 94%, transparent 100%),
-      linear-gradient(90deg, transparent 0%, black 4%, black 96%, transparent 100%);
-    -webkit-mask-composite: source-in;
-            mask-image:
-      linear-gradient(180deg, transparent 0%, black 6%, black 94%, transparent 100%),
-      linear-gradient(90deg, transparent 0%, black 4%, black 96%, transparent 100%);
-            mask-composite: intersect;
   }
 
-  /* Tiny eyebrow that floats over the plan canvas top-left */
-  .plan-eyebrow {
-    position: absolute;
-    top: 24px; left: 32px;
-    z-index: 5;
-    pointer-events: none;
-    display: flex; align-items: center; gap: 10px;
+  /* ── HERO — full floor plate ───────────────────────────────────── */
+  .hero {
+    position: relative;
+    padding: 30px 24px 30px 44px;
+    min-width: 0; min-height: 0;
+    display: flex; flex-direction: column;
+  }
+  .hero-head {
+    position: relative; z-index: 4;
+    flex: 0 0 auto;
+    margin-bottom: 14px;
+  }
+  .hero-eyebrow {
+    display: flex; align-items: center; gap: 12px;
     font-family: 'Inter', sans-serif;
-    font-weight: 500; font-size: 9.5px;
+    font-weight: 500; font-size: 10px;
     letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500);
+    margin-bottom: 9px;
   }
-  .plan-eyebrow::before {
-    content: ''; width: 16px; height: 1px;
+  .hero-eyebrow::before {
+    content: ''; width: 22px; height: 1px;
     background: var(--gold-500); opacity: 0.6;
   }
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400; font-size: 52px; line-height: 0.98;
+    letter-spacing: -0.01em;
+    color: var(--onyx-700);
+    margin: 0;
+  }
+  .hero-title .lvl {
+    font-style: italic; font-weight: 500;
+    color: var(--gold-500);
+  }
+  .hero-sub {
+    margin-top: 7px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400; font-size: 11.5px;
+    letter-spacing: 0.03em;
+    color: var(--taupe-400);
+  }
 
-  /* Small compass at top-right of plan canvas */
-  .plan-compass {
+  /* The plate card holds the full floor image, contained */
+  .plate-card {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    border-radius: 6px;
+    background:
+      linear-gradient(180deg, #FFFDF8 0%, #FBF8F1 100%);
+    border: 1px solid var(--hair-lo);
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  /* faint inner frame line for a drawn-on-paper feel */
+  .plate-card::after {
+    content: '';
+    position: absolute; inset: 12px;
+    border: 1px solid var(--hair-lo);
+    border-radius: 3px;
+    pointer-events: none;
+  }
+  .plate-img {
+    max-width: 100%; max-height: 100%;
+    width: 100%; height: 100%;
+    object-fit: contain;
+    display: block;
+    padding: 26px;
+    mix-blend-mode: multiply;
+    filter: contrast(1.04);
+  }
+  /* North arrow tucked in the plate's top-right */
+  .plate-compass {
     position: absolute;
-    top: 22px; right: 32px;
-    z-index: 5;
-    width: 48px; height: 48px;
+    top: 18px; right: 18px;
+    z-index: 3;
+    width: 44px; height: 44px;
     border-radius: 999px;
-    background: rgba(252, 250, 244, 0.72);
+    background: rgba(252, 250, 244, 0.82);
     border: 1px solid var(--hair);
     display: grid; place-items: center;
     color: var(--gold-500);
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic; font-size: 14px;
-    box-shadow: 0 6px 14px rgba(80, 58, 28, 0.12);
+    box-shadow: 0 4px 10px rgba(80, 58, 28, 0.10);
   }
-  .plan-compass .n {
+  .plate-compass .n {
     position: absolute; top: 4px; left: 50%;
     transform: translateX(-50%);
-    font-size: 9px; letter-spacing: 0.3em;
+    font-size: 8px; letter-spacing: 0.28em;
     font-family: 'Inter', sans-serif; font-weight: 600;
     text-transform: uppercase;
   }
-  .plan-compass .needle {
-    width: 2px; height: 18px;
+  .plate-compass .needle {
+    width: 2px; height: 16px;
     background: linear-gradient(180deg, var(--gold-500) 0%, var(--gold-500) 50%, var(--hair) 50%, var(--hair) 100%);
     border-radius: 1px;
   }
-
-  /* Floor label badge bottom-left of plan canvas */
-  .plan-floortag {
+  /* Floor band tag bottom-left of the plate */
+  .plate-band {
     position: absolute;
-    bottom: 22px; left: 32px;
-    z-index: 5;
-    padding: 8px 14px;
-    background: rgba(252, 250, 244, 0.85);
-    border: 1px solid var(--hair);
+    bottom: 16px; left: 16px;
+    z-index: 3;
+    padding: 7px 13px;
+    background: rgba(252, 250, 244, 0.88);
+    border: 1px solid var(--hair-lo);
     border-radius: 999px;
-    display: flex; align-items: center; gap: 10px;
-    box-shadow: 0 4px 10px rgba(80, 58, 28, 0.10);
+    display: flex; align-items: center; gap: 9px;
+    box-shadow: 0 4px 10px rgba(80, 58, 28, 0.08);
   }
-  .plan-floortag .lbl {
+  .plate-band .lbl {
     font-family: 'Inter', sans-serif;
-    font-weight: 500; font-size: 8.5px;
-    letter-spacing: 0.4em; text-transform: uppercase;
+    font-weight: 500; font-size: 8px;
+    letter-spacing: 0.36em; text-transform: uppercase;
     color: var(--taupe-400);
   }
-  .plan-floortag .val {
+  .plate-band .val {
     font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 500; font-size: 16px;
+    font-style: italic; font-weight: 500; font-size: 14px;
     color: var(--gold-500); line-height: 1;
   }
 
-  /* ── Floor jumper ───────────────────────────────────────────────────
-     Invisible HTML buttons overlaid on the floor-stack pixels baked
-     into the SVG bitmap. The stack itself can't change (it's pixels),
-     but clicking a number navigates to that floor and the URL-param
-     wired unit list + floor tag update accordingly. Buttons stay
-     invisible until hover; ≥44px tap target for finger reach. */
-  .floor-jumper {
-    position: absolute; inset: 0;
-    pointer-events: none;
-    z-index: 8;
+  /* ── UNIT RAIL — selectable residence cards ────────────────────── */
+  .rail {
+    position: relative;
+    background:
+      linear-gradient(180deg, rgba(244,242,237,0.42), rgba(244,242,237,0.16));
+    border-left: 1px solid var(--hair-lo);
+    display: flex; flex-direction: column;
+    min-height: 0;
   }
-  .fj-btn {
-    position: absolute;
-    width: 56px; height: 44px;
-    margin: -22px 0 0 -28px;     /* center the box on the (left,top) point */
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    pointer-events: all;
+  .rail-head {
+    flex: 0 0 auto;
+    padding: 30px 38px 16px 38px;
+  }
+  .rail-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 9px;
+    letter-spacing: 0.42em; text-transform: uppercase;
+    color: var(--gold-500);
+    margin-bottom: 8px;
+  }
+  .rail-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400; font-size: 26px; line-height: 1.05;
+    color: var(--onyx-700);
+    margin: 0;
+  }
+  .rail-hint {
+    margin-top: 7px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400; font-size: 10.5px;
+    letter-spacing: 0.02em;
+    color: var(--taupe-400);
+  }
+  .rail-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4px 32px 30px 32px;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    scrollbar-width: thin;
+    scrollbar-color: var(--hair) transparent;
+  }
+  .rail-scroll::-webkit-scrollbar { width: 5px; }
+  .rail-scroll::-webkit-scrollbar-thumb { background: var(--hair-lo); border-radius: 99px; }
+
+  .wing-group + .wing-group { margin-top: 18px; }
+  .wing-label {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600; font-size: 8.5px;
+    letter-spacing: 0.36em; text-transform: uppercase;
+    color: var(--taupe-400);
+    margin: 4px 6px 11px 6px;
+  }
+  .wing-label::after {
+    content: ''; flex: 1; height: 1px;
+    background: var(--hair-lo);
+  }
+
+  .unit-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0 16px;
+    width: 100%;
+    padding: 15px 16px 15px 18px;
+    margin-bottom: 10px;
+    border: 1px solid var(--hair-lo);
     border-radius: 8px;
-    padding: 0;
-    transition: background 180ms ease, outline-color 180ms ease;
-    outline: 1px solid transparent;
-    -webkit-tap-highlight-color: transparent;
+    background: rgba(255, 253, 248, 0.62);
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit; color: inherit;
+    -webkit-appearance: none; appearance: none;
+    transition: border-color 200ms ease, background 200ms ease,
+                transform 180ms ease, box-shadow 220ms ease;
   }
-  .fj-btn:hover {
-    background: rgba(217, 185, 122, 0.15);
-    outline: 1px solid var(--gold-300);
+  .unit-card::before {
+    /* left accent rail — bronze, reveals on hover/active only */
+    content: '';
+    position: absolute; left: 0; top: 14px; bottom: 14px;
+    width: 2px; border-radius: 99px;
+    background: var(--gold-400);
+    transform: scaleY(0); transform-origin: center;
+    transition: transform 220ms cubic-bezier(.2,.7,.2,1);
   }
-  .fj-btn:focus-visible {
-    outline: 2px solid var(--gold-500);
-    background: rgba(217, 185, 122, 0.10);
+  @media (hover: hover) {
+    .unit-card:hover {
+      border-color: var(--hair);
+      background: rgba(255, 253, 248, 0.95);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px -12px rgba(80, 58, 28, 0.30);
+    }
+    .unit-card:hover::before { transform: scaleY(1); }
   }
-  .fj-btn:active { background: rgba(217, 185, 122, 0.28); }
+  .unit-card:active { transform: translateY(0) scale(0.992); }
+  .unit-card.is-selected {
+    border-color: var(--gold-400);
+    background:
+      linear-gradient(180deg, rgba(232,207,161,0.20), rgba(232,207,161,0.08));
+    box-shadow: 0 12px 26px -14px rgba(148, 111, 56, 0.38);
+  }
+  .unit-card.is-selected::before { transform: scaleY(1); background: var(--gold-500); }
+  .unit-card:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--gold-500); }
+
+  .uc-code {
+    grid-row: 1 / span 2;
+    width: 50px; height: 50px;
+    border-radius: 7px;
+    display: grid; place-items: center;
+    background: var(--bone-50);
+    border: 1px solid var(--hair-lo);
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500; font-size: 19px; letter-spacing: 0.02em;
+    color: var(--onyx-700);
+    transition: background 200ms ease, color 200ms ease, border-color 200ms ease;
+  }
+  .unit-card.is-selected .uc-code {
+    background: var(--gold-500); color: var(--paper); border-color: var(--gold-500);
+  }
+  .uc-main { min-width: 0; }
+  .uc-wing {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 12px;
+    color: var(--onyx-700);
+    margin-bottom: 3px;
+  }
+  .uc-beds {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400; font-size: 10px;
+    letter-spacing: 0.04em;
+    color: var(--taupe-400);
+  }
+  .uc-carpet {
+    grid-row: 1 / span 2;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .uc-carpet .num {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500; font-size: 21px; line-height: 1;
+    color: var(--gold-500);
+  }
+  .uc-carpet .unit-lbl {
+    display: block; margin-top: 4px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 7.5px;
+    letter-spacing: 0.32em; text-transform: uppercase;
+    color: var(--taupe-400);
+  }
+
+  .rail-empty {
+    padding: 40px 8px;
+    text-align: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic; font-size: 16px;
+    color: var(--taupe-400);
+  }
 
   /* ── Cream-veil ─────────────────────────────────────────────────── */
   .veil {
@@ -410,9 +514,21 @@
   }
   body.is-leaving .veil { opacity: 1; }
 
-  @media (prefers-reduced-motion: reduce) {
-    .unit-row, .unit-row:hover { transform: none !important; }
+  /* Entrance — quiet stagger (transform/opacity only) */
+  @keyframes ec-rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
+  .anim { opacity: 0; animation: ec-rise 520ms cubic-bezier(.2,.7,.2,1) forwards; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .anim { animation: none; opacity: 1; }
+    .unit-card, .unit-card:hover { transform: none !important; }
+  }
+
+  /* Tab S7 / 65" handled by the stage scaler (contain). The 1440×900
+     stage is the single source of truth; the scaler fits it to any
+     4:3 / 16:10 / 16:9 viewport without reflow. */
 </style>
 
 <script>
@@ -489,7 +605,7 @@
 
     <!-- ── TOP BAR ───────────────────────────────────────────── -->
     <header class="topbar">
-      <a class="brand-back" href="home.html" id="brandBack" aria-label="Embassy Citadel">
+      <a class="brand-back" href="home.html" id="brandBack" aria-label="Embassy Citadel — home">
         <div class="brand-wordmark">
           <svg viewBox="0 0 1000 500" aria-label="Embassy Citadel"><use href="#ec-wordmark" /></svg>
         </div>
@@ -502,50 +618,43 @@
       </div>
     </header>
 
-    <!-- ── LEFT 60% — SVG floor plan canvas ──────────────────── -->
-    <section class="plan-canvas" aria-label="Floor plan with selectable units">
-      <div class="plan-eyebrow">Floor Plan</div>
-      <div class="plan-floortag">
-        <span class="lbl">Floor</span>
-        <span class="val" id="floorTagVal">L 26</span>
-      </div>
+    <!-- ── BODY: hero plate + unit rail ──────────────────────── -->
+    <main class="floor-stage" aria-label="Choose your residence">
 
-      <div class="plan-canvas-inner">
-        <object class="plan-obj" id="planObj"
-                type="image/svg+xml"
-                data="assets/floor-units.svg"
-                aria-label="Floor plan with 9 residence units"></object>
-        <!-- Static-plan fallback. Stays hidden unless the <object> renders
-             blank (no inner <svg> within ~1.2s, or it errors). On tablet
-             Safari / Samsung Internet a 2.5 MB <object> SVG can collapse to
-             a blank box (seen offline). We then swap to this <img> so the
-             floor plan ALWAYS shows. Same blend/mask as .plan-obj so it
-             reads identically; the static plan stays visible (units aren't
-             individually clickable in fallback, but the floor jumper +
-             list/right-panel routes still navigate). -->
-        <img class="plan-obj plan-img-fallback" id="planImg"
-             src="assets/floor-units.svg" alt="Floor plan with residence units"
-             style="display:none;" aria-hidden="true">
-      </div>
+      <!-- HERO — full typical floor plate -->
+      <section class="hero anim" style="animation-delay:40ms;" aria-label="Floor plan">
+        <div class="hero-head">
+          <div class="hero-eyebrow">Choose your residence</div>
+          <h1 class="hero-title">Floor <span class="lvl" id="heroLvl">45</span></h1>
+          <div class="hero-sub" id="heroSub">The full floor — both wings, drawn to plan.</div>
+        </div>
 
-      <!-- ── Floor jumper (invisible hit-zone overlay) ───────────────
-           The vertical floor stack (16,15,14,13,12,11,10) on the LEFT
-           is baked into the SVG bitmap as pixels. We overlay invisible
-           HTML buttons at those pixel positions so clicking a floor
-           number navigates. Positions tuned to ±10px of glyph centres
-           via the probe in $CLAUDE_JOB_DIR/probe-floor-stack-*.mjs.
-           Coordinates are stage-px (stage = 1440×900); the buttons sit
-           inside .plan-canvas which begins at y=76. -->
-      <div class="floor-jumper" aria-label="Jump to another floor">
-        <button class="fj-btn" type="button" data-floor="16" aria-label="View floor 16" style="left: 160px; top: 270px;"></button>
-        <button class="fj-btn" type="button" data-floor="15" aria-label="View floor 15" style="left: 160px; top: 312px;"></button>
-        <button class="fj-btn" type="button" data-floor="14" aria-label="View floor 14" style="left: 160px; top: 352px;"></button>
-        <button class="fj-btn" type="button" data-floor="13" aria-label="View floor 13" style="left: 160px; top: 394px;"></button>
-        <button class="fj-btn" type="button" data-floor="12" aria-label="View floor 12" style="left: 160px; top: 436px;"></button>
-        <button class="fj-btn" type="button" data-floor="11" aria-label="View floor 11" style="left: 160px; top: 478px;"></button>
-        <button class="fj-btn" type="button" data-floor="10" aria-label="View floor 10" style="left: 160px; top: 520px;"></button>
-      </div>
-    </section>
+        <div class="plate-card">
+          <img class="plate-img" id="plateImg" alt="" decoding="async">
+          <div class="plate-compass" aria-hidden="true">
+            <span class="n">N</span>
+            <span class="needle"></span>
+          </div>
+          <div class="plate-band">
+            <span class="lbl">Plate</span>
+            <span class="val" id="plateBand">—</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- UNIT RAIL — selectable residences -->
+      <aside class="rail anim" style="animation-delay:120ms;" aria-label="Residences on this floor">
+        <div class="rail-head">
+          <div class="rail-eyebrow">The residences</div>
+          <h2 class="rail-title" id="railTitle">Select a home</h2>
+          <div class="rail-hint" id="railHint">Each home, drawn for this floor.</div>
+        </div>
+        <div class="rail-scroll" id="railScroll">
+          <!-- unit cards injected here -->
+        </div>
+      </aside>
+
+    </main>
 
     <div class="veil" id="veil" aria-hidden="true"></div>
 
@@ -553,348 +662,141 @@
 </div>
 
 <script>
-  // ── Read floor from URL — hash FIRST, query as fallback ──────────
-  // Why hash: offline, the service worker is cache-first but a request
-  // for "floor-units.html?floor=26" does NOT match the cached
-  // "floor-units.html" (query string differs), so it falls back to the
-  // navigate-offline handler and serves the WRONG page (blank). A URL
-  // fragment ("#floor=26") is never part of the request, so the cache
-  // matches and the right page loads offline. We still read ?floor for
-  // back-compat with inbound links (e.g. inventory-floors).
-  const params = new URLSearchParams(
-    (window.location.hash || '').replace(/^#/, '') || window.location.search.replace(/^\?/, '')
-  );
-  const FLOOR  = (function () {
-    const n = parseInt(params.get('floor'), 10);
-    return (isFinite(n) && n >= 1 && n <= 79) ? n : 26;
-  })();
-  const FLOOR_PAD = String(FLOOR).padStart(2, '0');
-  const UNIT_PREFIX = 'A-' + FLOOR_PAD;   // e.g. A-26
+  // ── 1 · Read the selected floor (sessionStorage; default 45) ─────
+  var lvl = parseInt(sessionStorage.getItem('ec.floor') || '45', 10);
+  if (!(lvl >= 1 && lvl <= 79)) lvl = 45;
 
-  // Update floor label in the floating compass tag
-  document.getElementById('floorTagVal').textContent = 'L ' + FLOOR;
+  var INV = window.EC_INV || null;
 
-  // ── Unit data — 9 residences on this floor ───────────────────────
-  // Mid Residences typology (4 BHK Classic / 5 BHK Study).
-  const UNITS = [
-    { idx: 1, no: '01', bhk: 4, type: 'Classic', area: 2135, facing: 'N', price: 11.52 },
-    { idx: 2, no: '02', bhk: 4, type: 'Classic', area: 2210, facing: 'S', price: 11.91 },
-    { idx: 3, no: '03', bhk: 5, type: 'Study',   area: 3120, facing: 'N', price: 18.02 },
-    { idx: 4, no: '04', bhk: 5, type: 'Study',   area: 3240, facing: 'S', price: 18.78 },
-    { idx: 5, no: '05', bhk: 4, type: 'Classic', area: 2135, facing: 'E', price: 11.78 },
-    { idx: 6, no: '06', bhk: 4, type: 'Classic', area: 2210, facing: 'W', price: 12.10 },
-    { idx: 7, no: '07', bhk: 5, type: 'Study',   area: 3160, facing: 'E', price: 18.45 },
-    { idx: 8, no: '08', bhk: 5, type: 'Study',   area: 3220, facing: 'W', price: 18.92 },
-    { idx: 9, no: '09', bhk: 4, type: 'Classic', area: 2280, facing: 'N', price: 12.45 },
-  ].map(u => Object.assign(u, { id: UNIT_PREFIX + u.no }));
-
-  // ── SVG injection — style each shape, label them, wire clicks ────
-  const obj = document.getElementById('planObj');
-  let svgPaths = [];   // array of {el, idx, unit}
-
-  obj.addEventListener('load', () => {
-    try {
-      const doc = obj.contentDocument;
-      if (!doc) return;
-      const svgRoot = doc.documentElement;
-      if (svgRoot && svgRoot.tagName.toLowerCase() === 'svg') {
-        svgRoot.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-        svgRoot.style.width = '100%';
-        svgRoot.style.height = '100%';
-      }
-
-      // Allow the radiant glow halos to extend beyond the SVG viewBox
-      svgRoot.style.overflow = 'visible';
-      svgRoot.setAttribute('overflow', 'visible');
-
-      // ── Inject a <defs> block with the radiant-glow filter only ─────
-      //   #radiant-glow — a 3-stage glow: wide warm halo, mid glow,
-      //   and tight inner bloom. Applied to each unit path so the
-      //   gold shapes physically radiate light onto the paper. The
-      //   bitmap itself is NOT filtered — mix-blend-mode: multiply on
-      //   the parent <object> already melts the cream card bg into
-      //   the paper while preserving every wall/room/label detail.
-      //
-      // The filter must live INSIDE the SVG document because Safari
-      // can't reference parent-document filter ids from inside an <object>.
-      const SVG_NS = 'http://www.w3.org/2000/svg';
-      const defs = doc.createElementNS(SVG_NS, 'defs');
-      defs.innerHTML = `
-        <filter id="radiant-glow" x="-80%" y="-80%" width="260%" height="260%">
-          <!-- Far diffuse warm halo -->
-          <feGaussianBlur stdDeviation="16" in="SourceGraphic" result="halo_far"/>
-          <feColorMatrix in="halo_far" type="matrix" values="
-            1.4 0   0   0   0.08
-            0   1.1 0   0   0.05
-            0   0   0.6 0   0
-            0   0   0   1.3 0
-          " result="halo_far_warm"/>
-          <!-- Mid glow -->
-          <feGaussianBlur stdDeviation="7" in="SourceGraphic" result="halo_mid"/>
-          <feColorMatrix in="halo_mid" type="matrix" values="
-            1.6 0   0   0   0.12
-            0   1.25 0  0   0.07
-            0   0   0.55 0  0
-            0   0   0   1.8 0
-          " result="halo_mid_warm"/>
-          <!-- Tight inner bloom -->
-          <feGaussianBlur stdDeviation="2.5" in="SourceGraphic" result="halo_inner"/>
-          <feMerge>
-            <feMergeNode in="halo_far_warm"/>
-            <feMergeNode in="halo_mid_warm"/>
-            <feMergeNode in="halo_inner"/>
-            <feMergeNode in="SourceGraphic"/>
-          </feMerge>
-        </filter>
-      `;
-      svgRoot.insertBefore(defs, svgRoot.firstChild);
-
-      // Inject style scoped inside the SVG document — radiant glow via
-      // SVG filter (true halo bloom across the embedded SVG document).
-      //
-      // NOTE on the missing !important: CSS spec ignores !important
-      // inside @keyframes, so the static fill MUST also drop !important
-      // — otherwise the keyframe interpolation is overridden and the
-      // animation silently does nothing. Hover + selected states still
-      // use !important to win over the animated fill.
-      const style = doc.createElementNS(SVG_NS, 'style');
-      style.textContent = `
-        svg, g { overflow: visible; }
-
-        /* Smooth, soft GLOW — replaces the old fill-toggling flicker.
-           We breathe ONLY the opacity of a calm, steady glow layer
-           (very low amplitude, slow) so it never strobes. The fill is
-           a constant, barely-there warm wash; the perceived life comes
-           from the gentle opacity breathe on the radiant-glow filter.
-           NOTE: !important is ignored INSIDE @keyframes (CSS spec), so
-           the keyframe only animates opacity — which has no competing
-           !important rule — keeping the breathe smooth and unbroken. */
-        @keyframes unit-glow-breathe {
-          0%, 100% { opacity: 0.82; }
-          50%      { opacity: 1; }
-        }
-
-        .ec-unit-shape, path.cls-1, path.cls-2 {
-          cursor: pointer;
-          fill: rgba(217, 185, 122, 0.05);
-          stroke: #946F38 !important;
-          stroke-width: 2.5 !important;
-          stroke-linejoin: round;
-          filter: url(#radiant-glow);
-          transition: stroke-width 280ms ease, fill 280ms ease, opacity 280ms ease;
-          pointer-events: all;
-          /* Gentle, slow opacity breathe on the glowing shape — soft, not strobing */
-          animation: unit-glow-breathe 6.5s ease-in-out infinite;
-          will-change: opacity;
-        }
-        .ec-unit-shape:hover {
-          fill: rgba(217, 185, 122, 0.16) !important;
-          stroke-width: 3.5 !important;
-          opacity: 1 !important;
-          animation: none;
-        }
-        /* Selected unit: calm, steady highlight — no breathe, no flicker */
-        .ec-unit-shape.is-selected {
-          fill: rgba(217, 185, 122, 0.24) !important;
-          stroke: #6E5A37 !important;
-          stroke-width: 4.5 !important;
-          opacity: 1 !important;
-          animation: none;
-        }
-      `;
-      svgRoot.appendChild(style);
-
-      // Gather all candidate unit shapes (in document order) BEFORE
-      // adding any of our own rects to avoid polluting the candidate set.
-      const candidates = Array.from(
-        svgRoot.querySelectorAll('path, polygon, rect')
-      ).filter(el => {
-        // Skip degenerate paths (e.g. d="M 1156 691" with no draw commands)
-        if (el.tagName.toLowerCase() !== 'path') return true;
-        const d = (el.getAttribute('d') || '').trim();
-        // Need at least one drawing command after the initial move
-        return /[LlHhVvCcSsQqTtAaZz]/.test(d.slice(1));
+  // ── 2 · HERO — full typical floor plate ──────────────────────────
+  function nearestTypical(level) {
+    // floorToTypical can return null for some levels (e.g. 19/34/48 are
+    // refuge-only, or 41/55/70). Fall back to the band whose floor list
+    // is numerically closest so the hero always shows a full plate.
+    if (!INV) return null;
+    var direct = INV.floorToTypical(level);
+    if (direct) return direct;
+    var best = null, bestDist = Infinity;
+    (INV.TYPICAL || []).forEach(function (p) {
+      (p.floors || []).forEach(function (f) {
+        var d = Math.abs(f - level);
+        if (d < bestDist) { bestDist = d; best = p; }
       });
+    });
+    return best;
+  }
 
-      // ── Mask the duplicate chrome baked into the bitmap PNG.
-      // The bitmap has its own chrome strip at the top: a small
-      // diamond + "EMBASSY CITADEL / WORLI MUMBAI" wordmark + an
-      // empty "L" pill at top-left, plus a prev/next/hamburger chip
-      // cluster at top-right. The global app already shows its own
-      // top bar (Embassy Citadel wordmark + BACK pill), and we render
-      // our own "FLOOR PLAN" eyebrow + "FLOOR L N" tag in HTML, so
-      // all of this baked-in chrome is redundant.
-      //
-      // We paint cream rects matching the card cream so they blend
-      // seamlessly under the mix-blend-mode multiply applied to the
-      // parent <object>. Coordinates are in the bitmap viewBox
-      // (0 0 1536 1024). Masks sit BETWEEN Layer_1 (bitmap) and
-      // Layer_2 (unit shapes) so unit polygons stay clickable on top.
-      //
-      // Preserved (intentionally NOT masked):
-      // · Code Index left rail (floor stack)
-      // · "TOWER A · 3 BHK PREMIUM" / "3 Apartment / Floor" headline
-      // · Bottom feature row (Spacious / Well-ventilated / Lobbies / Decks)
-      // · Right-side floor pill on the bitmap
-      const CARD_CREAM = '#F5EFE0';
-      const maskLayer = doc.createElementNS('http://www.w3.org/2000/svg', 'g');
-      maskLayer.setAttribute('class', 'ec-chrome-mask');
-      const addMask = (x, y, w, h, name) => {
-        const r = doc.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        r.setAttribute('x', x);
-        r.setAttribute('y', y);
-        r.setAttribute('width', w);
-        r.setAttribute('height', h);
-        r.setAttribute('fill', CARD_CREAM);
-        r.setAttribute('pointer-events', 'none');
-        r.setAttribute('data-mask', name);
-        maskLayer.appendChild(r);
-      };
-      // Top-left chrome: diamond + wordmark + empty "L" pill
-      addMask(20, 10, 540, 140, 'topleft-chrome');
-      // Top-right chrome: bitmap-baked prev/next + hamburger chip cluster
-      addMask(1260, 10, 260, 140, 'topright-chips');
-      // Insert mask BETWEEN Layer_1 (bitmap) and Layer_2 (unit shapes),
-      // so the chrome gets covered but unit polygons stay clickable.
-      const layer2 = doc.getElementById('Layer_2');
-      if (layer2 && layer2.parentNode) {
-        layer2.parentNode.insertBefore(maskLayer, layer2);
-      } else {
-        svgRoot.appendChild(maskLayer);
-      }
-
-      // (Pointer-pin overlay removed — units are styled and clickable
-      // directly. The radiant glow + animated color cycle does the job
-      // of drawing the eye to each unit; BHK labels are shown elsewhere.)
-
-      candidates.forEach((el, i) => {
-        const unit = UNITS[i];
-        if (!unit) return;
-
-        el.classList.add('ec-unit-shape');
-        el.classList.add('unit');           // matches generic .unit selector
-        el.classList.add('clickable-unit'); // matches generic selector too
-        el.setAttribute('data-unit-id', unit.id);
-
-        // Stagger the pulse so units don't all breathe in sync.
-        el.style.animationDelay = (i * 0.5) + 's';
-
-        // Click and hover handlers on the SVG unit path.
-        el.addEventListener('mouseenter', () => highlightUnit(unit.idx, 'hover'));
-        el.addEventListener('mouseleave', () => clearUnitHighlight('hover'));
-        el.addEventListener('click', (e) => {
-          e.preventDefault();
-          navigateToUnit(unit);
-        });
-
-        svgPaths.push({ el, idx: unit.idx, unit });
-      });
-      planRendered = true;   // interactive SVG wired successfully
-    } catch (err) {
-      console.warn('Could not access floor-units SVG:', err);
+  (function paintHero() {
+    document.getElementById('heroLvl').textContent = String(lvl);
+    var plate = nearestTypical(lvl);
+    var img = document.getElementById('plateImg');
+    var band = document.getElementById('plateBand');
+    if (plate && plate.file) {
+      img.src = plate.file;
+      img.alt = 'Embassy Citadel — full floor plate for floor ' + lvl;
+      // Band label: "Floors 43–47" style, derived from the band string.
+      var bandTxt = (plate.band || '').replace(/-/g, '–').replace(/\+/g, ' · ');
+      band.textContent = bandTxt ? ('Floors ' + bandTxt) : ('Floor ' + lvl);
+      // If the matched plate isn't this exact floor's typical, note kind.
+      if (plate.kind === 'refuge') band.textContent = 'Refuge · ' + (bandTxt || lvl);
+    } else {
+      img.style.display = 'none';
+      band.textContent = 'Floor ' + lvl;
     }
-  });
+  })();
 
-  // ── Blank-render fallback ────────────────────────────────────────
-  // On tablet Safari / Samsung Internet a 2.5 MB <object> SVG can
-  // collapse to a blank box (reproduced offline: object width 0, no
-  // inner <svg>). If the interactive SVG hasn't wired itself within
-  // ~1.2 s, OR the object reports no <svg> / errors, swap to the
-  // static <img> so the floor plan ALWAYS shows. Idempotent.
-  let planRendered = false;
-  const planImg = document.getElementById('planImg');
-  function showFallback(reason) {
-    if (!planImg || planImg.style.display !== 'none') return;
-    obj.style.display = 'none';
-    planImg.style.display = 'block';
-    planImg.setAttribute('aria-hidden', 'false');
-    console.warn('floor-units: static-plan fallback (' + reason + ')');
-  }
-  function objHasSvg() {
-    try { return !!(obj.contentDocument && obj.contentDocument.querySelector('svg')); }
-    catch (_) { return false; }
-  }
-  obj.addEventListener('error', () => showFallback('object error'));
-  setTimeout(() => {
-    if (planRendered) return;             // interactive path won
-    if (!objHasSvg()) showFallback('no inner svg @1.2s');
-  }, 1200);
-  // Final safety net once everything settles.
-  window.addEventListener('load', () => {
-    setTimeout(() => { if (!planRendered && !objHasSvg()) showFallback('still blank @load'); }, 400);
-  });
+  // ── 3 · UNIT RAIL — selectable residences on this floor ──────────
+  function wingName(code) { return code.charAt(0) === 'N' ? 'North' : 'South'; }
+  function bedsLabel(n) { return n + ' Bedroom' + (n === 1 ? '' : 's'); }
 
-  // ── Hover-highlight: SVG only (right-side list removed) ──────────
-  function highlightUnit(idx) {
-    svgPaths.forEach(p => {
-      if (p.idx === idx) p.el.classList.add('is-selected');
-      else                p.el.classList.remove('is-selected');
+  function buildRail() {
+    var scroll = document.getElementById('railScroll');
+    var units = INV ? INV.unitsOnFloor(lvl) : [];
+
+    if (!units.length) {
+      scroll.innerHTML = '<div class="rail-empty">No residences listed for this floor.</div>';
+      document.getElementById('railTitle').textContent = 'Select a home';
+      return;
+    }
+
+    document.getElementById('railTitle').textContent =
+      units.length + (units.length === 1 ? ' residence' : ' residences');
+
+    // Split into North / South groups, preserving N01..N03, S01..S03 order.
+    var north = units.filter(function (u) { return u.code.charAt(0) === 'N'; });
+    var south = units.filter(function (u) { return u.code.charAt(0) === 'S'; });
+
+    var html = '';
+    function groupHtml(arr, label) {
+      if (!arr.length) return '';
+      var rows = arr.map(unitCardHtml).join('');
+      return '<div class="wing-group">'
+        + '<div class="wing-label">' + label + '</div>'
+        + rows + '</div>';
+    }
+    html += groupHtml(north, 'North Wing');
+    html += groupHtml(south, 'South Wing');
+    scroll.innerHTML = html;
+
+    // Wire selection on each card.
+    Array.prototype.forEach.call(scroll.querySelectorAll('.unit-card'), function (card) {
+      var code = card.getAttribute('data-code');
+      var select = function (e) {
+        if (e) e.preventDefault();
+        Array.prototype.forEach.call(scroll.querySelectorAll('.unit-card'), function (c) {
+          c.classList.remove('is-selected');
+        });
+        card.classList.add('is-selected');
+        try {
+          sessionStorage.setItem('ec.unit', code);
+          sessionStorage.setItem('ec.floor', String(lvl));
+        } catch (_) {}
+        document.body.classList.add('is-leaving');
+        setTimeout(function () { window.location.href = 'unit-detail.html'; }, 220);
+      };
+      card.addEventListener('click', select);
+      card.addEventListener('touchend', select, { passive: false });
     });
   }
-  function clearUnitHighlight() {
-    svgPaths.forEach(p => p.el.classList.remove('is-selected'));
+
+  function unitCardHtml(u) {
+    var carpet = u.carpet || '—';
+    return ''
+      + '<button type="button" class="unit-card" data-code="' + u.code + '" '
+      +   'aria-label="' + u.code + ', ' + wingName(u.code) + ' wing, '
+      +   bedsLabel(u.beds) + ', ' + carpet + ' square feet usable carpet">'
+      +   '<span class="uc-code">' + u.code + '</span>'
+      +   '<span class="uc-main">'
+      +     '<span class="uc-wing">' + wingName(u.code) + ' Wing</span>'
+      +     '<span class="uc-beds">' + bedsLabel(u.beds) + '</span>'
+      +   '</span>'
+      +   '<span class="uc-carpet">'
+      +     '<span class="num">' + carpet + '</span>'
+      +     '<span class="unit-lbl">sq.ft. carpet</span>'
+      +   '</span>'
+      + '</button>';
   }
 
-  // ── Navigation with cream-veil fade ──────────────────────────────
-  function navigateToUnit(unit, href) {
-    // Hash params (not query) so the destination loads offline — see the
-    // floor-read comment above for why a query string breaks the SW cache.
-    const url = href || (
-      'unit-detail.html#unit=' + encodeURIComponent(unit.id)
-      + '&floor=' + FLOOR
-      + '&bhk='   + unit.bhk
-      + '&type='  + encodeURIComponent(unit.type)
-      + '&area='  + unit.area
-      + '&facing='+ unit.facing
-      + '&price=' + unit.price
-    );
-    document.body.classList.add('is-leaving');
-    setTimeout(() => { window.location.href = url; }, 220);
-  }
+  buildRail();
 
-  // Brand-back cream veil → home (top-level identity)
-  document.getElementById('brandBack').addEventListener('click', (e) => {
+  // ── 4 · Navigation chrome ────────────────────────────────────────
+  // Brand wordmark → home (top-level identity)
+  document.getElementById('brandBack').addEventListener('click', function (e) {
     e.preventDefault();
     document.body.classList.add('is-leaving');
-    setTimeout(() => { window.location.href = 'home.html'; }, 220);
+    setTimeout(function () { window.location.href = 'home.html'; }, 220);
   });
-  // Right-side BACK button → inventory-floors (drill-up)
-  const ecBackBtn = document.getElementById('ecBackBtn');
+  // Right-side BACK → inventory-floors (drill-up)
+  var ecBackBtn = document.getElementById('ecBackBtn');
   if (ecBackBtn) {
-    const goBack = (e) => {
+    var goBack = function (e) {
       if (e) e.preventDefault();
       document.body.classList.add('is-leaving');
-      setTimeout(() => { window.location.href = 'inventory-floors.html'; }, 220);
+      setTimeout(function () { window.location.href = 'inventory-floors.html'; }, 220);
     };
     ecBackBtn.addEventListener('click', goBack);
     ecBackBtn.addEventListener('touchend', goBack, { passive: false });
   }
-
-  // Top-chip prev/next removed — the floor-stack rail on the left side
-  // of the bitmap is the canonical floor-changing UI (see fj-btn handlers).
-  // ── Floor-jumper buttons — overlay over the SVG bitmap's floor stack.
-  // Clicking a floor number reloads the page with ?floor=N, which updates
-  // the URL-driven unit codes + visible "L N" floor tag. The bitmap's
-  // own highlighted floor stays baked-in (it's pixels) — that's expected.
-  document.querySelectorAll('.fj-btn').forEach(btn => {
-    const goFloor = (e) => {
-      if (e) e.preventDefault();
-      const floor = btn.dataset.floor;
-      if (!floor) return;
-      // Skip nav if user taps the floor they're already viewing
-      if (parseInt(floor, 10) === FLOOR) return;
-      document.body.classList.add('is-leaving');
-      setTimeout(() => {
-        // Same path + hash won't reload on its own — set hash then reload
-        // so the floor-driven unit codes + "L N" tag re-render. Hash (not
-        // query) keeps the page cache-matchable offline.
-        window.location.hash = 'floor=' + floor;
-        window.location.reload();
-      }, 220);
-    };
-    btn.addEventListener('click', goFloor);
-    btn.addEventListener('touchend', goFloor, { passive: false });
-  });
 </script>
 
 <!-- PWA-JS-START -->
@@ -902,7 +804,13 @@
   // Service worker registration (PWA + offline cache)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
+      var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});
+      var ecReloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if (ecReloaded || !ecHadCtrl) return;   // skip the first-ever claim
+        ecReloaded = true; window.location.reload();   // new version deployed -> refresh
+      });
     });
   }
   // iOS double-tap zoom guard
@@ -963,16 +871,15 @@
 <!-- PWA-JS-END -->
 <script>
   /* ── BFCACHE / BACK-NAVIGATION GUARD ─────────────────────────────────
-     Tablets (iOS Safari, Samsung Internet, Chrome-Android) restore the
-     previous page from the back-forward cache with its DOM intact — including
-     the cream "is-leaving" veil that was set just before navigating away. That
-     left the restored screen BLANK on back. Clear the leaving/firing state
-     whenever the page is shown (including a bfcache restore) or on popstate. */
+     Tablets restore the previous page from bfcache with its DOM intact —
+     including the cream "is-leaving" veil set just before navigating away.
+     Clear the leaving state whenever the page is shown (incl. bfcache). */
   (function () {
     function clearLeave() { document.body.classList.remove('is-leaving', 'is-firing'); }
     window.addEventListener('pageshow', clearLeave);
     window.addEventListener('popstate', clearLeave);
   })();
 </script>
+  <script src="assets/tools-dock.js"></script>
 </body>
 </html>
