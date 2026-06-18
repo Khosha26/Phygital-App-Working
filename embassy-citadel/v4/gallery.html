@@ -82,7 +82,7 @@
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet" />
 
 <!-- Pre-client-data markers (remove for final build) -->
 <style>
@@ -126,7 +126,7 @@
     width: 100%; height: 100%;
     background: var(--paper);
     color: var(--onyx-700);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-user-select: none; user-select: none;
@@ -143,7 +143,7 @@
   /* ── Stage scaler — flex-center letterbox ─────────────────────────── */
   #stage-wrap {
     position: fixed; inset: 0; overflow: hidden;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: 0;   /* edge-to-edge — stage fills the whole viewport */
     display: flex; align-items: center; justify-content: center;
     isolation: isolate;
     /* Flat paper — matches the stage's own paper edge exactly, so the
@@ -170,9 +170,6 @@
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
-    will-change: transform;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
   }
 
   /* ── PAPER BACKGROUND (same artwork as home) ───────────────────── */
@@ -249,12 +246,12 @@
   }
   .ec-brand-back .brand-text { display: flex; flex-direction: column; gap: 2px; line-height: 1; }
   .ec-brand-back .brand-text .name {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-weight: 500; font-size: 22px;
     color: var(--onyx-700); letter-spacing: 0.04em;
   }
   .ec-brand-back .brand-text .loc {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -268,7 +265,7 @@
     background: rgba(252, 250, 244, 0.72);
     border: 1px solid var(--hair);
     color: var(--gold-500);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.42em; text-transform: uppercase;
     text-decoration: none; cursor: pointer;
@@ -310,7 +307,7 @@
     position: absolute;
     left: 100%; top: 50%;
     transform: translate(8px, -50%);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 8.5px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -324,19 +321,19 @@
     transform: translate(12px, -50%);
   }
   .brand-wordmark {
-    width: 130px; height: 36px;
+    width: 156px; height: 43.2px;
     color: var(--onyx-700);
   }
   .brand-wordmark svg { width: 100%; height: 100%; display: block; }
   .top-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 9px;
     letter-spacing: 0.55em; text-transform: uppercase;
     color: var(--gold-500); opacity: 0.78;
   }
   .top-right {
     display: flex; align-items: center; gap: 14px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 10px;
     letter-spacing: 0.32em; text-transform: uppercase;
     color: var(--onyx-100); opacity: 0.78;
@@ -365,7 +362,7 @@
     gap: 0;
   }
   .lr-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500);
@@ -373,16 +370,16 @@
     margin-bottom: 14px;
   }
   .lr-headline {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
     font-weight: 400;
     font-size: 56px;
     line-height: 0.98;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.02em;
     color: var(--onyx-700);
     margin: 0 0 12px 0;
   }
   .lr-tag {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -409,7 +406,7 @@
     transition: background 220ms ease, border-color 220ms ease,
                 box-shadow 220ms ease, transform 180ms ease;
     color: var(--onyx-700);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     text-align: left;
     width: 100%;
   }
@@ -442,7 +439,7 @@
   }
   .cat-row.is-active .label { color: var(--onyx-900); }
   .cat-row .count {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400;
     font-size: 10px;
     letter-spacing: 0.15em;
@@ -461,7 +458,7 @@
 
   /* Filter cluster */
   .filter-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500);
@@ -522,7 +519,7 @@
   .filter-dropdown {
     display: none;
     padding: 6px 12px 8px 38px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-size: 9px;
     letter-spacing: 0.22em;
     text-transform: uppercase;
@@ -541,7 +538,7 @@
     margin-top: 14px;
     padding-top: 12px;
     border-top: 1px solid var(--hair-lo);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -608,7 +605,7 @@
   }
   .hero-fallback.is-on { display: grid; }
   .hero-fallback span {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 10px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--taupe-400);
@@ -662,6 +659,22 @@
     overflow: visible;
   }
   .hero-plate.is-film::after { display: none; }   /* kill inner vignette */
+  /* Film active -> the last still sits behind the video. Blur it and lay an
+     80% black tint over it so the film reads cleanly with nothing competing
+     behind the letterbox margins. Tint at z-index 2 (above the stills),
+     video at z-index 3 (above the tint). */
+  .hero-plate.is-film .hero-img {
+    filter: blur(26px) brightness(0.7);
+    transform: scale(1.12);
+    transition: filter 320ms ease, transform 320ms ease;
+  }
+  .hero-plate.is-film::before {
+    content: '';
+    position: absolute; inset: 0;
+    z-index: 2;
+    background: rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+  }
 
   /* ── HERO CAPTION (editorial, lower-left of the plate) ──────────── */
   .hero-cap {
@@ -669,7 +682,7 @@
     left: 22px; bottom: 18px;
     z-index: 4;
     max-width: 70%;
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic;
     font-weight: 400;
     font-size: 21px;
@@ -703,7 +716,7 @@
     background: rgba(255, 244, 220, 0.6);
   }
   .hero-counter .text {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic;
     font-weight: 400;
     font-size: 13px;
@@ -744,7 +757,7 @@
     color: var(--gold-500);
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 17px; line-height: 1;
     box-shadow: 0 2px 6px rgba(40, 28, 10, 0.10);
     transition: background 200ms ease, color 200ms ease,
@@ -767,7 +780,7 @@
     position: absolute;
     top: 16px; left: 16px;
     z-index: 4;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.28em; text-transform: uppercase;
     color: var(--taupe-400);
@@ -835,7 +848,7 @@
     flex-shrink: 0;
   }
   .thumb .tn-num {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 9px;
     letter-spacing: 0.18em;
@@ -916,7 +929,7 @@
   }
   .footer-left {
     display: flex; align-items: center; gap: 22px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 9px;
     letter-spacing: 0.42em; text-transform: uppercase;
     color: var(--onyx-100); opacity: 0.60;
@@ -933,7 +946,7 @@
     display: flex; align-items: center; gap: 18px;
   }
   .footer-back {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500); text-decoration: none;
@@ -988,6 +1001,107 @@
     .leftrail, .hero-wrap, .thumbs, .scrolldots { animation: none; }
     .day-tint, .live-dot { animation: none; }
   }
+
+  /* ── Full-screen image viewer (lightbox) ──────────────────────────
+     Custom overlay (not native Fullscreen API — unreliable in iPad
+     standalone PWA). Lives OUTSIDE #stage so it fills the real
+     viewport, never the scaled design stage. */
+  .hero-zoom-btn.hero-zoom-fs svg { width: 16px; height: 16px; display: block; }
+  .lightbox {
+    position: fixed; inset: 0; z-index: 9000;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(120% 120% at 50% 40%, rgba(20,15,8,0.92), rgba(8,6,3,0.985));
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    opacity: 0; visibility: hidden;
+    transition: opacity 360ms ease, visibility 0s linear 360ms;
+    touch-action: none; -webkit-tap-highlight-color: transparent;
+  }
+  .lightbox.is-open { opacity: 1; visibility: visible; transition: opacity 360ms ease; }
+  .lb-stage {
+    position: relative; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .lb-img {
+    max-width: 92vw; max-height: 88vh;
+    object-fit: contain;
+    border-radius: 2px;
+    box-shadow: 0 40px 120px rgba(0,0,0,0.6);
+    transform: scale(0.96); opacity: 0;
+    transition: transform 420ms cubic-bezier(0.16,0.84,0.32,1), opacity 360ms ease;
+    will-change: transform; cursor: zoom-in; user-select: none; -webkit-user-drag: none;
+  }
+  .lightbox.is-open .lb-img { opacity: 1; }
+  .lb-img.is-zoomed { cursor: grab; }
+  .lb-img.is-panning { cursor: grabbing; transition: opacity 360ms ease; }
+  /* top bar */
+  .lb-top {
+    position: absolute; top: 0; left: 0; right: 0; height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 26px; z-index: 3;
+    background: linear-gradient(180deg, rgba(0,0,0,0.42), rgba(0,0,0,0));
+    pointer-events: none;
+  }
+  .lb-counter {
+    font-family: 'Lato', sans-serif; font-weight: 500; font-size: 10px;
+    letter-spacing: 0.34em; text-transform: uppercase;
+    color: rgba(244,238,228,0.74); font-variant-numeric: tabular-nums;
+  }
+  .lb-close {
+    pointer-events: auto;
+    width: 40px; height: 40px; border-radius: 999px;
+    background: rgba(244,238,228,0.10); border: 1px solid rgba(244,238,228,0.22);
+    color: rgba(244,238,228,0.92);
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 20px; line-height: 1;
+    transition: background 200ms ease, transform 160ms ease, border-color 200ms ease;
+    -webkit-appearance: none; appearance: none;
+  }
+  .lb-close:hover { background: rgba(244,238,228,0.18); border-color: rgba(244,238,228,0.4); }
+  .lb-close:active { transform: scale(0.92); }
+  /* caption */
+  .lb-cap {
+    position: absolute; left: 0; right: 0; bottom: 26px; z-index: 3;
+    text-align: center; padding: 0 12vw;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-style: italic; font-weight: 500; font-size: 19px;
+    color: rgba(244,238,228,0.86); text-shadow: 0 2px 18px rgba(0,0,0,0.6);
+    pointer-events: none;
+  }
+  /* prev/next */
+  .lb-nav {
+    position: absolute; top: 0; bottom: 0; width: 22%; max-width: 240px;
+    z-index: 2; display: flex; align-items: center;
+    background: transparent; border: none; cursor: pointer;
+    -webkit-appearance: none; appearance: none;
+    transition: background 240ms ease;
+  }
+  .lb-nav.lb-prev { left: 0; justify-content: flex-start; padding-left: 26px; }
+  .lb-nav.lb-next { right: 0; justify-content: flex-end; padding-right: 26px; }
+  .lb-nav .chev {
+    width: 46px; height: 46px; border-radius: 999px;
+    background: rgba(244,238,228,0.08); border: 1px solid rgba(244,238,228,0.18);
+    color: rgba(244,238,228,0.82);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 20px; line-height: 1;
+    transition: background 200ms ease, transform 200ms ease, border-color 200ms ease, opacity 240ms ease;
+    opacity: 0.5;
+  }
+  .lb-nav:hover .chev { opacity: 1; background: rgba(244,238,228,0.16); border-color: rgba(244,238,228,0.38); }
+  .lb-nav:active .chev { transform: scale(0.9); }
+  .lb-nav.is-hidden { display: none; }
+  /* zoom readout + hint */
+  .lb-hint {
+    position: absolute; bottom: 26px; right: 26px; z-index: 3;
+    font-family: 'Lato', sans-serif; font-weight: 500; font-size: 9px;
+    letter-spacing: 0.26em; text-transform: uppercase;
+    color: rgba(244,238,228,0.46); pointer-events: none;
+    font-variant-numeric: tabular-nums;
+  }
+  @media (max-width: 820px) {
+    .lb-cap { font-size: 16px; padding: 0 8vw; }
+    .lb-nav .chev { width: 40px; height: 40px; }
+  }
 </style>
 
 <script>
@@ -1003,6 +1117,8 @@
         vh = Math.min(vh, window.visualViewport.height);
       }
       const s = Math.min(vw / W, vh / H);
+      stage.style.width  = Math.ceil(vw / s) + 'px';   // FULL-SCREEN FILL
+      stage.style.height = Math.ceil(vh / s) + 'px';
       window.__galleryScale = s;
       const t = 'scale(' + s + ')';
       stage.style.transform = t;
@@ -1047,6 +1163,26 @@
 <!-- PWA-BLOCK-END -->
 </head>
 <body>
+<script>
+  /* LOCAL PREVIEW GUARD — on localhost, never let a stale service worker /
+     cache mask live edits. Production (real domain) is unaffected. */
+  (function () {
+    var h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0' || h === '') {
+      window.__EC_LOCAL = true;
+      try {
+        if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
+          navigator.serviceWorker.getRegistrations().then(function (rs) {
+            rs.forEach(function (r) { r.unregister(); });
+          }).catch(function () {});
+        }
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
+        }
+      } catch (e) {}
+    }
+  })();
+</script>
 
 <!-- Embassy Citadel wordmark — same SVG symbol as home -->
 <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -1082,11 +1218,6 @@
       <div class="lr-rule"></div>
 
       <div class="cat-list" id="catList"></div>
-
-      <div class="filter-eyebrow">Filter By</div>
-      <div class="filter-list" id="filterList"></div>
-
-      <button class="lr-reset" id="resetBtn" type="button">↻&nbsp;&nbsp;Reset Filters</button>
     </aside>
 
     <!-- ╔══ HERO PLATE ══╗ -->
@@ -1106,6 +1237,7 @@
           <button class="hero-zoom-btn hero-zoom-in"  id="heroZoomIn"  type="button" aria-label="Zoom in">+</button>
           <button class="hero-zoom-btn hero-zoom-out" id="heroZoomOut" type="button" aria-label="Zoom out">−</button>
           <button class="hero-zoom-btn hero-zoom-fit" id="heroZoomFit" type="button" aria-label="Fit image">Fit</button>
+          <button class="hero-zoom-btn hero-zoom-fs" id="heroZoomFs" type="button" aria-label="View full screen" title="Full screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V5a1 1 0 0 1 1-1h4M20 9V5a1 1 0 0 0-1-1h-4M4 15v4a1 1 0 0 0 1 1h4M20 15v4a1 1 0 0 1-1 1h-4"/></svg></button>
         </div>
         <div class="hero-zoom-indicator" id="heroZoomInd">100%</div>
 
@@ -1151,6 +1283,21 @@
     </footer>
 
   </div>
+</div>
+
+<!-- ╔══ FULL-SCREEN IMAGE VIEWER (outside the scaled stage) ══╗ -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Full screen image viewer">
+  <div class="lb-stage" id="lbStage">
+    <img class="lb-img" id="lbImg" alt="" decoding="async" draggable="false" />
+  </div>
+  <div class="lb-top">
+    <span class="lb-counter" id="lbCounter">01 / 39</span>
+    <button class="lb-close" id="lbClose" type="button" aria-label="Close full screen">×</button>
+  </div>
+  <button class="lb-nav lb-prev" id="lbPrev" type="button" aria-label="Previous image"><span class="chev">‹</span></button>
+  <button class="lb-nav lb-next" id="lbNext" type="button" aria-label="Next image"><span class="chev">›</span></button>
+  <div class="lb-cap" id="lbCap"></div>
+  <div class="lb-hint" id="lbHint">Scroll or pinch to zoom · Esc to close</div>
 </div>
 
 <script>
@@ -1271,27 +1418,28 @@
     catListEl.appendChild(btn);
   });
 
-  // ── Render filter list ───────────────────────────────────────────
-  const filterListEl = document.getElementById('filterList');
-  FILTERS.forEach((f, i) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'filter-row';
-    btn.dataset.idx = i;
-    btn.innerHTML =
-      '<span class="ic">' + ICONS[f.icon] + '</span>' +
-      '<span class="label">' + f.label + '</span>' +
-      '<span class="chev">' + ICONS.chev + '</span>';
-    btn.addEventListener('click', () => toggleFilter(i));
-    filterListEl.appendChild(btn);
-
-    const drop = document.createElement('div');
-    drop.className = 'filter-dropdown';
-    drop.innerHTML = f.opts.map(o => '<span>' + o + '</span>').join('');
-    filterListEl.appendChild(drop);
-  });
-
+  // ── Filter list removed (secondary 'Filter By' rail dropped per request).
+  const filterListEl = document.getElementById('filterList');   // null now
+  if (filterListEl) {
+    FILTERS.forEach((f, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'filter-row';
+      btn.dataset.idx = i;
+      btn.innerHTML =
+        '<span class="ic">' + ICONS[f.icon] + '</span>' +
+        '<span class="label">' + f.label + '</span>' +
+        '<span class="chev">' + ICONS.chev + '</span>';
+      btn.addEventListener('click', () => toggleFilter(i));
+      filterListEl.appendChild(btn);
+      const drop = document.createElement('div');
+      drop.className = 'filter-dropdown';
+      drop.innerHTML = f.opts.map(o => '<span>' + o + '</span>').join('');
+      filterListEl.appendChild(drop);
+    });
+  }
   function toggleFilter(i) {
+    if (!filterListEl) return;
     const rows = filterListEl.querySelectorAll('.filter-row');
     rows.forEach((r, j) => {
       if (j === i) r.classList.toggle('is-open');
@@ -1596,15 +1744,154 @@
   function prevImage() { setImage(state.imgIndex - 1); }
   function nextImage() { setImage(state.imgIndex + 1); }
 
+  // ── Full-screen image viewer (lightbox) ─────────────────────────
+  const lb        = document.getElementById('lightbox');
+  const lbStage   = document.getElementById('lbStage');
+  const lbImg     = document.getElementById('lbImg');
+  const lbCap     = document.getElementById('lbCap');
+  const lbCounter = document.getElementById('lbCounter');
+  const lbClose   = document.getElementById('lbClose');
+  const lbPrev    = document.getElementById('lbPrev');
+  const lbNext    = document.getElementById('lbNext');
+  const lbHint    = document.getElementById('lbHint');
+  const lbFsBtn   = document.getElementById('heroZoomFs');
+  let lbOpen = false;
+  const lz = { scale: 1, tx: 0, ty: 0 };
+
+  function lbApply(animate) {
+    lbImg.style.transition = animate
+      ? 'transform 300ms cubic-bezier(0.16,0.84,0.32,1)'
+      : 'transform 0s';
+    lbImg.style.transform = 'translate(' + lz.tx + 'px,' + lz.ty + 'px) scale(' + lz.scale + ')';
+    lbImg.classList.toggle('is-zoomed', lz.scale > 1.01);
+    lbHint.textContent = lz.scale > 1.01
+      ? Math.round(lz.scale * 100) + '%  ·  drag to pan'
+      : 'Scroll or pinch to zoom · Esc to close';
+  }
+  function lbClampPan() {
+    const r = lbImg.getBoundingClientRect();
+    const baseW = r.width / lz.scale, baseH = r.height / lz.scale;
+    const maxX = Math.max(0, (baseW * lz.scale - window.innerWidth)  / 2 + 8);
+    const maxY = Math.max(0, (baseH * lz.scale - window.innerHeight) / 2 + 8);
+    lz.tx = Math.max(-maxX, Math.min(maxX, lz.tx));
+    lz.ty = Math.max(-maxY, Math.min(maxY, lz.ty));
+  }
+  function lbSetZoom(next, animate) {
+    lz.scale = Math.max(1, Math.min(4, next));
+    if (lz.scale === 1) { lz.tx = 0; lz.ty = 0; }
+    else lbClampPan();
+    lbApply(animate !== false);
+  }
+  function lbResetZoom() { lz.scale = 1; lz.tx = 0; lz.ty = 0; lbApply(false); }
+
+  function lbRender() {
+    const cat = CATEGORIES[state.catIndex];
+    if (cat.isVideo) return;                 // film handled by native player
+    const set = currentSet();
+    const item = set[state.imgIndex];
+    lbResetZoom();
+    lbImg.style.opacity = '0';
+    const tmp = new Image();
+    tmp.onload = () => { lbImg.src = item.src; lbImg.style.opacity = '1'; };
+    tmp.onerror = () => { lbImg.src = item.src; lbImg.style.opacity = '1'; };
+    tmp.src = item.src;
+    lbImg.alt = item.cap || 'Gallery image';
+    lbCap.textContent = item.cap || '';
+    lbCounter.textContent = pad2(state.imgIndex + 1) + ' / ' + pad2(set.length);
+    const single = set.length <= 1;
+    lbPrev.classList.toggle('is-hidden', single);
+    lbNext.classList.toggle('is-hidden', single);
+  }
+  function lbOpenView() {
+    if (CATEGORIES[state.catIndex].isVideo) return;
+    lbOpen = true;
+    lb.classList.add('is-open');
+    document.body.classList.add('lb-locked');
+    lbRender();
+  }
+  function lbCloseView() {
+    lbOpen = false;
+    lb.classList.remove('is-open');
+    document.body.classList.remove('lb-locked');
+    lbResetZoom();
+  }
+  // keep lightbox in sync when the underlying still changes
+  function lbStep(dir) { setImage(state.imgIndex + dir); if (lbOpen) lbRender(); }
+
+  if (lbFsBtn) lbFsBtn.addEventListener('click', lbOpenView);
+  lbClose.addEventListener('click', lbCloseView);
+  lbPrev.addEventListener('click', () => lbStep(-1));
+  lbNext.addEventListener('click', () => lbStep(1));
+  // tap the dark backdrop (not the image) closes
+  lbStage.addEventListener('click', e => { if (e.target === lbStage && lz.scale <= 1.01) lbCloseView(); });
+  // double-click / double-tap toggles zoom
+  lbImg.addEventListener('dblclick', e => {
+    e.preventDefault();
+    if (lz.scale > 1.01) lbResetZoom();
+    else { lz.scale = 2.4; lbClampPan(); lbApply(true); }
+  });
+  // wheel zoom
+  lb.addEventListener('wheel', e => {
+    if (!lbOpen) return;
+    e.preventDefault();
+    lbSetZoom(lz.scale + (e.deltaY < 0 ? 0.4 : -0.4), false);
+  }, { passive: false });
+
+  // pointer drag-to-pan + two-finger pinch
+  const lbPts = new Map();
+  let lbPinchBase = 0, lbScaleBase = 1, lbPanStart = null;
+  lbImg.addEventListener('pointerdown', e => {
+    if (!lbOpen) return;
+    lbImg.setPointerCapture(e.pointerId);
+    lbPts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (lbPts.size === 2) {
+      const p = [...lbPts.values()];
+      lbPinchBase = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+      lbScaleBase = lz.scale;
+    } else if (lz.scale > 1.01) {
+      lbPanStart = { x: e.clientX - lz.tx, y: e.clientY - lz.ty };
+      lbImg.classList.add('is-panning');
+    }
+  });
+  lbImg.addEventListener('pointermove', e => {
+    if (!lbPts.has(e.pointerId)) return;
+    lbPts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (lbPts.size === 2 && lbPinchBase) {
+      const p = [...lbPts.values()];
+      const d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+      lbSetZoom(lbScaleBase * (d / lbPinchBase), false);
+    } else if (lbPanStart && lz.scale > 1.01) {
+      lz.tx = e.clientX - lbPanStart.x;
+      lz.ty = e.clientY - lbPanStart.y;
+      lbClampPan(); lbApply(false);
+    }
+  });
+  function lbPtrUp(e) {
+    lbPts.delete(e.pointerId);
+    if (lbPts.size < 2) lbPinchBase = 0;
+    if (lbPts.size === 0) { lbPanStart = null; lbImg.classList.remove('is-panning'); lbApply(true); }
+  }
+  lbImg.addEventListener('pointerup', lbPtrUp);
+  lbImg.addEventListener('pointercancel', lbPtrUp);
+
   // Keyboard arrows (prev/next overlay buttons removed — keyboard still works)
   window.addEventListener('keydown', e => {
+    if (lbOpen) {
+      if (e.key === 'Escape')     lbCloseView();
+      if (e.key === 'ArrowLeft')  lbStep(-1);
+      if (e.key === 'ArrowRight') lbStep(1);
+      if (e.key === '+' || e.key === '=') lbSetZoom(lz.scale + 0.4);
+      if (e.key === '-' || e.key === '_') lbSetZoom(lz.scale - 0.4);
+      return;
+    }
     if (e.key === 'ArrowLeft')  prevImage();
     if (e.key === 'ArrowRight') nextImage();
   });
 
-  // Reset filters
-  document.getElementById('resetBtn').addEventListener('click', () => {
-    filterListEl.querySelectorAll('.filter-row').forEach(r => r.classList.remove('is-open'));
+  // Reset filters button removed with the 'Filter By' rail.
+  const _resetBtn = document.getElementById('resetBtn');
+  if (_resetBtn) _resetBtn.addEventListener('click', () => {
+    if (filterListEl) filterListEl.querySelectorAll('.filter-row').forEach(r => r.classList.remove('is-open'));
     setCategory(0);
   });
 
@@ -1687,7 +1974,7 @@
 <!-- PWA-JS-START -->
 <script>
   // Service worker registration (PWA + offline cache)
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
     window.addEventListener('load', function() {
       var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});

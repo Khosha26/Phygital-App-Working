@@ -38,7 +38,7 @@
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet" />
 <style>
   :root {
     --paper:      #FCFAF4;
@@ -74,7 +74,7 @@
     margin: 0; padding: 0; width: 100%; height: 100%;
     background: var(--paper);
     color: var(--onyx-700);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-user-select: none; user-select: none;
@@ -92,7 +92,7 @@
     position: fixed; inset: 0; overflow: hidden;
     isolation: isolate;
     display: flex; align-items: center; justify-content: center;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: 0;   /* edge-to-edge — stage fills the whole viewport */
     background: url('assets/bg-paper.png') center/cover no-repeat, var(--paper);
   }
   #stage, .stage-inner {
@@ -103,9 +103,6 @@
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
-    will-change: transform;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
     background: var(--bone);
   }
   .stage-bg {
@@ -147,7 +144,7 @@
     background: rgba(252, 250, 244, 0.72);
     border: 1px solid var(--hair);
     color: var(--gold-500);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.42em; text-transform: uppercase;
     text-decoration: none; cursor: pointer;
@@ -175,7 +172,7 @@
   }
   .brand-back:hover { opacity: 0.78; transform: translateX(-1px); }
   .brand-back:focus-visible { outline: none; opacity: 0.78; }
-  .brand-wordmark { width: 130px; height: 36px; color: var(--onyx-700); }
+  .brand-wordmark { width: 156px; height: 43.2px; color: var(--onyx-700); }
   .brand-wordmark svg { width: 100%; height: 100%; display: block; }
   .top-chips { display: flex; align-items: center; gap: 10px; }
   .tc {
@@ -188,7 +185,7 @@
     color: var(--gold-500);
     cursor: pointer;
     transition: background 220ms ease, color 220ms ease, transform 220ms ease, border-color 220ms ease;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-size: 14px; line-height: 1;
     user-select: none;
   }
@@ -219,7 +216,7 @@
     position: absolute;
     top: 22px; left: 28px;
     display: flex; align-items: center; gap: 10px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 11px;
     letter-spacing: 0.32em; text-transform: uppercase;
     color: var(--gold-500);
@@ -277,7 +274,7 @@
     border: 1px solid var(--hair-lo);
     color: var(--gold-600);
     display: grid; place-items: center;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 9.5px;
     letter-spacing: 0.04em;
     font-variant-numeric: tabular-nums;
@@ -300,11 +297,11 @@
     height: 100%;
     transform-origin: center center;
     transition: transform 220ms cubic-bezier(.2,.7,.2,1);
-    will-change: transform;
+    /* will-change only while dragging — keeps the zoomed HD plan crisp at rest. */
     display: grid;
     place-items: center;
   }
-  .bp-zoom-stage.is-dragging { transition: none; }
+  .bp-zoom-stage.is-dragging { transition: none; will-change: transform; }
   .plan-img {
     max-width: 100%;
     max-height: 100%;
@@ -330,7 +327,7 @@
   }
   .spec-eyebrow {
     display: flex; align-items: center; gap: 10px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 11px;
     letter-spacing: 0.32em; text-transform: uppercase;
     color: var(--gold-500);
@@ -341,8 +338,8 @@
     background: var(--gold-500); opacity: 0.7;
   }
   .spec-hero {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
+    
     font-weight: 500;
     font-size: 46px;
     line-height: 1.04;
@@ -351,7 +348,7 @@
     letter-spacing: 0.01em;
   }
   .spec-sub {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 10px;
     letter-spacing: 0.26em;
@@ -388,7 +385,7 @@
   }
   .spec-col .ic svg { width: 100%; height: 100%; display: block; }
   .spec-col .num {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic;
     font-weight: 500;
     font-size: 30px;
@@ -400,7 +397,7 @@
     letter-spacing: 0.01em;
   }
   .spec-col .lbl {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 8.5px;
     letter-spacing: 0.24em;
@@ -416,13 +413,13 @@
     margin-bottom: 10px;
   }
   .selector-head .sh-lbl {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 9.5px;
     letter-spacing: 0.3em; text-transform: uppercase;
     color: var(--gold-500);
   }
   .selector-head .sh-cur {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.14em; text-transform: uppercase;
     color: var(--taupe-400);
@@ -441,7 +438,7 @@
     background: rgba(252, 250, 244, 0.6);
     border: 1px solid var(--hair-lo);
     color: var(--onyx-300);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 11px;
     letter-spacing: 0.12em;
     cursor: pointer;
@@ -472,7 +469,7 @@
     background: rgba(252, 250, 244, 0.7);
     border: 1px solid var(--hair-lo);
     color: var(--onyx-700);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 12px;
     letter-spacing: 0.06em;
     cursor: pointer;
@@ -504,7 +501,7 @@
     background: var(--onyx-700);
     border: 1px solid var(--onyx-700);
     color: var(--gold-100);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 11px;
     letter-spacing: 0.34em; text-transform: uppercase;
     cursor: pointer;
@@ -528,7 +525,7 @@
   .share-btn .sb-ic { width: 17px; height: 17px; color: var(--gold-200); flex-shrink: 0; }
   .share-btn .sb-ic svg { width: 100%; height: 100%; display: block; }
   .share-foot {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 8px;
     letter-spacing: 0.28em;
@@ -549,7 +546,7 @@
     border-radius: 999px;
     background: var(--onyx-700);
     color: var(--gold-100);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 11px;
     letter-spacing: 0.16em;
     box-shadow: 0 14px 36px rgba(26,24,20,0.28);
@@ -636,8 +633,8 @@
   .ec-modal.is-on .ec-modal-mark .tick { stroke-dashoffset: 0; }
 
   .ec-modal-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
+    
     font-weight: 500;
     font-size: 40px;
     line-height: 1.02;
@@ -646,7 +643,7 @@
     letter-spacing: 0.01em;
   }
   .ec-modal-lead {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 13px;
     line-height: 1.6;
     color: var(--onyx-100);
@@ -671,14 +668,14 @@
   }
   .ec-modal-row:first-child { border-top: none; }
   .ec-modal-row .k {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.24em; text-transform: uppercase;
     color: var(--taupe-400);
     white-space: nowrap;
   }
   .ec-modal-row .v {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 12.5px;
     letter-spacing: 0.01em;
     color: var(--onyx-700);
@@ -686,7 +683,7 @@
   }
 
   .ec-modal-note {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 8.5px;
     letter-spacing: 0.22em; text-transform: uppercase;
     color: var(--taupe-400);
@@ -702,7 +699,7 @@
     background: var(--onyx-700);
     border: 1px solid var(--onyx-700);
     color: var(--gold-100);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 11px;
     letter-spacing: 0.32em; text-transform: uppercase;
     cursor: pointer;
@@ -747,6 +744,11 @@
         vh = Math.min(vh, window.visualViewport.height);
       }
       const s = Math.min(vw / W, vh / H);
+      // FULL-SCREEN FILL: grow the stage to exactly cover the viewport. Uniform
+      // scale (no distortion); design dims stay >= 1440x900 so no content is
+      // cropped; the surplus is breathing room around the anchored chrome.
+      stage.style.width  = Math.ceil(vw / s) + 'px';
+      stage.style.height = Math.ceil(vh / s) + 'px';
       const t = 'scale(' + s + ')';
       stage.style.transform = t;
       stage.style.webkitTransform = t;
@@ -791,6 +793,26 @@
 <!-- PWA-BLOCK-END -->
 </head>
 <body>
+<script>
+  /* LOCAL PREVIEW GUARD — on localhost, never let a stale service worker /
+     cache mask live edits. Production (real domain) is unaffected. */
+  (function () {
+    var h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0' || h === '') {
+      window.__EC_LOCAL = true;
+      try {
+        if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
+          navigator.serviceWorker.getRegistrations().then(function (rs) {
+            rs.forEach(function (r) { r.unregister(); });
+          }).catch(function () {});
+        }
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
+        }
+      } catch (e) {}
+    }
+  })();
+</script>
 
 <!-- Embassy Citadel wordmark symbol (shared with home / floor-units) -->
 <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -1030,6 +1052,9 @@
 (function () {
   var INV = window.EC_INV;
   var TYPE_ORDER = ['N01','N02','N03','S01','S02','S03'];
+  var ALL_CODES = ['N01','N02','N03','S01','S02','S03','MN','MS'];
+  function isMansion(c) { return c === 'MN' || c === 'MS'; }
+  function orderFor(c) { return isMansion(c) ? ['MN','MS'] : TYPE_ORDER; }
 
   // ── Inbound: hash for back-compat with existing links, else session ──
   var hash = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
@@ -1041,7 +1066,8 @@
   var code = (read('unit', 'ec.unit') || 'S01').toUpperCase();
   var lvl  = parseInt(read('floor', 'ec.floor') || '45', 10);
   if (!isFinite(lvl)) lvl = 45;
-  if (TYPE_ORDER.indexOf(code) < 0) code = 'S01';
+  if (ALL_CODES.indexOf(code) < 0) code = 'S01';
+  if (isMansion(code) && [79,80,81].indexOf(lvl) < 0) lvl = 79;
 
   function persist() {
     try {
@@ -1063,7 +1089,11 @@
   var floorSel  = el('floorSelect');
   var floorCur  = el('floorCur');
 
-  function facingOf(c) { return c.charAt(0) === 'N' ? 'North' : 'South'; }
+  function facingOf(c) {
+    if (c === 'MN') return 'North Tower';
+    if (c === 'MS') return 'South Tower';
+    return c.charAt(0) === 'N' ? 'North' : 'South';
+  }
 
   // ── Resolve the active unit plan ──────────────────────────────────
   function resolveUnit() {
@@ -1073,7 +1103,7 @@
   // ── Render specs + title + plan image for unit `u` ────────────────
   function renderUnit(u, isInitial) {
     if (!u) return;
-    heroEl.textContent = facingOf(u.code) + ' · Unit ' + u.code;
+    heroEl.textContent = isMansion(u.code) ? (facingOf(u.code) + ' \u00b7 Mansion') : (facingOf(u.code) + ' \u00b7 Unit ' + u.code);
     subEl.textContent  = u.floorsLabel;
     bedsEl.textContent  = u.beds;
     bathsEl.textContent = u.beds;            // bathrooms mirror bedrooms per brief
@@ -1083,7 +1113,7 @@
     // swap plan with a soft cross-fade
     if (isInitial) {
       planImg.src = u.file;
-      planImg.alt = facingOf(u.code) + ' Unit ' + u.code + ', ' + u.floorsLabel + ' plan';
+      planImg.alt = (isMansion(u.code) ? (facingOf(u.code) + ' Mansion, ') : ('Unit ' + u.code + ', ')) + u.floorsLabel + ' plan';
     } else {
       planImg.classList.add('is-swapping');
       var next = new Image();
@@ -1101,12 +1131,12 @@
   // ── TYPE chips: only the types that actually exist in inventory ───
   function buildTypeChips() {
     typeChips.innerHTML = '';
-    var available = TYPE_ORDER.filter(function (c) { return INV.unitBands(c).length > 0; });
+    var available = orderFor(code).filter(function (c) { return INV.unitBands(c).length > 0; });
     available.forEach(function (c) {
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'type-chip' + (c === code ? ' is-active' : '');
-      b.textContent = c;
+      b.textContent = isMansion(c) ? (c === 'MN' ? 'North' : 'South') : c;
       b.setAttribute('data-code', c);
       if (c === code) b.setAttribute('aria-current', 'true');
       b.addEventListener('click', function () { selectType(c); });
@@ -1133,7 +1163,7 @@
       if (current && u.band === current.band) o.selected = true;
       floorSel.appendChild(o);
     });
-    if (current) floorCur.textContent = 'Floor ' + lvl;
+    if (current) floorCur.textContent = current.floorsLabel || ('Floor ' + lvl);
   }
 
   // ── Selection handlers ────────────────────────────────────────────
@@ -1156,7 +1186,7 @@
     if (!u) return;
     lvl = u.floors[0];                 // anchor floor to the chosen band
     persist();
-    floorCur.textContent = 'Floor ' + lvl;
+    floorCur.textContent = u.floorsLabel || ('Floor ' + lvl);
     renderUnit(u, false);
   }
   floorSel.addEventListener('change', function () { selectBand(floorSel.value); });
@@ -1367,7 +1397,7 @@
 <!-- PWA-JS-START -->
 <script>
   // Service worker registration (PWA + offline cache)
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
     window.addEventListener('load', function() {
       var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});

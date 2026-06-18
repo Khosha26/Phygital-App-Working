@@ -78,7 +78,7 @@
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet" />
 <style>
   :root {
     --paper:      #FCFAF4;
@@ -123,7 +123,7 @@
     width: 100%; height: 100%;
     background: var(--paper);
     color: var(--onyx-700);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-user-select: none; user-select: none;
@@ -140,7 +140,7 @@
   /* ── Stage scaler — flex-center letterbox ─────────────────────────── */
   #stage-wrap {
     position: fixed; inset: 0; overflow: hidden;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: 0;   /* edge-to-edge — stage fills the whole viewport */
     display: flex; align-items: center; justify-content: center;
     isolation: isolate;
     /* Flat paper — matches the stage's own paper edge so the letterbox/
@@ -163,9 +163,6 @@
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
-    will-change: transform;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
   }
 
   /* ── PAPER BACKGROUND (same artwork as home / gallery) ───────────── */
@@ -242,12 +239,12 @@
   }
   .ec-brand-back .brand-text { display: flex; flex-direction: column; gap: 2px; line-height: 1; }
   .ec-brand-back .brand-text .name {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-weight: 500; font-size: 22px;
     color: var(--onyx-700); letter-spacing: 0.04em;
   }
   .ec-brand-back .brand-text .loc {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -261,7 +258,7 @@
     background: rgba(252, 250, 244, 0.72);
     border: 1px solid var(--hair);
     color: var(--gold-500);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.42em; text-transform: uppercase;
     text-decoration: none; cursor: pointer;
@@ -297,7 +294,7 @@
     position: absolute;
     left: 100%; top: 50%;
     transform: translate(8px, -50%);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 8.5px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -311,19 +308,19 @@
     transform: translate(12px, -50%);
   }
   .brand-wordmark {
-    width: 130px; height: 36px;
+    width: 156px; height: 43.2px;
     color: var(--onyx-700);
   }
   .brand-wordmark svg { width: 100%; height: 100%; display: block; }
   .top-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 9px;
     letter-spacing: 0.55em; text-transform: uppercase;
     color: var(--gold-500); opacity: 0.78;
   }
   .top-right {
     display: flex; align-items: center; gap: 14px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 10px;
     letter-spacing: 0.32em; text-transform: uppercase;
     color: var(--onyx-100); opacity: 0.78;
@@ -352,7 +349,7 @@
     gap: 0;
   }
   .lr-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500);
@@ -360,16 +357,16 @@
     margin-bottom: 14px;
   }
   .lr-headline {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
     font-weight: 400;
     font-size: 56px;
     line-height: 0.98;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.02em;
     color: var(--onyx-700);
     margin: 0 0 12px 0;
   }
   .lr-tag {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 11px;
     line-height: 1.6;
     letter-spacing: 0.32em; text-transform: uppercase;
@@ -396,7 +393,7 @@
     transition: background 220ms ease, border-color 220ms ease,
                 box-shadow 240ms ease, transform 180ms ease;
     color: var(--onyx-700);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     text-align: left;
     width: 100%;
   }
@@ -432,7 +429,7 @@
   }
   .cat-row.is-active .label { color: var(--onyx-900); }
   .cat-row .count {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400;
     font-size: 10px;
     letter-spacing: 0.15em;
@@ -500,7 +497,7 @@
   }
   .circle-fallback.is-on { display: grid; }
   .circle-fallback span {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 10px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--taupe-400);
@@ -608,7 +605,7 @@
   }
   .arrow svg { width: 13px; height: 13px; display: block; color: var(--gold-500); }
   .ctrl-counter {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic;
     font-weight: 400;
     font-size: 16px;
@@ -648,14 +645,14 @@
     border-bottom: 1px solid var(--hair-lo);
   }
   .rr-header .rr-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 8.5px;
     letter-spacing: 0.45em; text-transform: uppercase;
     color: var(--gold-500);
     opacity: 0.82;
   }
   .rr-header .rr-counter {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic;
     font-weight: 400; font-size: 13px;
     color: var(--onyx-100);
@@ -742,7 +739,7 @@
     text-align: left;
   }
   .ts-thumb .caption .title {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 9.5px;
     letter-spacing: 0.28em;
@@ -753,7 +750,7 @@
     text-overflow: ellipsis;
   }
   .ts-thumb .caption .sub {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic;
     font-size: 12px;
     color: var(--gold-200);
@@ -804,7 +801,7 @@
   }
   .footer-left {
     display: flex; align-items: center; gap: 22px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 9px;
     letter-spacing: 0.42em; text-transform: uppercase;
     color: var(--onyx-100); opacity: 0.60;
@@ -821,7 +818,7 @@
     display: flex; align-items: center; gap: 18px;
   }
   .footer-scroll {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -870,18 +867,18 @@
   .lp-launch .lp-ic svg { width: 100%; height: 100%; display: block; }
   .lp-launch .lp-txt { display: flex; flex-direction: column; gap: 3px; flex: 1; }
   .lp-launch .lp-title {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10.5px;
     letter-spacing: 0.3em; text-transform: uppercase;
     color: var(--onyx-700);
   }
   .lp-launch .lp-sub {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic; font-size: 12px;
     color: var(--gold-500); opacity: 0.85;
   }
   .lp-launch .lp-count {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 10px;
     letter-spacing: 0.15em;
     color: var(--taupe-400);
@@ -891,6 +888,17 @@
     background: rgba(252, 250, 244, 0.6);
     flex-shrink: 0;
   }
+
+  /* ── HERO ZOOM + FULL-SCREEN VIEWER chrome ─────────────────────────── */
+  .ctrl-row { gap: 10px; }
+  .circle-plate.is-hz .circle-img {
+    transform: translate(var(--hzx, 0px), var(--hzy, 0px)) scale(var(--hzs, 1)) !important;
+    transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .circle-plate .circle-img.no-anim { transition: none !important; }
+  .circle-plate.is-hz     { cursor: grab; }
+  .circle-plate.is-hzgrab { cursor: grabbing; }
+  .fs-nav { position: absolute; right: 16px; bottom: 16px; z-index: 4; }
 
   /* ── LEVEL-PLANS OVERLAY (amenity floor plans on bone/paper) ──────── */
   .lp-overlay {
@@ -907,15 +915,15 @@
   }
   .lp-ov-titles { display: flex; flex-direction: column; gap: 6px; }
   .lp-ov-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500); opacity: 0.85;
   }
   .lp-ov-headline {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
     font-weight: 400; font-size: 38px; line-height: 1;
-    letter-spacing: -0.01em; color: var(--onyx-700); margin: 0;
+    letter-spacing: 0.02em; color: var(--onyx-700); margin: 0;
   }
   .lp-ov-close {
     display: inline-flex; align-items: center; gap: 8px;
@@ -924,7 +932,7 @@
     background: rgba(252, 250, 244, 0.72);
     border: 1px solid var(--hair);
     color: var(--gold-500);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.42em; text-transform: uppercase;
     cursor: pointer;
@@ -956,9 +964,10 @@
     transform-origin: center center;
     transform: translate(var(--lpx, 0px), var(--lpy, 0px)) scale(var(--lps, 1));
     transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
-    will-change: transform;
+    /* will-change only during active gesture — keeps the zoomed HD image crisp at rest. */
   }
-  .lp-stage img.no-anim { transition: none; }
+  .lp-stage img.no-anim { transition: none; will-change: transform; }
+  .lp-stage.is-grabbing img { will-change: transform; }
   .lp-stage.is-zoomed   { cursor: grab; }
   .lp-stage.is-grabbing { cursor: grabbing; }
 
@@ -991,7 +1000,7 @@
   .lp-zoom .lp-zbtn:active { transform: scale(0.94); }
   .lp-zoom .lp-zbtn svg { width: 13px; height: 13px; display: block; }
   .lp-zoom .lp-zpct {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.08em;
     color: var(--onyx-700);
@@ -999,7 +1008,7 @@
     min-width: 38px; text-align: center;
   }
   .lp-zoom .lp-zfit {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 8.5px;
     letter-spacing: 0.28em; text-transform: uppercase;
     color: var(--gold-500);
@@ -1017,7 +1026,7 @@
     position: absolute;
     left: 50%; top: 16px; transform: translateX(-50%);
     z-index: 4;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -1060,7 +1069,7 @@
   .lp-thumb .lp-thumb-lab {
     position: absolute; left: 0; right: 0; bottom: 0;
     padding: 5px 8px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 8px;
     letter-spacing: 0.22em; text-transform: uppercase;
     color: var(--onyx-700);
@@ -1121,6 +1130,11 @@
         vh = Math.min(vh, window.visualViewport.height);
       }
       const s = Math.min(vw / W, vh / H);
+      // FULL-SCREEN FILL: grow the stage to exactly cover the viewport. Uniform
+      // scale (no distortion); design dims stay >= 1440x900 so no content is
+      // cropped; the surplus is breathing room around the anchored chrome.
+      stage.style.width  = Math.ceil(vw / s) + 'px';
+      stage.style.height = Math.ceil(vh / s) + 'px';
       const t = 'scale(' + s + ')';
       stage.style.transform = t;
       stage.style.webkitTransform = t;
@@ -1164,6 +1178,26 @@
 <!-- PWA-BLOCK-END -->
 </head>
 <body>
+<script>
+  /* LOCAL PREVIEW GUARD — on localhost, never let a stale service worker /
+     cache mask live edits. Production (real domain) is unaffected. */
+  (function () {
+    var h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0' || h === '') {
+      window.__EC_LOCAL = true;
+      try {
+        if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
+          navigator.serviceWorker.getRegistrations().then(function (rs) {
+            rs.forEach(function (r) { r.unregister(); });
+          }).catch(function () {});
+        }
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
+        }
+      } catch (e) {}
+    }
+  })();
+</script>
 
 <!-- Embassy Citadel wordmark — same SVG symbol as home / gallery -->
 <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -1238,6 +1272,17 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
           </button>
         </div>
+        <div class="ctrl-pill" aria-label="Zoom and full screen">
+          <button class="arrow" type="button" id="heroZoomOut" aria-label="Zoom out">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 12h14"/></svg>
+          </button>
+          <button class="arrow" type="button" id="heroZoomIn" aria-label="Zoom in">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+          <button class="arrow" type="button" id="heroFull" aria-label="View full screen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/></svg>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1284,6 +1329,43 @@
         </div>
       </div>
       <div class="lp-thumbs" id="lpThumbs"></div>
+    </div>
+
+    <!-- ╔══ FULL-SCREEN PHOTO VIEWER — current amenity image ══╗ -->
+    <div class="lp-overlay" id="fsOverlay" aria-hidden="true">
+      <div class="lp-ov-top">
+        <div class="lp-ov-titles">
+          <span class="lp-ov-eyebrow">— Amenities · Full Screen</span>
+          <h2 class="lp-ov-headline" id="fsHeadline">Amenity</h2>
+        </div>
+        <button class="lp-ov-close" type="button" id="fsClose" aria-label="Close full screen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          <span>Close</span>
+        </button>
+      </div>
+      <div class="lp-stage" id="fsStage" style="margin-bottom: 28px;">
+        <img id="fsImage" alt="" decoding="async" draggable="false" />
+        <div class="lp-caption" id="fsCaption">—</div>
+        <div class="lp-zoom" aria-label="Photo zoom controls">
+          <button class="lp-zbtn" type="button" id="fsZoomOut" aria-label="Zoom out">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg>
+          </button>
+          <span class="lp-zpct" id="fsZoomPct">100%</span>
+          <button class="lp-zbtn" type="button" id="fsZoomIn" aria-label="Zoom in">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+          <button class="lp-zfit is-disabled" type="button" id="fsZoomFit" aria-label="Fit photo to frame">Fit</button>
+        </div>
+        <div class="ctrl-pill fs-nav">
+          <button class="arrow" type="button" id="fsPrev" aria-label="Previous">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          </button>
+          <span class="ctrl-counter" id="fsCounter">01<span class="slash">/</span>01</span>
+          <button class="arrow" type="button" id="fsNext" aria-label="Next">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Cream veil -->
@@ -1844,7 +1926,16 @@
     lpOverlay.setAttribute('aria-hidden', 'true');
     if (LpZoom) LpZoom.reset(false);
   }
-  document.getElementById('lpLaunch').addEventListener('click', lpOpen);
+  // Level Plans now routes to the Inventory floor index with the amenity
+  // band pre-selected — pick a floor there, view its plan. (The in-page
+  // lp-overlay stays dormant; lpOpen kept for reference.)
+  void lpOpen;
+  document.getElementById('lpLaunch').addEventListener('click', () => {
+    try { sessionStorage.setItem('ec.section', 'amenity'); } catch (_) {}
+    veilEl.classList.add('is-on');
+    document.body.classList.add('is-leaving');
+    setTimeout(() => { window.location.href = 'inventory-floors.html'; }, 220);
+  });
   document.getElementById('lpClose').addEventListener('click', lpCloseFn);
   window.addEventListener('keydown', e => {
     if (!lpOverlay.classList.contains('is-open')) return;
@@ -1858,11 +1949,227 @@
   renderRailHeader();
   renderThumbStack();
   renderHero();
+
+  // ── HERO ZOOM — scale the circle plate image in place ─────────────
+  // Buttons + wheel + pinch · drag to pan when zoomed · double-tap reset.
+  // Resets whenever the image changes (setSub/setCategory wrappers below).
+  const HeroZoom = (function () {
+    const plate = document.getElementById('circlePlate');
+    const MIN = 1, MAX = 3;
+    let s = 1, tx = 0, ty = 0, dragging = false, lx = 0, ly = 0, pinch = null, lastTap = 0;
+    function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+    function clampPan() {
+      const r = plate.getBoundingClientRect();
+      const ox = r.width * (s - 1) / 2, oy = r.height * (s - 1) / 2;
+      tx = clamp(tx, -ox, ox); ty = clamp(ty, -oy, oy);
+    }
+    function apply(anim) {
+      if (!anim) circleImg.classList.add('no-anim');
+      plate.style.setProperty('--hzs', s.toFixed(4));
+      plate.style.setProperty('--hzx', tx.toFixed(1) + 'px');
+      plate.style.setProperty('--hzy', ty.toFixed(1) + 'px');
+      plate.classList.toggle('is-hz', s > 1.001);
+      if (!anim) requestAnimationFrame(() => circleImg.classList.remove('no-anim'));
+    }
+    function zoomStep(k) {
+      s = clamp(s * k, MIN, MAX);
+      if (s <= 1.001) { tx = 0; ty = 0; }
+      clampPan(); apply(true);
+    }
+    function reset(anim) { s = 1; tx = 0; ty = 0; apply(anim !== false); }
+    document.getElementById('heroZoomIn').addEventListener('click', () => zoomStep(1.3));
+    document.getElementById('heroZoomOut').addEventListener('click', () => zoomStep(1 / 1.3));
+    plate.addEventListener('wheel', (e) => { e.preventDefault(); zoomStep(e.deltaY < 0 ? 1.12 : 1 / 1.12); }, { passive: false });
+    plate.addEventListener('mousedown', (e) => {
+      if (s <= 1.001) return;
+      dragging = true; lx = e.clientX; ly = e.clientY;
+      plate.classList.add('is-hzgrab'); e.preventDefault();
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      tx += e.clientX - lx; ty += e.clientY - ly; lx = e.clientX; ly = e.clientY;
+      clampPan(); apply(false);
+    });
+    window.addEventListener('mouseup', () => { dragging = false; plate.classList.remove('is-hzgrab'); });
+    plate.addEventListener('dblclick', (e) => { e.preventDefault(); reset(true); });
+    plate.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        const a = e.touches[0], b = e.touches[1];
+        pinch = { d0: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), s0: s };
+        dragging = false;
+      } else if (e.touches.length === 1) {
+        const now = Date.now();
+        if (now - lastTap < 300) { e.preventDefault(); reset(true); lastTap = 0; return; }
+        lastTap = now;
+        if (s > 1.001) { dragging = true; lx = e.touches[0].clientX; ly = e.touches[0].clientY; }
+      }
+    }, { passive: false });
+    plate.addEventListener('touchmove', (e) => {
+      if (pinch && e.touches.length === 2) {
+        e.preventDefault();
+        const a = e.touches[0], b = e.touches[1];
+        s = Math.min(MAX, Math.max(MIN, pinch.s0 * Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) / pinch.d0));
+        clampPan(); apply(false);
+      } else if (dragging && e.touches.length === 1) {
+        e.preventDefault();
+        tx += e.touches[0].clientX - lx; ty += e.touches[0].clientY - ly;
+        lx = e.touches[0].clientX; ly = e.touches[0].clientY;
+        clampPan(); apply(false);
+      }
+    }, { passive: false });
+    plate.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) pinch = null;
+      if (e.touches.length === 0) { dragging = false; plate.classList.remove('is-hzgrab'); }
+    });
+    return { reset };
+  })();
+
+  // ── FULL-SCREEN VIEWER — current amenity photo on the big stage ───
+  const fsOverlay = document.getElementById('fsOverlay');
+  const FsView = (function () {
+    const stage = document.getElementById('fsStage');
+    const imgEl = document.getElementById('fsImage');
+    const headEl = document.getElementById('fsHeadline');
+    const capEl = document.getElementById('fsCaption');
+    const cntEl = document.getElementById('fsCounter');
+    const pctEl = document.getElementById('fsZoomPct');
+    const fitEl = document.getElementById('fsZoomFit');
+    const MIN = 1, MAX = 5;
+    let scale = 1, tx = 0, ty = 0;
+    function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+    function box() {
+      const r = stage.getBoundingClientRect();
+      return { w: Math.max(0, r.width - 36), h: Math.max(0, r.height - 36) };
+    }
+    function clampPan() {
+      const b = box();
+      const ox = (b.w * scale - b.w) / 2, oy = (b.h * scale - b.h) / 2;
+      tx = clamp(tx, -ox, ox); ty = clamp(ty, -oy, oy);
+    }
+    function apply(animate) {
+      if (!animate) imgEl.classList.add('no-anim');
+      else imgEl.classList.remove('no-anim');
+      stage.style.setProperty('--lps', scale.toFixed(4));
+      stage.style.setProperty('--lpx', tx.toFixed(2) + 'px');
+      stage.style.setProperty('--lpy', ty.toFixed(2) + 'px');
+      stage.classList.toggle('is-zoomed', scale > 1.001);
+      pctEl.textContent = Math.round(scale * 100) + '%';
+      fitEl.classList.toggle('is-disabled', scale <= 1.001 && tx === 0 && ty === 0);
+      if (!animate) requestAnimationFrame(() => imgEl.classList.remove('no-anim'));
+    }
+    function focalFromClient(cx, cy) {
+      const r = stage.getBoundingClientRect();
+      return { fx: cx - (r.left + r.width / 2), fy: cy - (r.top + r.height / 2) };
+    }
+    function zoomTo(next, fx, fy) {
+      next = clamp(next, MIN, MAX);
+      if (next === scale) return;
+      const k = next / scale;
+      tx = (tx - fx) * k + fx;
+      ty = (ty - fy) * k + fy;
+      scale = next; clampPan(); apply(true);
+    }
+    function reset(animate) { scale = 1; tx = 0; ty = 0; apply(animate !== false); }
+    document.getElementById('fsZoomIn').addEventListener('click', () => zoomTo(scale * 1.3, 0, 0));
+    document.getElementById('fsZoomOut').addEventListener('click', () => zoomTo(scale / 1.3, 0, 0));
+    fitEl.addEventListener('click', () => reset(true));
+    stage.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const { fx, fy } = focalFromClient(e.clientX, e.clientY);
+      zoomTo(scale * (e.deltaY < 0 ? 1.12 : 1 / 1.12), fx, fy);
+    }, { passive: false });
+    let dragging = false, lastX = 0, lastY = 0, pinch = null, lastTap = 0;
+    stage.addEventListener('mousedown', (e) => {
+      if (scale <= 1.001) return;
+      dragging = true; lastX = e.clientX; lastY = e.clientY;
+      stage.classList.add('is-grabbing'); e.preventDefault();
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      tx += e.clientX - lastX; ty += e.clientY - lastY; lastX = e.clientX; lastY = e.clientY;
+      clampPan(); apply(false);
+    });
+    window.addEventListener('mouseup', () => { dragging = false; stage.classList.remove('is-grabbing'); });
+    stage.addEventListener('dblclick', (e) => { e.preventDefault(); reset(true); });
+    stage.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        const a = e.touches[0], b = e.touches[1];
+        const mid = focalFromClient((a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2);
+        pinch = { d0: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), s0: scale, fx: mid.fx, fy: mid.fy };
+        dragging = false;
+      } else if (e.touches.length === 1) {
+        const now = Date.now();
+        if (now - lastTap < 300) { e.preventDefault(); reset(true); lastTap = 0; return; }
+        lastTap = now;
+        if (scale > 1.001) { dragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; }
+      }
+    }, { passive: false });
+    stage.addEventListener('touchmove', (e) => {
+      if (pinch && e.touches.length === 2) {
+        e.preventDefault();
+        const a = e.touches[0], b = e.touches[1];
+        zoomTo(pinch.s0 * Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) / pinch.d0, pinch.fx, pinch.fy);
+      } else if (dragging && e.touches.length === 1) {
+        e.preventDefault();
+        tx += e.touches[0].clientX - lastX; ty += e.touches[0].clientY - lastY;
+        lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+        clampPan(); apply(false);
+      }
+    }, { passive: false });
+    stage.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) pinch = null;
+      if (e.touches.length === 0) { dragging = false; stage.classList.remove('is-grabbing'); }
+    });
+    function sync(resetZoom) {
+      const c = currentCat(), item = currentItem();
+      headEl.textContent = item.name;
+      cntEl.innerHTML = pad2(state.subIndex + 1) + '<span class="slash">/</span>' + pad2(c.items.length);
+      if (item.img) {
+        capEl.textContent = c.label + ' — ' + item.tag;
+        imgEl.style.display = ''; imgEl.src = item.img;
+      } else {
+        capEl.textContent = item.name + ' — Image pending';
+        imgEl.removeAttribute('src'); imgEl.style.display = 'none';
+      }
+      if (resetZoom !== false) reset(false);
+    }
+    return { sync, reset };
+  })();
+  function fsCloseFn() {
+    fsOverlay.classList.remove('is-open');
+    fsOverlay.setAttribute('aria-hidden', 'true');
+    FsView.reset(false);
+  }
+  document.getElementById('heroFull').addEventListener('click', () => {
+    fsOverlay.classList.add('is-open');
+    fsOverlay.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(() => FsView.sync());
+  });
+  document.getElementById('fsClose').addEventListener('click', fsCloseFn);
+  document.getElementById('fsPrev').addEventListener('click', () => setSub(state.subIndex - 1));
+  document.getElementById('fsNext').addEventListener('click', () => setSub(state.subIndex + 1));
+  window.addEventListener('keydown', (e) => {
+    if (fsOverlay.classList.contains('is-open') && e.key === 'Escape') fsCloseFn();
+  });
+
+  // Image-change wrappers: reset hero zoom, keep full-screen viewer in sync
+  const __setSub = setSub;
+  setSub = function (i) {
+    HeroZoom.reset(false);
+    __setSub(i);
+    if (fsOverlay.classList.contains('is-open')) FsView.sync();
+  };
+  const __setCategory = setCategory;
+  setCategory = function (i) {
+    HeroZoom.reset(false);
+    __setCategory(i);
+    if (fsOverlay.classList.contains('is-open')) FsView.sync();
+  };
 </script>
 <!-- PWA-JS-START -->
 <script>
   // Service worker registration (PWA + offline cache)
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
     window.addEventListener('load', function() {
       var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});

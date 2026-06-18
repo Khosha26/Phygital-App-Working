@@ -5,7 +5,7 @@
 // runtime-caches anything else that gets loaded.
 // Cache name + file list live in assets/precache-list.js (single source of truth).
 try { importScripts("assets/precache-list.js"); } catch (_) {}
-const CACHE = self.EC_CACHE || "citadel-v26";
+const CACHE = self.EC_CACHE || "citadel-v42";
 
 self.addEventListener("install", (e) => {
   // No precache here — the download gate fills the cache. Activate immediately.

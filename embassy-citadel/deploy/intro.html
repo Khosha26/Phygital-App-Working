@@ -20,7 +20,7 @@
 <link rel="preload" as="image" href="assets/tower.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet" />
 
 <style>
   :root {
@@ -35,7 +35,7 @@
   html, body {
     margin: 0; padding: 0; width: 100%; height: 100%;
     background: var(--paper); color: var(--onyx-700);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     -webkit-user-select: none; user-select: none;
     -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none;
@@ -46,7 +46,7 @@
 
   #stage-wrap {
     position: fixed; inset: 0; overflow: hidden;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: 0;   /* edge-to-edge — stage fills the whole viewport */
     display: flex; align-items: center; justify-content: center;
     isolation: isolate;
     /* Flat paper — matches the stage's own paper edge exactly, so the
@@ -69,8 +69,7 @@
     z-index: 1;
     transform-origin: center center;
     transform: scale(1);
-    overflow: hidden; will-change: transform;
-    -webkit-backface-visibility: hidden; backface-visibility: hidden;
+    overflow: hidden;
   }
 
   /* ── PAPER BG (same as home) ─────────────────────────────────── */
@@ -183,14 +182,14 @@
   }
   @keyframes fadeIn { to { opacity: 1; } }
   .top-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 9px;
     letter-spacing: 0.55em; text-transform: uppercase;
     color: var(--gold-500); opacity: 0.78;
   }
   .top-right {
     display: flex; align-items: center; gap: 14px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 10px;
     letter-spacing: 0.32em; text-transform: uppercase;
     color: var(--onyx-100); opacity: 0.78;
@@ -207,7 +206,7 @@
     50%      { opacity: 1;    transform: scale(1.18); }
   }
   .top-corner {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.42em; text-transform: uppercase;
     color: var(--gold-500); opacity: 0.78;
@@ -220,14 +219,14 @@
      it regardless of intrinsic block height. */
   .threshold {
     position: absolute;
-    left: 50%; top: 116px;
+    left: 50%; top: 250px;
     transform: translate(-50%, 0);
     z-index: 6;
     display: flex; flex-direction: column; align-items: center;
     pointer-events: none;
   }
   .threshold-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.55em; text-transform: uppercase;
     color: var(--gold-500); opacity: 0;
@@ -258,7 +257,7 @@
   }
 
   .threshold-tagline {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-weight: 400; font-style: italic;
     font-size: 26px;
     letter-spacing: 0.10em; text-transform: uppercase;
@@ -272,7 +271,7 @@
     to   { opacity: 0.92; transform: translateY(0); }
   }
   .threshold-sub {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-weight: 300; font-style: italic;
     font-size: 14px;
     letter-spacing: 0.05em;
@@ -288,7 +287,7 @@
      y≈392) before the token field begins — no overlap, even rhythm. */
   .tap-wrap {
     position: absolute;
-    top: 470px; left: 50%;
+    top: 590px; left: 50%;
     transform: translateX(-50%);
     z-index: 10;
     display: flex; flex-direction: column; align-items: center;
@@ -301,24 +300,6 @@
     to   { opacity: 1; transform: translate(-50%, 0); }
   }
 
-  .tap-field { width: 326px; max-width: 78vw; }
-  .tap-field input {
-    width: 100%; box-sizing: border-box;
-    font-family: 'Inter', sans-serif; font-size: 13px; letter-spacing: 0.04em;
-    text-align: center; color: var(--onyx-700);
-    padding: 13px 20px; border-radius: 999px;
-    border: 1px solid rgba(148,111,56,0.42);
-    background: rgba(252,250,244,0.74);
-    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-    box-shadow: 0 6px 18px rgba(110,90,55,0.10), inset 0 1px 0 rgba(255,255,255,0.55);
-    outline: none; transition: border-color 200ms ease, box-shadow 200ms ease;
-  }
-  .tap-field input::placeholder { color: var(--taupe-400); letter-spacing: 0.05em; }
-  .tap-field input:focus {
-    border-color: rgba(148,111,56,0.72);
-    box-shadow: 0 0 0 3px rgba(217,185,122,0.18), 0 6px 18px rgba(110,90,55,0.12);
-  }
-  body.is-firing .tap-field { opacity: 0.3; transition: opacity 400ms ease; }
 
   .tap-zone {
     position: relative;
@@ -419,7 +400,7 @@
   }
 
   .tap-label {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic; font-weight: 400;
     font-size: 14px;
     letter-spacing: 0.42em; text-transform: uppercase;
@@ -427,7 +408,7 @@
     opacity: 0.85;
   }
   .tap-label-sub {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 8.5px;
     letter-spacing: 0.45em; text-transform: uppercase;
     color: var(--taupe-400);
@@ -472,21 +453,21 @@
 
   /* THE BIG ONE — wordmark morphs to the home centerpiece position.
      Stage center is (720, 450). Home centerpiece is at ~(1050, 450).
-     .threshold is now top-anchored at y=116; its wordmark centers at
-     ~(720, 234). We translate (+330, +216) and scale 0.333 so the
+     .threshold is top-anchored at y=250; its wordmark centers at
+     ~(720, 364). We translate (+330, +86) and scale 0.333 so the
      wordmark lands at the centerpiece's wordmark size + position. */
   .threshold {
     transition: transform 900ms cubic-bezier(0.7, 0, 0.3, 1);
   }
   body.is-firing .threshold {
-    transform: translate(-50%, 0) translate(330px, 216px) scale(0.333);
+    transform: translate(-50%, 0) translate(330px, 86px) scale(0.333);
     transition: transform 900ms cubic-bezier(0.7, 0, 0.3, 1);
   }
 
   /* ── BOTTOM CORNERS ────────────────────────────────────────────── */
   .corner-l, .corner-r {
     position: absolute; bottom: 38px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 8.5px;
     letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--taupe-400); opacity: 0;
@@ -689,6 +670,11 @@
       // the keyboard opens, so the intro never scales down on field focus.
       const vw = window.innerWidth, vh = window.innerHeight;
       const s = Math.min(vw / W, vh / H);
+      // FULL-SCREEN FILL: grow the stage to exactly cover the viewport. Uniform
+      // scale (no distortion); design dims stay >= 1440x900 so no content is
+      // cropped; the surplus is breathing room around the anchored chrome.
+      stage.style.width  = Math.ceil(vw / s) + 'px';
+      stage.style.height = Math.ceil(vh / s) + 'px';
       const t = 'scale(' + s + ')';
       stage.style.transform = t;
       stage.style.webkitTransform = t;
@@ -733,17 +719,17 @@
 <meta name="format-detection" content="telephone=no">
 <!-- PWA-BLOCK-END -->
 <style id="ecdl-style">
-  .ecdl-gate{position:fixed;inset:0;z-index:99999;background:radial-gradient(120% 90% at 50% 18%,#FFFFFF 0%,var(--paper,#FCFAF4) 46%,var(--bone,#F4F2ED) 100%);display:grid;place-items:center;font-family:'Inter',system-ui,sans-serif;opacity:1;transition:opacity .55s ease;-webkit-tap-highlight-color:transparent;}
+  .ecdl-gate{position:fixed;inset:0;z-index:99999;background:radial-gradient(120% 90% at 50% 18%,#FFFFFF 0%,var(--paper,#FCFAF4) 46%,var(--bone,#F4F2ED) 100%);display:grid;place-items:center;font-family:'Lato',system-ui,sans-serif;opacity:1;transition:opacity .55s ease;-webkit-tap-highlight-color:transparent;}
   .ecdl-gate.is-done{opacity:0;pointer-events:none;}
   .ecdl-card{width:min(560px,86vw);text-align:center;padding:0 24px;transition:transform .55s cubic-bezier(.22,1,.36,1);}
   .ecdl-gate.is-done .ecdl-card{transform:translateY(-10px);}
   .ecdl-logo img{height:44px;width:auto;opacity:.96;margin:0 auto 28px;display:block;}
   .ecdl-kicker{font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold-500,#946F38);margin-bottom:14px;font-weight:600;}
-  .ecdl-title{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:46px;line-height:1.05;color:#2A2620;margin:0 0 14px;letter-spacing:.01em;}
+  .ecdl-title{font-family:'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-weight:400;font-size:46px;line-height:1.05;color:#2A2620;margin:0 0 14px;letter-spacing:.01em;}
   .ecdl-sub{font-size:14.5px;line-height:1.6;color:#6E675C;max-width:430px;margin:0 auto 30px;font-weight:300;}
-  .ecdl-btn{appearance:none;-webkit-appearance:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:#FCFAF4;background:linear-gradient(180deg,var(--gold-400,#B89968),var(--gold-500,#946F38));padding:16px 30px;border-radius:100px;box-shadow:0 12px 28px -10px rgba(80,58,28,.55),inset 0 1px 1px rgba(255,255,255,.35);transition:transform .18s ease,opacity .3s ease;}
+  .ecdl-btn{appearance:none;-webkit-appearance:none;border:none;cursor:pointer;font-family:'Lato',sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:#FCFAF4;background:linear-gradient(180deg,var(--gold-400,#B89968),var(--gold-500,#946F38));padding:16px 30px;border-radius:100px;box-shadow:0 12px 28px -10px rgba(80,58,28,.55),inset 0 1px 1px rgba(255,255,255,.35);transition:transform .18s ease,opacity .3s ease;}
   .ecdl-btn:active{transform:scale(.97);}
-  .ecdl-skip{display:block;margin:18px auto 0;background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#A89B86;transition:color .2s;}
+  .ecdl-skip{display:block;margin:18px auto 0;background:none;border:none;cursor:pointer;font-family:'Lato',sans-serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#A89B86;transition:color .2s;}
   .ecdl-skip:active{color:var(--gold-500,#946F38);}
   .ecdl-btn.is-hidden,.ecdl-skip.is-hidden{display:none;}
   .ecdl-meter{max-width:430px;margin:6px auto 0;}
@@ -758,6 +744,26 @@
 </style>
 </head>
 <body>
+<script>
+  /* LOCAL PREVIEW GUARD — on localhost, never let a stale service worker /
+     cache mask live edits. Production (real domain) is unaffected. */
+  (function () {
+    var h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0' || h === '') {
+      window.__EC_LOCAL = true;
+      try {
+        if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
+          navigator.serviceWorker.getRegistrations().then(function (rs) {
+            rs.forEach(function (r) { r.unregister(); });
+          }).catch(function () {});
+        }
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
+        }
+      } catch (e) {}
+    }
+  })();
+</script>
 <div id="ecDownloadGate" class="ecdl-gate" hidden>
   <div class="ecdl-card">
     <div class="ecdl-logo"><img src="assets/embassy-citadel-logo.svg" alt="Embassy Citadel" /></div>
@@ -819,11 +825,6 @@
     </div>
 
     <div class="tap-wrap">
-      <div class="tap-field">
-        <input id="tokenInput" type="text" inputmode="text" autocomplete="off" spellcheck="false"
-               placeholder="Enter token number or phone number"
-               aria-label="Token number or phone number" />
-      </div>
       <button class="tap-zone" id="tapZone" type="button" aria-label="Tap the Embassy Citadel mark to enter">
         <!-- Original Embassy Citadel pennant/citadel mark, isolated from the wordmark -->
         <span class="brand-tap" aria-hidden="true">
@@ -868,7 +869,6 @@
   const tapZone = document.getElementById('tapZone');
   let firing = false;
   function commit(e) {
-    try { sessionStorage.setItem('ec.token', (document.getElementById('tokenInput')||{}).value || ''); } catch(e){}
     if (firing) return;
     if (e) e.preventDefault();
     firing = true;
@@ -909,7 +909,7 @@
 <!-- PWA-JS-START -->
 <script>
   // Service worker registration (PWA + offline cache)
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
     window.addEventListener('load', function() {
       var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});
@@ -1080,10 +1080,8 @@
     function preloadFonts() {
       if (!document.fonts || !document.fonts.load) { critDone(); bump(); return Promise.resolve(); }
       var specs = [
-        '300 1em "Cormorant Garamond"', '400 1em "Cormorant Garamond"',
-        'italic 400 1em "Cormorant Garamond"', '500 1em "Cormorant Garamond"',
-        '600 1em "Cormorant Garamond"',
-        '300 1em "Inter"', '400 1em "Inter"', '500 1em "Inter"', '600 1em "Inter"'
+        '400 1em "Cinzel"', '600 1em "Cinzel"',
+        '300 1em "Lato"', '400 1em "Lato"', 'italic 400 1em "Lato"', '700 1em "Lato"'
       ];
       return Promise.all(specs.map(function (s) {
         return document.fonts.load(s).catch(function () {});
@@ -1136,12 +1134,37 @@
   var gate=document.getElementById('ecDownloadGate'); if(!gate) return;
   var cacheName=(window.EC_CACHE||'citadel-v26');
   var FLAG='ec.offlineReady.'+cacheName;
-  if(localStorage.getItem(FLAG)) return;            // already downloaded
-  if(!('caches' in window)) return;                  // no Cache API -> online only
+  if(!('caches' in window)){ try{gate.parentNode.removeChild(gate);}catch(e){} return; } // no Cache API -> online only
   var list=(window.EC_PRECACHE||[]);
   var totalBytes=(window.EC_TOTAL_BYTES||181000000);
   var mbTotal=Math.round(totalBytes/1048576);
 
+  // Robust "already downloaded" detection. localStorage ALONE is unreliable on
+  // an installed iOS PWA -- standalone storage can be partitioned/evicted
+  // between launches, which made the gate reappear EVERY time. The real source
+  // of truth is the Cache itself: if the offline cache already holds (nearly)
+  // the whole precache list, the device is ready -> skip the gate and re-set
+  // the flag. A few SW-runtime-cached files on a fresh online visit stay well
+  // under the threshold, so this won't false-positive.
+  function alreadyReady(){
+    if(localStorage.getItem(FLAG)) return Promise.resolve(true);
+    return caches.open(cacheName).then(function(cache){ return cache.keys(); })
+      .then(function(keys){
+        var need = list.length ? Math.floor(list.length*0.9) : 1;
+        return keys.length >= need;
+      }).catch(function(){ return false; });
+  }
+  alreadyReady().then(function(have){
+    if(have){
+      try{localStorage.setItem(FLAG,'1');}catch(e){}      // heal the flag for next time
+      try{gate.parentNode.removeChild(gate);}catch(e){}
+      document.documentElement.classList.remove('ecdl-lock');
+      return;
+    }
+    startGate();
+  });
+
+  function startGate(){
   gate.hidden=false; document.documentElement.classList.add('ecdl-lock');
   var $=function(id){return document.getElementById(id);};
   $('ecdlSize').textContent=mbTotal+' MB'; $('ecdlMb').textContent='0 / '+mbTotal+' MB';
@@ -1200,6 +1223,7 @@
       noteEl.textContent='Storage error \u2014 entering online'; setTimeout(function(){finishGate(false);},1400);
     });
   });
+  }
 })();
 </script>
 </body>

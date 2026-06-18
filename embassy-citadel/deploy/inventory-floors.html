@@ -37,7 +37,7 @@
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet" />
 <style>
   :root {
     --paper:      #FCFAF4;
@@ -83,7 +83,7 @@
     width: 100%; height: 100%;
     background: var(--paper);
     color: var(--onyx-700);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-user-select: none; user-select: none;
@@ -115,7 +115,7 @@
     position: fixed; inset: 0; overflow: hidden;
     isolation: isolate;
     display: flex; align-items: center; justify-content: center;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: 0;   /* edge-to-edge — stage fills the whole viewport */
     background: url('assets/bg-paper.png') center/cover no-repeat, var(--paper);
   }
   #stage, .stage-inner {
@@ -126,9 +126,6 @@
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
-    will-change: transform;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
     background: var(--bone);
   }
 
@@ -173,7 +170,7 @@
     background: rgba(252, 250, 244, 0.72);
     border: 1px solid var(--hair);
     color: var(--gold-500);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.42em; text-transform: uppercase;
     text-decoration: none; cursor: pointer;
@@ -208,7 +205,7 @@
     position: absolute;
     left: 100%; top: 50%;
     transform: translate(10px, -50%);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 8.5px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -221,14 +218,14 @@
     transform: translate(14px, -50%);
   }
   .brand-wordmark {
-    width: 130px; height: 36px;
+    width: 156px; height: 43.2px;
     color: var(--onyx-700);
   }
   .brand-wordmark svg { width: 100%; height: 100%; display: block; }
 
   .top-reset {
     display: flex; align-items: center; gap: 10px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9.5px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -272,7 +269,7 @@
     pointer-events: none;
   }
   .th-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500);
@@ -284,14 +281,14 @@
     background: var(--gold-500); opacity: 0.6; display: inline-block;
   }
   .th-title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
     font-weight: 400; font-size: 46px;
-    line-height: 1.0; letter-spacing: -0.01em;
+    line-height: 1.0; letter-spacing: 0.02em;
     color: var(--onyx-700); margin: 0 0 10px;
   }
-  .th-title .em { font-style: italic; color: var(--gold-500); }
+  .th-title .em { color: var(--gold-500); letter-spacing: 0.02em; }
   .th-sub {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 12px;
     line-height: 1.6; color: var(--taupe-400);
     max-width: 380px; margin: 0;
@@ -319,12 +316,12 @@
   }
   .tower-badge .tx { display: flex; flex-direction: column; gap: 2px; line-height: 1; }
   .tower-badge .tx .nm {
-    font-family: 'Inter', sans-serif; font-weight: 600;
+    font-family: 'Lato', sans-serif; font-weight: 600;
     font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase;
     color: var(--onyx-100);
   }
   .tower-badge .tx .sb {
-    font-family: 'Inter', sans-serif; font-weight: 400;
+    font-family: 'Lato', sans-serif; font-weight: 400;
     font-size: 8.5px; letter-spacing: 0.22em; text-transform: uppercase;
     color: var(--taupe-400);
   }
@@ -340,21 +337,16 @@
     pointer-events: none;
     z-index: 6;
     overflow: visible;
-    transform: translateZ(0);          /* own compositing layer → no flicker */
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
   }
   /* Straight, thick horizontal indicator that tracks the handle's Y.
      Cheap to repaint: a solid stroke driven only by y attributes — no
-     dash-offset redraw loop, no blur. transform compositing hint keeps
-     drag smooth on Tab. */
+     dash-offset redraw loop, no blur. */
   .altitude-overlay .alt-line {
     stroke: var(--gold-500);
     stroke-width: 3;
     stroke-linecap: round;
     opacity: 0.7;
     fill: none;
-    will-change: transform;
   }
   .altitude-overlay .alt-dot {
     fill: var(--gold-500);
@@ -367,7 +359,7 @@
     opacity: 0.96;
   }
   .altitude-overlay .alt-pill-text {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic;
     font-weight: 500;
     font-size: 16px;
@@ -414,13 +406,13 @@
     flex-shrink: 0;
   }
   .fs-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500);
   }
   .fs-title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic; font-weight: 500;
     font-size: 22px; line-height: 1.1;
     color: var(--onyx-700);
@@ -446,7 +438,7 @@
     position: absolute;
     right: 4px;
     transform: translateY(50%);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 9px;
     letter-spacing: 0.14em;
@@ -538,7 +530,7 @@
   }
   .fs-handle:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--gold-500), 0 6px 14px rgba(80,58,28,0.22); }
   .fs-handle-label {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic;
     font-weight: 500;
     font-size: 15px;
@@ -571,7 +563,7 @@
     flex-shrink: 0;
   }
   .fs-foot-label {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 9px;
     letter-spacing: 0.30em;
@@ -584,7 +576,7 @@
     background: linear-gradient(135deg, var(--accent-a), var(--accent-b));
   }
   .fs-foot-num {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic;
     font-weight: 500;
     font-size: 18px;
@@ -604,7 +596,7 @@
     text-decoration: none;
     color: var(--onyx-700);
     cursor: pointer;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600;
     font-size: 11px;
     letter-spacing: 0.42em;
@@ -627,7 +619,7 @@
   }
   .cta-floor-label {
     display: inline-flex; align-items: center; flex-shrink: 0;
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic; font-weight: 500;
     font-size: 30px; letter-spacing: 0.01em;
     color: var(--gold-500); text-transform: none; line-height: 1;
@@ -635,7 +627,7 @@
   }
   .cta-action {
     display: inline-flex; align-items: center; gap: 12px; flex-shrink: 0;
-    font-family: 'Inter', sans-serif; font-weight: 600;
+    font-family: 'Lato', sans-serif; font-weight: 600;
     text-transform: uppercase; font-size: 11px;
     letter-spacing: 0.40em; line-height: 1.2;
     color: var(--onyx-700); white-space: nowrap;
@@ -695,6 +687,11 @@
         vh = Math.min(vh, window.visualViewport.height);
       }
       const s = Math.min(vw / W, vh / H);
+      // FULL-SCREEN FILL: grow the stage to exactly cover the viewport. Uniform
+      // scale (no distortion); design dims stay >= 1440x900 so no content is
+      // cropped; the surplus is breathing room around the anchored chrome.
+      stage.style.width  = Math.ceil(vw / s) + 'px';
+      stage.style.height = Math.ceil(vh / s) + 'px';
       const t = 'scale(' + s + ')';
       stage.style.transform = t;
       stage.style.webkitTransform = t;
@@ -739,6 +736,26 @@
 <!-- PWA-BLOCK-END -->
 </head>
 <body>
+<script>
+  /* LOCAL PREVIEW GUARD — on localhost, never let a stale service worker /
+     cache mask live edits. Production (real domain) is unaffected. */
+  (function () {
+    var h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0' || h === '') {
+      window.__EC_LOCAL = true;
+      try {
+        if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
+          navigator.serviceWorker.getRegistrations().then(function (rs) {
+            rs.forEach(function (r) { r.unregister(); });
+          }).catch(function () {});
+        }
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
+        }
+      } catch (e) {}
+    }
+  })();
+</script>
 
 <!-- Embassy Citadel wordmark — same SVG symbol as home -->
 <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -788,22 +805,25 @@
             <stop id="accentStopSoftB" offset="100%" stop-color="#F1C40F"/>
           </linearGradient>
           <!-- clip = the active section shape (in tower-image local coords) -->
-          <clipPath id="activeClip"><rect id="activeClipRect" x="0" y="0" width="0" height="0"/></clipPath>
+          <clipPath id="activeClip"></clipPath>
         </defs>
 
         <!-- towerImgGroup is positioned at runtime so the 2752×2064 render
              fills the left-half panel at a natural large size (fit by height). -->
         <g id="towerImgGroup">
           <!-- base tower, dimmed -->
-          <image id="towerImg" href="assets/inventory/tower-types.webp"
+          <image id="towerImg" href="assets/inventory/tower-types-v2.webp"
                  x="0" y="0" width="2752" height="2064"
                  style="opacity:0.40; filter:saturate(0.5) brightness(1.03);"/>
           <!-- active section, full colour, revealed by its clip -->
           <g clip-path="url(#activeClip)">
-            <image href="assets/inventory/tower-types.webp"
+            <image href="assets/inventory/tower-types-v2.webp"
                    x="0" y="0" width="2752" height="2064"
                    style="filter:saturate(1.14) brightness(1.05);"/>
           </g>
+          <!-- active section colour wash — fills the chosen type's new-SVG
+               zone shape(s) in its accent colour so the band clearly lights up -->
+          <g id="activeFillGroup"></g>
           <!-- accent glow (soft wide stroke, no filter) + crisp ring -->
           <rect id="activeRing" x="0" y="0" width="0" height="0"
                 fill="none" stroke="url(#accentGradSoft)" stroke-width="22"
@@ -881,9 +901,9 @@
   // ── SECTION → LEVELS (inlined from INVENTORY_SPEC.md; defaults) ─────
   // Listed top-to-bottom (descending) for display.
   const SECTION_LEVELS = {
-    mansion:     [79, 78, 77, 76, 75, 74, 73, 72],
+    mansion:     [81, 80, 79],
     residential: [71,69,68,67,66,65,64,62,61,60,59,58,57,54,53,52,51,50,49,47,46,45,44,43,42,40,39,38,37,36,35,33,32,31,30,29,28,25,24,23,22,21,20,18,17],
-    refuge:      [70, 63, 55, 48, 41, 34, 26, 19],
+    refuge:      [77, 70, 63, 55, 48, 41, 34, 26, 19],
     amenity:     [79, 15, 14, 13, 12, 10],
     service:     [11],
     parking:     ['P9','P8','P7','P6','P5','P4','P3','P2','P1'],
@@ -893,27 +913,57 @@
 
   // ── Per-type metadata: display name + accent gradient ──────────────
   const SECTION_META = {
-    mansion:     { name: 'Mansion Level',          word: 'Mansion',     em: 'Level',    kick: 'Mansion',   a: '#C0392B', b: '#E67E22', blurb: 'Sky residences at the crown of the tower.' },
-    residential: { name: 'Residential Floor',      word: 'Residential', em: 'Floor',    kick: 'Residence', a: '#E67E22', b: '#F1C40F', blurb: 'The core habitable floors of the tower.' },
-    refuge:      { name: 'Refuge Area',            word: 'Refuge',      em: 'Area',     kick: 'Refuge',    a: '#16A085', b: '#2ECC71', blurb: 'Code-mandated refuge levels through the height.' },
-    amenity:     { name: 'Amenity Floor',          word: 'Amenity',     em: 'Floor',    kick: 'Amenity',   a: '#C0398A', b: '#E8788F', blurb: 'Shared amenity and arrival levels.' },
-    service:     { name: 'Service Floor',          word: 'Service',     em: 'Floor',    kick: 'Service',   a: '#5D6D7E', b: '#AEB6BF', blurb: 'Building services level.' },
-    parking:     { name: 'Residential Parking',    word: 'Residential', em: 'Parking',  kick: 'Parking',   a: '#2E6FC4', b: '#36C6D3', blurb: 'Podium parking for residents.' },
-    entrance:    { name: 'Double-Height Entrance', word: 'Arrival',     em: 'Entrance', kick: 'Arrival',   a: '#7DBE3C', b: '#B7E27A', blurb: 'The double-height arrival lobby.' },
-    basement:    { name: 'Basement Level',         word: 'Basement',    em: 'Level',    kick: 'Basement',  a: '#4B4FB0', b: '#8E5BC9', blurb: 'Lower basement levels.' },
+    mansion:     { name: 'Mansion Level',          word: 'Mansion',     em: 'Level',    kick: 'Mansion',   a: '#fdd9c9', b: '#f7b69c', blurb: 'Sky residences at the crown of the tower.' },
+    residential: { name: 'Residential Floor',      word: 'Residential', em: 'Floor',    kick: 'Residence', a: '#fffce8', b: '#fdf09a', blurb: 'The core habitable floors of the tower.' },
+    refuge:      { name: 'Refuge Area',            word: 'Refuge',      em: 'Area',     kick: 'Refuge',    a: '#a9e6c6', b: '#2faa6a', blurb: 'Code-mandated refuge levels through the height.' },
+    amenity:     { name: 'Amenity Floor',          word: 'Amenity',     em: 'Floor',    kick: 'Amenity',   a: '#fde0df', b: '#f7bab9', blurb: 'Shared amenity and arrival levels.' },
+    service:     { name: 'Service Floor',          word: 'Service',     em: 'Floor',    kick: 'Service',   a: '#bdbdbd', b: '#8c8c8c', blurb: 'Building services level.' },
+    parking:     { name: 'Residential Parking',    word: 'Residential', em: 'Parking',  kick: 'Parking',   a: '#fff1e6', b: '#fcd6b6', blurb: 'Podium parking for residents.' },
+    entrance:    { name: 'Double-Height Entrance', word: 'Arrival',     em: 'Entrance', kick: 'Arrival',   a: '#eef8f1', b: '#cbe7d5', blurb: 'The double-height arrival lobby.' },
+    basement:    { name: 'Basement Level',         word: 'Basement',    em: 'Level',    kick: 'Basement',  a: '#ecf3fb', b: '#c6dcf3', blurb: 'Lower basement levels.' },
   };
 
   // ── Section bounding boxes in the render's pixel space (2752×2064) ──
   // Computed from the polygon/path/rect coords in inventory-types.svg.
   const SECTION_BOX = {
-    mansion:     { x: 1177.66, y: 243.32,  w: 348.81, h: 252.39 },
-    residential: { x: 1177.66, y: 343.67,  w: 348.81, h: 556.67 },
-    refuge:      { x: 1177.66, y: 806.67,  w: 348.81, h: 668.64 },
-    amenity:     { x: 1177.66, y: 1453.86, w: 380.20, h: 135.06 },
+    mansion:     { x: 1177.66, y: 244.84,  w: 348.81, h: 265.87 },
+    residential: { x: 1177.66, y: 355.67,  w: 348.81, h: 1119.64 },
+    refuge:      { x: 1177.66, y: 355.79,  w: 360.00, h: 1090.63 },
+    amenity:     { x: 1177.66, y: 386.33, w: 380.20, h: 1202.59 },
     parking:     { x: 1165.68, y: 1502.19, w: 392.18, h: 219.44 },
     entrance:    { x: 1280.93, y: 1721.63, w: 66.65,  h: 53.52  },
     basement:    { x: 1165.68, y: 1775.14, w: 410.30, h: 40.14  },
     service:     { x: 1177.66, y: 343.67,  w: 348.81, h: 556.67 },
+  };
+
+  // ── Real section SHAPES (polygon point strings in the 2752x2064 render
+  // space, matching the inventory type-screen geometry). The full-colour
+  // reveal is clipped to these so ALL pieces of the chosen type light up
+  // (refuge = both bands). Simple zones fall back to their bounding box. ──
+  const SECTION_SHAPES = {
+    mansion:     ['1177.66 510.71 1427.62 346.53 1445.79 337.01 1526.47 454.83 1526.47 397.05 1443.27 244.84 1428.54 254.66 1422.71 246.37 1327.61 324.3 1328 377.11 1295.42 396.42 1274.14 370.28 1183.94 443.85 1188 449.53 1188.41 460.54 1177.66 465.45 1177.66 510.71'],
+    residential: [
+      '1177.66 900.34 1427.41 784.05 1452.17 784.05 1526.47 842.2 1526.47 475.8 1445.71 355.67 1427.41 360.06 1177.66 528.03 1177.66 900.34',
+      '1177.66 1313.81 1423.1 1261.05 1448.94 1261.05 1526.47 1303.04 1526.47 890.46 1526.47 861.32 1452.17 806.67 1428.48 806.67 1177.66 920.8 1177.66 1313.81',
+      '1178.66 1475.31 1427.41 1439.78 1453.25 1439.78 1526.47 1466.7 1526.47 1317.93 1446.82 1276.5 1425.94 1276.5 1177.66 1330.04 1178.66 1475.31'
+    ],
+    refuge: [
+      '1178.46 1446.42 1178.46 1433.44 1421.42 1387.13 1450.77 1388.13 1526.47 1418.78 1526.47 1433.51 1451.95 1404.74 1422.59 1404.16 1178.46 1446.42',
+      '1178.46 1343.45 1178.46 1330.47 1423.42 1276.16 1447.77 1276.16 1526.47 1315.81 1526.47 1330.54 1448.95 1290.77 1425.59 1290.18 1178.46 1343.45',
+      '1178.46 1246.52 1178.46 1233.54 1423.42 1179.22 1447.77 1179.22 1526.47 1218.87 1526.47 1233.6 1448.95 1193.83 1425.59 1193.25 1178.46 1246.52',
+      '1178.46 1134.83 1178.46 1121.85 1423.42 1054.54 1447.77 1054.54 1526.47 1107.19 1526.47 1121.92 1447.95 1068.15 1424.59 1067.56 1178.46 1134.83',
+      '1178.46 1016.59 1178.46 1003.61 1423.42 909.3 1447.77 909.3 1526.47 948.94 1526.47 963.68 1448.95 923.91 1425.59 923.32 1178.46 1016.59',
+      '1178.46 926.21 1178.46 913.23 1428.42 806.92 1452.77 806.92 1526.47 860.57 1526.47 874.3 1451.95 821.53 1428.59 820.95 1178.46 926.21',
+      '1178.46 762.15 1178.46 749.17 1425.81 617.85 1450.16 617.85 1526.47 696.5 1526.47 710.23 1449.95 631.47 1426.59 630.88 1178.46 762.15',
+      '1178.46 648.17 1178.46 635.19 1425.81 503.87 1450.16 503.87 1526.47 582.52 1526.47 596.25 1449.95 517.48 1426.59 516.9 1178.46 648.17',
+      '1178.06 541.25 1178.06 528.27 1427.01 361.18 1445.31 355.79 1526.07 475.6 1526.07 489.33 1444.66 373.63 1428.08 374.53 1178.06 541.25'
+    ],
+    amenity:     ['1178.66 1490.35 1424.67 1453.86 1449.93 1453.86 1527.12 1480.53 1536.41 1481.7 1525.15 1490.35 1526.17 1502.19 1536.41 1510.03 1525.15 1522.67 1536.41 1527.79 1543.53 1532.87 1542.73 1540.81 1453.71 1521.39 1425.46 1521.39 1179.7 1548.92 1178.66 1490.35',
+                  '1275.38 446.52 1275.38 421.2 1287.2 428.52 1287.2 386.33 1295.42 396.42 1328 377.11 1327.92 367.13 1328 411.96 1275.38 446.52'],
+    parking:     ['box'],
+    entrance:    ['box'],
+    basement:    ['box'],
+    service:     ['box'],
   };
 
   // ── Read selection ─────────────────────────────────────────────────
@@ -963,12 +1013,41 @@
     const g = document.getElementById('towerImgGroup');
     g.setAttribute('transform', 'translate(' + towerTx + ',' + towerTy + ') scale(' + s + ')');
 
-    // Active clip + ring around the real section box (image pixel coords).
-    const clip = document.getElementById('activeClipRect');
-    const ring = document.getElementById('activeRing');
+    // Build the active clip from the REAL type shape(s) so every piece of the
+    // chosen type lights up (refuge reveals both bands). Simple zones use a box.
+    const SVGNS = 'http://www.w3.org/2000/svg';
+    const clip  = document.getElementById('activeClip');
+    const ring  = document.getElementById('activeRing');
     const ring2 = document.getElementById('activeRing2');
-    const cpad = 8;
-    [clip, ring, ring2].forEach(el => {
+    const cpad  = 8;
+    const shapes = SECTION_SHAPES[sectionKey] || ['box'];
+    const fillG = document.getElementById('activeFillGroup');
+    while (clip.firstChild)  clip.removeChild(clip.firstChild);
+    while (fillG.firstChild) fillG.removeChild(fillG.firstChild);
+    shapes.forEach(sh => {
+      let clipShape, fillShape;
+      if (sh === 'box') {
+        clipShape = document.createElementNS(SVGNS, 'rect');
+        clipShape.setAttribute('x', box.x - cpad); clipShape.setAttribute('y', box.y - cpad);
+        clipShape.setAttribute('width', box.w + cpad * 2); clipShape.setAttribute('height', box.h + cpad * 2);
+        clipShape.setAttribute('rx', '14');
+        fillShape = clipShape.cloneNode(false);
+      } else {
+        clipShape = document.createElementNS(SVGNS, 'polygon');
+        clipShape.setAttribute('points', sh);
+        fillShape = clipShape.cloneNode(false);
+      }
+      clip.appendChild(clipShape);
+      // visible colour wash in the type's accent gradient
+      fillShape.setAttribute('fill', 'url(#accentGrad)');
+      fillShape.setAttribute('opacity', '0.34');
+      fillShape.setAttribute('stroke', 'url(#accentGrad)');
+      fillShape.setAttribute('stroke-width', '6');
+      fillShape.setAttribute('vector-effect', 'non-scaling-stroke');
+      fillG.appendChild(fillShape);
+    });
+    // Accent ring = the section bounding box (cosmetic glow around the area).
+    [ring, ring2].forEach(el => {
       el.setAttribute('x', box.x - cpad);
       el.setAttribute('y', box.y - cpad);
       el.setAttribute('width',  box.w + cpad * 2);
@@ -1303,7 +1382,7 @@
 <!-- PWA-JS-START -->
 <script>
   // Service worker registration (PWA + offline cache)
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
     window.addEventListener('load', function() {
       var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});

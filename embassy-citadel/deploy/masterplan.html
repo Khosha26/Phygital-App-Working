@@ -94,7 +94,7 @@
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet" />
 <style>
   :root {
     --paper:      #FCFAF4;
@@ -136,7 +136,7 @@
     width: 100%; height: 100%;
     background: var(--paper);
     color: var(--onyx-700);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-user-select: none; user-select: none;
@@ -153,7 +153,7 @@
   /* ── Stage scaler — flex-center letterbox ─────────────────────────── */
   #stage-wrap {
     position: fixed; inset: 0; overflow: hidden;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: 0;   /* edge-to-edge — stage fills the whole viewport */
     display: flex; align-items: center; justify-content: center;
     isolation: isolate;
     /* Flat paper — matches the stage's own paper edge so the letterbox/
@@ -169,9 +169,6 @@
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
-    will-change: transform;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
   }
 
   /* ── PAPER BACKGROUND ─────────────────────────────────────────── */
@@ -233,12 +230,12 @@
   }
   .ec-brand-back .brand-text { display: flex; flex-direction: column; gap: 2px; line-height: 1; }
   .ec-brand-back .brand-text .name {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-weight: 500; font-size: 22px;
     color: var(--onyx-700); letter-spacing: 0.04em;
   }
   .ec-brand-back .brand-text .loc {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -252,7 +249,7 @@
     background: rgba(252, 250, 244, 0.72);
     border: 1px solid var(--hair);
     color: var(--gold-500);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.42em; text-transform: uppercase;
     text-decoration: none; cursor: pointer;
@@ -288,7 +285,7 @@
     position: absolute;
     left: 100%; top: 50%;
     transform: translate(8px, -50%);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 8.5px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -302,19 +299,19 @@
     transform: translate(12px, -50%);
   }
   .brand-wordmark {
-    width: 130px; height: 36px;
+    width: 156px; height: 43.2px;
     color: var(--onyx-700);
   }
   .brand-wordmark svg { width: 100%; height: 100%; display: block; }
   .top-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 9px;
     letter-spacing: 0.55em; text-transform: uppercase;
     color: var(--gold-500); opacity: 0.78;
   }
   .top-right {
     display: flex; align-items: center; gap: 14px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 10px;
     letter-spacing: 0.32em; text-transform: uppercase;
     color: var(--onyx-100); opacity: 0.78;
@@ -341,7 +338,7 @@
     display: flex; flex-direction: column;
   }
   .lr-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500);
@@ -349,11 +346,11 @@
     margin-bottom: 18px;
   }
   .lr-headline {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
     font-weight: 400;
     font-size: 52px;
     line-height: 1.02;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.02em;
     color: var(--onyx-700);
     margin: 0 0 14px 0;
   }
@@ -363,7 +360,7 @@
     margin: 0 0 16px 0;
   }
   .lr-body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400;
     font-size: 13px;
     line-height: 1.65;
@@ -397,7 +394,7 @@
     display: flex; flex-direction: column; gap: 3px;
   }
   .stat-num {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic;
     font-weight: 400;
     font-size: 28px;
@@ -407,7 +404,7 @@
     font-variant-numeric: tabular-nums;
   }
   .stat-label {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 9.5px;
     letter-spacing: 0.32em;
@@ -468,7 +465,7 @@
   }
   .mp-image-fallback.is-on { display: grid; }
   .mp-image-fallback span {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 10px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--taupe-400);
@@ -543,7 +540,7 @@
     background: rgba(252, 250, 244, 0.94);
     border: 1px solid var(--hair);
     border-radius: 100px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 8px;
     letter-spacing: 0.18em; text-transform: uppercase;
     color: var(--onyx-700);
@@ -672,7 +669,7 @@
   }
   .mp-info-icon svg { width: 11px; height: 11px; display: block; }
   .mp-info-title {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.32em;
     text-transform: uppercase;
@@ -696,7 +693,7 @@
   }
   .mp-info-close svg { width: 10px; height: 10px; }
   .mp-info-body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400;
     font-size: 11px;
     line-height: 1.5;
@@ -706,7 +703,7 @@
   }
   .mp-info-cat {
     margin-top: 8px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 8px;
     letter-spacing: 0.4em;
@@ -733,7 +730,7 @@
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     transition: background 200ms ease, transform 200ms ease;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 14px;
     line-height: 1;
@@ -745,7 +742,7 @@
   .mp-scale-read {
     position: absolute;
     right: 14px; bottom: 84px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 8px;
     letter-spacing: 0.32em;
@@ -777,7 +774,7 @@
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     box-shadow: 0 6px 14px rgba(20, 14, 6, 0.10);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 9px;
     letter-spacing: 0.4em;
@@ -838,7 +835,7 @@
   }
   .filter-pill svg { width: 13px; height: 13px; display: block; }
   .filter-pill .lab {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 8px;
     letter-spacing: 0.28em;
@@ -868,7 +865,7 @@
   .legend-head:hover { background: rgba(252, 250, 244, 0.95); }
   .legend-head .lh-left {
     display: flex; align-items: center; gap: 10px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 9px;
     letter-spacing: 0.4em;
@@ -885,13 +882,15 @@
   .legend-card.is-collapsed .lh-chev { transform: rotate(-90deg); }
   .legend-body {
     display: flex; flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     flex: 1 1 auto;
-    padding: 10px 8px 14px 8px;
+    padding: 8px 6px 12px 6px;
     max-height: 600px;
-    overflow: hidden;
+    overflow-y: auto; overflow-x: hidden;
     transition: max-height 280ms ease, opacity 240ms ease;
   }
+  .legend-body::-webkit-scrollbar { width: 7px; }
+  .legend-body::-webkit-scrollbar-thumb { background: var(--hair); border-radius: 7px; }
   .legend-card.is-collapsed .legend-body {
     max-height: 0;
     opacity: 0;
@@ -919,7 +918,7 @@
   .legend-row .lr-ic svg { width: 11px; height: 11px; display: block; }
   .legend-row .lr-lab {
     flex: 1;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 9px;
     letter-spacing: 0.32em;
@@ -958,6 +957,50 @@
   .legend-row.is-off .lr-lab,
   .legend-row.is-off .lr-ic { opacity: 0.45; }
 
+  /* ── Legend as a navigable detail list (grouped by category, click → focus) ── */
+  .lg-group { padding-bottom: 2px; }
+  .lg-group + .lg-group { border-top: 1px solid var(--hair-lo); margin-top: 4px; padding-top: 4px; }
+  .lg-group-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 10px 5px;
+  }
+  .lg-group-head .ic {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(252,250,244,0.9); border: 1px solid var(--hair-lo);
+    display: grid; place-items: center; color: var(--gold-500); flex-shrink: 0;
+  }
+  .lg-group-head .ic svg { width: 10px; height: 10px; display: block; }
+  .lg-group-head .nm {
+    flex: 1; font-family: 'Lato', sans-serif; font-weight: 700;
+    font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--gold-600);
+  }
+  .lg-group-head .ct {
+    font-family: 'Lato', sans-serif; font-weight: 600; font-size: 10px;
+    color: var(--taupe-400); font-variant-numeric: tabular-nums;
+  }
+  .lg-item {
+    display: flex; gap: 9px; align-items: flex-start;
+    padding: 7px 10px 7px 12px; border-radius: 7px; cursor: pointer;
+    transition: background 180ms ease;
+  }
+  .lg-item:hover { background: rgba(252,250,244,0.96); }
+  .lg-item.is-active { background: rgba(217,185,122,0.18); box-shadow: inset 2px 0 0 var(--gold-400); }
+  .lg-item .pin {
+    width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; flex-shrink: 0;
+    background: var(--gold-400); box-shadow: 0 0 0 3px rgba(217,185,122,0.18);
+  }
+  .lg-item .txt { flex: 1; min-width: 0; }
+  .lg-item .l {
+    font-family: 'Lato', sans-serif; font-weight: 700; font-size: 12px;
+    color: var(--onyx-700); line-height: 1.25;
+  }
+  .lg-item .d {
+    font-family: 'Lato', sans-serif; font-weight: 400; font-size: 10.5px;
+    color: var(--taupe-500); line-height: 1.4; margin-top: 2px;
+  }
+  .lg-item .go { flex-shrink: 0; color: var(--gold-500); opacity: 0; font-size: 14px; line-height: 1; margin-top: 2px; transition: opacity 180ms ease; }
+  .lg-item:hover .go, .lg-item.is-active .go { opacity: 0.9; }
+
   /* ── Cream veil ──────────────────────────────────────────────── */
   .veil {
     position: absolute; inset: 0;
@@ -989,6 +1032,95 @@
     .leftrail, .mp-wrap, .rightrail { animation: none; }
     .live-dot, .mp-marker::before { animation: none; }
   }
+
+  /* Tower popup — typical floor plan thumbnail (click → fullscreen) */
+  .mp-info-plan { margin-top: 10px; }
+  .mp-plan-thumb {
+    position: relative; display: block; width: 100%; height: auto;
+    border-radius: 8px; overflow: hidden; padding: 0;
+    background: var(--paper-2); border: 1px solid var(--hair-lo);
+    cursor: zoom-in; -webkit-appearance: none; appearance: none;
+    transition: border-color 200ms ease, box-shadow 220ms ease;
+  }
+  .mp-plan-thumb:hover { border-color: var(--gold-400); box-shadow: var(--card-shadow); }
+
+  /* Plan wrapper + North/South wing highlight (shared) */
+  .plan-wrap {
+    position: relative; display: block; width: 100%;
+    aspect-ratio: 3200 / 2216;            /* typical plate ratio → overlays align */
+    container-type: inline-size;
+    transform-origin: center center;
+  }
+  .plan-wrap img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .wing-hl {
+    position: absolute; border-radius: 5px; pointer-events: none;
+    opacity: 0; transition: opacity 320ms ease;
+  }
+  .wing-hl .wl {
+    position: absolute; top: 4%; left: 6%;
+    font-family: 'Lato', sans-serif; font-weight: 700;
+    font-size: clamp(6px, 2.6cqw, 15px);
+    letter-spacing: 0.16em; text-transform: uppercase;
+    padding: 0.25em 0.6em; border-radius: 999px; line-height: 1; white-space: nowrap;
+  }
+  .wing-n { left: 4%; top: 21%; width: 40%; height: 56%;
+    border: 2px solid rgba(47,90,120,0.92); background: rgba(47,90,120,0.15); }
+  .wing-n .wl { background: rgba(47,90,120,0.94); color: #F4F2ED; }
+  .wing-s { left: 56%; top: 21%; width: 40%; height: 56%;
+    border: 2px solid rgba(148,111,56,0.95); background: rgba(148,111,56,0.16); }
+  .wing-s .wl { background: var(--gold-500); color: var(--paper); }
+  .plan-wrap.show-north .wing-n,
+  .plan-wrap.show-south .wing-s,
+  .plan-wrap.show-both  .wing-n,
+  .plan-wrap.show-both  .wing-s { opacity: 1; }
+  .mp-plan-hint {
+    position: absolute; bottom: 6px; right: 6px;
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: 'Lato', sans-serif; font-weight: 700; font-size: 8px;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-600);
+    background: rgba(252,250,244,0.9); border: 1px solid var(--hair-lo);
+    padding: 3px 7px; border-radius: 999px;
+  }
+  .mp-plan-hint svg { width: 9px; height: 9px; }
+  .mp-plan-cap {
+    display: block; margin-top: 6px;
+    font-family: 'Lato', sans-serif; font-weight: 600; font-size: 9px;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--taupe-500);
+  }
+
+  /* Fullscreen floor-plan lightbox */
+  .mp-lightbox {
+    position: fixed; inset: 0; z-index: 9000;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(120% 120% at 50% 40%, rgba(20,15,8,0.92), rgba(8,6,3,0.985));
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    opacity: 0; visibility: hidden;
+    transition: opacity 360ms ease, visibility 0s linear 360ms; touch-action: none;
+  }
+  .mp-lightbox.is-open { opacity: 1; visibility: visible; transition: opacity 360ms ease; }
+  .mp-lb-stage { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .mp-lb-wrap {
+    max-width: 92vw; max-height: 86vh; aspect-ratio: 3200 / 2216;
+    transform-origin: center center; opacity: 0;
+    transition: opacity 360ms ease;
+    filter: drop-shadow(0 40px 120px rgba(0,0,0,0.6));
+    cursor: zoom-in; user-select: none; -webkit-user-drag: none;
+  }
+  .mp-lightbox.is-open .mp-lb-wrap { opacity: 1; }
+  .mp-lb-wrap.is-zoomed { cursor: grab; }
+  .mp-lb-wrap.is-panning { cursor: grabbing; will-change: transform; }
+  .mp-lb-img { width: 100%; height: 100%; object-fit: contain; border-radius: 2px; display: block; }
+  .mp-lb-top {
+    position: absolute; top: 0; left: 0; right: 0; height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 26px; z-index: 3;
+    background: linear-gradient(180deg, rgba(0,0,0,0.42), rgba(0,0,0,0));
+  }
+  .mp-lb-cap { font-family: 'Lato', sans-serif; font-weight: 600; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(244,238,228,0.8); }
+  .mp-lb-close { width: 40px; height: 40px; border-radius: 999px; background: rgba(244,238,228,0.1); border: 1px solid rgba(244,238,228,0.22); color: rgba(244,238,228,0.92); font-size: 20px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background 200ms ease, transform 160ms ease; }
+  .mp-lb-close:hover { background: rgba(244,238,228,0.18); }
+  .mp-lb-close:active { transform: scale(0.92); }
+  .mp-lb-hint { position: absolute; bottom: 22px; left: 0; right: 0; text-align: center; font-family: 'Lato', sans-serif; font-weight: 500; font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase; color: rgba(244,238,228,0.46); pointer-events: none; }
 </style>
 
 <script>
@@ -1004,6 +1136,11 @@
         vh = Math.min(vh, window.visualViewport.height);
       }
       const s = Math.min(vw / W, vh / H);
+      // FULL-SCREEN FILL: grow the stage to exactly cover the viewport. Uniform
+      // scale (no distortion); design dims stay >= 1440x900 so no content is
+      // cropped; the surplus is breathing room around the anchored chrome.
+      stage.style.width  = Math.ceil(vw / s) + 'px';
+      stage.style.height = Math.ceil(vh / s) + 'px';
       const t = 'scale(' + s + ')';
       stage.style.transform = t;
       stage.style.webkitTransform = t;
@@ -1047,6 +1184,26 @@
 <!-- PWA-BLOCK-END -->
 </head>
 <body>
+<script>
+  /* LOCAL PREVIEW GUARD — on localhost, never let a stale service worker /
+     cache mask live edits. Production (real domain) is unaffected. */
+  (function () {
+    var h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0' || h === '') {
+      window.__EC_LOCAL = true;
+      try {
+        if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
+          navigator.serviceWorker.getRegistrations().then(function (rs) {
+            rs.forEach(function (r) { r.unregister(); });
+          }).catch(function () {});
+        }
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
+        }
+      } catch (e) {}
+    }
+  })();
+</script>
 
 <!-- Embassy Citadel wordmark — same SVG symbol as gallery -->
 <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -1112,6 +1269,17 @@
           </div>
           <p class="mp-info-body" id="mpInfoBody">—</p>
           <div class="mp-info-cat" id="mpInfoCat">—</div>
+          <div class="mp-info-plan" id="mpInfoPlan" hidden>
+            <button class="mp-plan-thumb" id="mpInfoPlanBtn" type="button" aria-label="Enlarge floor plan">
+              <span class="plan-wrap" id="mpInfoPlanWrap">
+                <img id="mpInfoPlanImg" alt="Typical floor plan" decoding="async">
+                <span class="wing-hl wing-n"><span class="wl">North</span></span>
+                <span class="wing-hl wing-s"><span class="wl">South</span></span>
+              </span>
+              <span class="mp-plan-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Tap to enlarge</span>
+            </button>
+            <span class="mp-plan-cap" id="mpInfoPlanCap"></span>
+          </div>
         </div>
 
         <!-- Scale readout -->
@@ -1160,6 +1328,22 @@
     <div class="veil" id="veil"></div>
 
   </div>
+</div>
+
+<!-- Fullscreen floor-plan viewer (North/South Tower) — outside the scaled stage -->
+<div class="mp-lightbox" id="mpLightbox" role="dialog" aria-modal="true" aria-label="Floor plan full screen">
+  <div class="mp-lb-stage" id="mpLbStage">
+    <div class="mp-lb-wrap plan-wrap" id="mpLbWrap">
+      <img class="mp-lb-img" id="mpLbImg" alt="" decoding="async" draggable="false">
+      <span class="wing-hl wing-n"><span class="wl">North</span></span>
+      <span class="wing-hl wing-s"><span class="wl">South</span></span>
+    </div>
+  </div>
+  <div class="mp-lb-top">
+    <span class="mp-lb-cap" id="mpLbCap"></span>
+    <button class="mp-lb-close" id="mpLbClose" type="button" aria-label="Close">×</button>
+  </div>
+  <div class="mp-lb-hint">Scroll or pinch to zoom · Esc to close</div>
 </div>
 
 <script>
@@ -1241,17 +1425,50 @@
   LEGEND.forEach(l => { legendOn[l.key] = l.on; });
 
   const legendBodyEl = document.getElementById('legendBody');
-  LEGEND.forEach(l => {
-    const row = document.createElement('div');
-    row.className = 'legend-row' + (l.on ? '' : ' is-off');
-    row.dataset.toggle = l.key;
-    row.innerHTML =
-      '<span class="lr-ic">' + ICONS[l.icon] + '</span>' +
-      '<span class="lr-lab">' + l.label + '</span>' +
-      '<span class="lr-toggle' + (l.on ? ' is-on' : '') + '"></span>';
-    row.addEventListener('click', () => toggleLegend(l.key));
-    legendBodyEl.appendChild(row);
-  });
+  // The legend is a navigable DETAIL LIST (not toggles): show everything,
+  // grouped by category; clicking an item zooms/focuses that pointer.
+  Object.keys(legendOn).forEach(k => { legendOn[k] = true; });
+  const LEGEND_BY_KEY = {};
+  LEGEND.forEach(l => { LEGEND_BY_KEY[l.key] = l; });
+
+  function renderLegend(markers) {
+    legendBodyEl.innerHTML = '';
+    const byCat = {};
+    markers.forEach(m => { (byCat[m.cat] = byCat[m.cat] || []).push(m); });
+    LEGEND.map(l => l.key).forEach(cat => {
+      const items = byCat[cat];
+      if (!items || !items.length) return;
+      const def = LEGEND_BY_KEY[cat] || { label: cat, icon: 'pin' };
+      const group = document.createElement('div');
+      group.className = 'lg-group';
+      group.innerHTML = '<div class="lg-group-head"><span class="ic">' +
+        (ICONS[def.icon] || ICONS.pin) + '</span><span class="nm">' + def.label +
+        '</span><span class="ct">' + items.length + '</span></div>';
+      items.forEach(m => {
+        const item = document.createElement('div');
+        item.className = 'lg-item';
+        item.dataset.id = m.id;
+        item.innerHTML =
+          '<span class="pin"></span>' +
+          '<span class="txt"><span class="l">' + m.label + '</span>' +
+          (m.desc ? '<span class="d">' + m.desc + '</span>' : '') + '</span>' +
+          '<span class="go">\u203a</span>';
+        item.addEventListener('click', () => {
+          const el = markerEls[m.id];
+          if (el) el.classList.remove('is-hidden');   // ensure pointer is visible
+          focusMarker(m);                              // existing zoom + spotlight + info card
+        });
+        group.appendChild(item);
+      });
+      legendBodyEl.appendChild(group);
+    });
+  }
+  function syncLegendActive(id) {
+    legendBodyEl.querySelectorAll('.lg-item').forEach(it =>
+      it.classList.toggle('is-active', !!id && it.dataset.id === id));
+    const act = id && legendBodyEl.querySelector('.lg-item.is-active');
+    if (act && act.scrollIntoView) act.scrollIntoView({ block: 'nearest' });
+  }
 
   // Legend collapse
   document.getElementById('legendHead').addEventListener('click', () => {
@@ -1271,9 +1488,13 @@
     // Buildings (3) — along the central diagonal residential spine
     { id: 't-a', cat: 'buildings', icon: 'building', label: 'North Tower',
       desc: 'The north wing — residences on the elevated podium.',
+      plan: 'assets/floorplans-final/typical/typical-lvl-43-47.webp',
+      planLabel: 'Typical Floor Plate · North Wing', wing: 'north',
       px: 40.6, py: 47.5 },
     { id: 't-b', cat: 'buildings', icon: 'building', label: 'South Tower',
       desc: 'The south wing — rising over the grand lobby.',
+      plan: 'assets/floorplans-final/typical/typical-lvl-43-47.webp',
+      planLabel: 'Typical Floor Plate · South Wing', wing: 'south',
       px: 47.8, py: 55.5 },
     { id: 't-c', cat: 'buildings', icon: 'building', label: 'Wing A',
       desc: 'The adjacent residential wing.',
@@ -1317,8 +1538,86 @@
       px: 15.5, py: 85.5 },
     { id: 'svc',   cat: 'access', icon: 'car', label: 'Service Gate',
       desc: 'A discreet rear approach for service and staff.',
-      px: 69.7, py: 22.0 },
+      px: 64.0, py: 19.0 },
   ];
+
+  // ─────────────────────────────────────────────────────────────
+  // PER-CATEGORY PLANS — each filter swaps the base plan drawing AND its
+  // own pointer set, calibrated to THAT drawing's framing.
+  //  · all       -> master-layout.webp        (overview, original pins)
+  //  · amenities -> amenities-plan.webp        (enlarged ground-floor podium)
+  //  · landscape -> landscape-plan.webp        (view-corridors context)
+  //  · access    -> access-plan.webp           (ground circulation; shares the
+  //                                             master-layout framing, so the
+  //                                             gate coords carry straight over)
+  // ─────────────────────────────────────────────────────────────
+  const PLAN_BASE = {
+    all:       'assets/floorplans-final/site/master-layout.webp',
+    amenities: 'assets/floorplans-final/site/amenities-plan.webp',
+    landscape: 'assets/floorplans-final/site/landscape-plan.webp',
+    access:    'assets/floorplans-final/site/access-plan.webp',
+  };
+
+  const PLAN_MARKERS = {
+    all: MARKERS,
+
+    // AMENITIES — on the enlarged ground-floor podium drawing.
+    amenities: [
+      { id: 'a-club', cat: 'amenities', icon: 'lotus', label: 'Club House',
+        desc: 'Members lounge, library and a private dining room at the podium core.',
+        px: 50.0, py: 41.0 },
+      { id: 'a-gym',  cat: 'amenities', icon: 'lotus', label: 'Gymnasium',
+        desc: 'A double-height fitness pavilion with a terrace yoga deck.',
+        px: 33.5, py: 44.0 },
+      { id: 'a-spa',  cat: 'amenities', icon: 'lotus', label: 'Spa & Hammam',
+        desc: 'Treatment suites, a vitality pool and a quiet meditation room.',
+        px: 64.0, py: 44.5 },
+      { id: 'a-pool', cat: 'water',     icon: 'water', label: 'Lap Pool',
+        desc: 'A 25-metre pool aligned to the western light.',
+        px: 40.0, py: 62.0 },
+      { id: 'a-banq', cat: 'amenities', icon: 'lotus', label: 'Banquet & Party Hall',
+        desc: 'A flexible event hall opening to the landscaped forecourt.',
+        px: 25.5, py: 80.0 },
+    ],
+
+    // LANDSCAPE — on the view-corridors context drawing.
+    landscape: [
+      { id: 'l-city', cat: 'landscape', icon: 'tree', label: 'City View',
+        desc: 'The northern corridor framing the city skyline.',
+        px: 50.0, py: 22.0 },
+      { id: 'l-sealink', cat: 'landscape', icon: 'tree', label: 'Sea Link & City View',
+        desc: 'The north-west corridor toward the sea link.',
+        px: 28.0, py: 31.0 },
+      { id: 'l-sea',  cat: 'landscape', icon: 'tree', label: 'Sea View',
+        desc: 'The western corridor opening to the Arabian Sea.',
+        px: 30.0, py: 66.0 },
+      { id: 'l-race', cat: 'landscape', icon: 'tree', label: 'Race Course & Sea View',
+        desc: 'The eastern corridor over the race course greens.',
+        px: 70.0, py: 42.0 },
+      { id: 'l-site', cat: 'landscape', icon: 'tree', label: 'The Site',
+        desc: 'Embassy Citadel at the centre of three open view corridors.',
+        px: 49.0, py: 47.0 },
+    ],
+
+    // ACCESS — on the ground-circulation drawing (master-layout framing).
+    access: [
+      { id: 'x-main', cat: 'access',  icon: 'car', label: 'Main Gate',
+        desc: 'The principal arrival from the sea-face boulevard.',
+        px: 15.5, py: 85.5 },
+      { id: 'x-svc',  cat: 'access',  icon: 'car', label: 'Service Gate',
+        desc: 'A discreet rear approach for service and staff.',
+        px: 64.0, py: 19.0 },
+      { id: 'x-drop', cat: 'access',  icon: 'car', label: 'Residential Drop-Off',
+        desc: 'The sheltered drop-off court at the double-height lobby.',
+        px: 44.0, py: 52.0 },
+      { id: 'x-base', cat: 'parking', icon: 'parking', label: 'Basement Parking',
+        desc: 'The ramp down to resident basement parking.',
+        px: 33.0, py: 64.0 },
+      { id: 'x-pod',  cat: 'parking', icon: 'parking', label: 'Podium Parking',
+        desc: 'The route up to podium-deck parking.',
+        px: 56.0, py: 47.0 },
+    ],
+  };
 
   // ─────────────────────────────────────────────────────────────
   // STATE
@@ -1337,6 +1636,11 @@
   const infoIcon   = document.getElementById('mpInfoIcon');
   const infoCat    = document.getElementById('mpInfoCat');
   const infoClose  = document.getElementById('mpInfoClose');
+  const infoPlan    = document.getElementById('mpInfoPlan');
+  const infoPlanImg = document.getElementById('mpInfoPlanImg');
+  const infoPlanBtn = document.getElementById('mpInfoPlanBtn');
+  const infoPlanWrap = document.getElementById('mpInfoPlanWrap');
+  const infoPlanCap = document.getElementById('mpInfoPlanCap');
   const scaleRead  = document.getElementById('mpScale');
 
   // Image-load fallback
@@ -1348,29 +1652,39 @@
   // ─────────────────────────────────────────────────────────────
   // MARKER RENDER
   // ─────────────────────────────────────────────────────────────
-  const markerEls = {};
-  MARKERS.forEach(m => {
-    const el = document.createElement('button');
-    el.type = 'button';
-    el.className = 'mp-marker';
-    el.dataset.id = m.id;
-    el.dataset.cat = m.cat;
-    el.dataset.label = m.label;
-    el.setAttribute('aria-label', m.label);
-    el.style.left = m.px + '%';
-    el.style.top  = m.py + '%';
-    el.innerHTML =
-      '<span class="mk-disc">' + (ICONS[m.icon] || ICONS.pin) + '</span>' +
-      '<span class="mk-label">' + m.label + '</span>';
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      // Selecting any pin always re-centres it on screen with the full
-      // focus-zoom + spotlight reveal (popup sits right above the pin).
-      focusMarker(m);
+  let markerEls = {};
+  let currentMarkers = MARKERS;   // the pointer set for the active plan
+
+  function renderMarkers(list) {
+    // Drop any markers from the previous plan, then build the new set.
+    Object.values(markerEls).forEach(el => { try { el.remove(); } catch (_) {} });
+    markerEls = {};
+    currentMarkers = list;
+    list.forEach(m => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'mp-marker';
+      el.dataset.id = m.id;
+      el.dataset.cat = m.cat;
+      el.dataset.label = m.label;
+      el.setAttribute('aria-label', m.label);
+      el.style.left = m.px + '%';
+      el.style.top  = m.py + '%';
+      el.innerHTML =
+        '<span class="mk-disc">' + (ICONS[m.icon] || ICONS.pin) + '</span>' +
+        '<span class="mk-label">' + m.label + '</span>';
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Selecting any pin always re-centres it on screen with the full
+        // focus-zoom + spotlight reveal (popup sits right above the pin).
+        focusMarker(m);
+      });
+      stage.appendChild(el);
+      markerEls[m.id] = el;
     });
-    stage.appendChild(el);
-    markerEls[m.id] = el;
-  });
+  }
+  renderMarkers(MARKERS);
+  renderLegend(MARKERS);
 
   // ─────────────────────────────────────────────────────────────
   // ZOOM + PAN MATH
@@ -1549,13 +1863,73 @@
   // Place the card ABOVE the marker, horizontally centred on it, clamped to the
   // canvas, never overlapping the disc/gold-ring. Falls back to below only when
   // there genuinely isn't room above.
-  function placeCardAbove(mx, my, cw, ch) {
+  function placeCardAbove(mx, my, cw, ch, cardH) {
+    cardH = cardH || CARD_H;                            // taller for tower (plan) cards
     const left = clamp(mx - CARD_W / 2, PAD, cw - CARD_W - PAD);
-    let top = my - MARKER_HALO - GAP - CARD_H;        // sit above the halo
-    if (top < PAD) top = my + MARKER_HALO + GAP;      // no room up top -> drop below
-    top = clamp(top, PAD, ch - CARD_H - PAD);
+    let top = my - MARKER_HALO - GAP - cardH;          // sit above the halo
+    if (top < PAD) top = my + MARKER_HALO + GAP;       // no room up top -> drop below
+    top = clamp(top, PAD, ch - cardH - PAD);
     return { left, top };
   }
+
+  // ── Fullscreen floor-plan viewer (North/South Tower plates) ─────
+  const lb      = document.getElementById('mpLightbox');
+  const lbStage = document.getElementById('mpLbStage');
+  const lbImg   = document.getElementById('mpLbImg');
+  const lbWrap  = document.getElementById('mpLbWrap');
+  const lbCap   = document.getElementById('mpLbCap');
+  const lbClose = document.getElementById('mpLbClose');
+  let lbOpen = false;
+  const lz = { s: 1, x: 0, y: 0 };
+  function lbApply(anim) {
+    lbWrap.style.transition = anim === false ? 'transform 0s' : 'transform 300ms cubic-bezier(.16,.84,.32,1)';
+    lbWrap.style.transform = 'translate(' + lz.x + 'px,' + lz.y + 'px) scale(' + lz.s + ')';
+    lbWrap.classList.toggle('is-zoomed', lz.s > 1.01);
+  }
+  function lbClamp() {
+    const r = lbWrap.getBoundingClientRect();
+    const mx = Math.max(0, (r.width  - window.innerWidth)  / 2 + 8);
+    const my = Math.max(0, (r.height - window.innerHeight) / 2 + 8);
+    lz.x = Math.max(-mx, Math.min(mx, lz.x));
+    lz.y = Math.max(-my, Math.min(my, lz.y));
+  }
+  function lbSet(n, anim) { lz.s = Math.max(1, Math.min(4, n)); if (lz.s <= 1.01) { lz.x = 0; lz.y = 0; } else lbClamp(); lbApply(anim); }
+  function lbReset() { lz.s = 1; lz.x = 0; lz.y = 0; lbApply(false); }
+  function openPlanLightbox(src, cap, wing) {
+    lbReset();
+    lbWrap.classList.remove('show-north', 'show-south', 'show-both');
+    if (wing === 'north') lbWrap.classList.add('show-north');
+    else if (wing === 'south') lbWrap.classList.add('show-south');
+    lbImg.style.opacity = '0';
+    const tmp = new Image();
+    tmp.onload = tmp.onerror = function () { lbImg.src = src; lbImg.style.opacity = '1'; };
+    tmp.src = src;
+    lbCap.textContent = cap || '';
+    lbOpen = true; lb.classList.add('is-open');
+  }
+  function closePlanLightbox() { lbOpen = false; lb.classList.remove('is-open'); lbReset(); }
+  lbClose.addEventListener('click', closePlanLightbox);
+  lbStage.addEventListener('click', function (e) { if (e.target === lbStage && lz.s <= 1.01) closePlanLightbox(); });
+  lbImg.addEventListener('dblclick', function (e) { e.preventDefault(); if (lz.s > 1.01) lbReset(); else { lz.s = 2.4; lbClamp(); lbApply(true); } });
+  lb.addEventListener('wheel', function (e) { if (!lbOpen) return; e.preventDefault(); e.stopPropagation(); lbSet(lz.s + (e.deltaY < 0 ? 0.4 : -0.4), false); }, { passive: false });
+  window.addEventListener('keydown', function (e) { if (lbOpen && e.key === 'Escape') closePlanLightbox(); });
+  const lbpts = new Map(); let lbpan = null, lbpinch = 0, lbsb = 1;
+  lbImg.addEventListener('pointerdown', function (e) {
+    if (!lbOpen) return;
+    try { lbImg.setPointerCapture(e.pointerId); } catch (_) {}
+    lbpts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (lbpts.size === 2) { const p = [...lbpts.values()]; lbpinch = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y); lbsb = lz.s; }
+    else if (lz.s > 1.01) { lbpan = { x: e.clientX - lz.x, y: e.clientY - lz.y }; lbWrap.classList.add('is-panning'); }
+  });
+  lbImg.addEventListener('pointermove', function (e) {
+    if (!lbpts.has(e.pointerId)) return;
+    lbpts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (lbpts.size === 2 && lbpinch) { const p = [...lbpts.values()]; const d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y); lbSet(lbsb * (d / lbpinch), false); }
+    else if (lbpan && lz.s > 1.01) { lz.x = e.clientX - lbpan.x; lz.y = e.clientY - lbpan.y; lbClamp(); lbApply(false); }
+  });
+  function lbUp(e) { lbpts.delete(e.pointerId); if (lbpts.size < 2) lbpinch = 0; if (lbpts.size === 0) { lbpan = null; lbWrap.classList.remove('is-panning'); lbApply(true); } }
+  lbImg.addEventListener('pointerup', lbUp);
+  lbImg.addEventListener('pointercancel', lbUp);
 
   // Aim the spotlight's bright centre at a specific canvas-pixel point.
   function setSpotlightAt(mx, my, cw, ch) {
@@ -1579,6 +1953,19 @@
     infoTitle.textContent = m.label;
     infoBody.textContent  = m.desc;
     infoCat.textContent   = '— ' + m.cat;
+    // Towers (North/South) carry a typical floor plate — shown in the card, click to enlarge.
+    if (m.plan) {
+      if (infoPlanImg.getAttribute('src') !== m.plan) infoPlanImg.src = m.plan;
+      infoPlanCap.textContent = m.planLabel || 'Typical Floor Plan';
+      infoPlan.hidden = false;
+      infoPlanWrap.classList.remove('show-north', 'show-south', 'show-both');
+      if (m.wing === 'north') infoPlanWrap.classList.add('show-north');
+      else if (m.wing === 'south') infoPlanWrap.classList.add('show-south');
+      infoPlanBtn.onclick = function (e) { e.stopPropagation(); openPlanLightbox(m.plan, m.planLabel || m.label, m.wing); };
+    } else {
+      infoPlan.hidden = true;
+      infoPlanBtn.onclick = null;
+    }
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -1607,12 +1994,14 @@
     setSpotlightAt(w / 2, h / 2, w, h);
     spotlight.classList.add('is-on');
 
-    const placement = placeCardAbove(w / 2, h / 2, w, h);   // right above the pin
+    writeCardContent(m);
+    // Tower cards carry a plan thumbnail and are taller — measure, then place above.
+    const cardH = infoCard.offsetHeight || CARD_H;
+    const placement = placeCardAbove(w / 2, h / 2, w, h, cardH);   // right above the pin
     infoCard.style.left = placement.left + 'px';
     infoCard.style.top  = placement.top  + 'px';
-
-    writeCardContent(m);
     infoCard.classList.add('is-on');
+    syncLegendActive(m.id);
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -1633,12 +2022,13 @@
     // card still anchors to the nearest visible edge in that direction)
     const visMx = clamp(pos.x, 0, w);
     const visMy = clamp(pos.y, 0, h);
-    const placement = placeCardAbove(visMx, visMy, w, h);
+    writeCardContent(m);
+    const cardH = infoCard.offsetHeight || CARD_H;
+    const placement = placeCardAbove(visMx, visMy, w, h, cardH);
     infoCard.style.left = placement.left + 'px';
     infoCard.style.top  = placement.top  + 'px';
-
-    writeCardContent(m);
     infoCard.classList.add('is-on');
+    syncLegendActive(m.id);
   }
 
   function clearFocus() {
@@ -1646,6 +2036,7 @@
     Object.values(markerEls).forEach(el => el.classList.remove('is-active'));
     spotlight.classList.remove('is-on');
     infoCard.classList.remove('is-on');
+    syncLegendActive(null);
     // Only reset zoom if the active state was triggered by focusMarker
     // (so user-pan zooms are preserved when they click around)
     if (wasFocusedZoom) {
@@ -1661,6 +2052,7 @@
     spotlight.classList.remove('is-on');
     infoCard.classList.remove('is-on');
     Object.values(markerEls).forEach(el => el.classList.remove('is-active'));
+    syncLegendActive(null);
     activeMarker = null;
   }
 
@@ -1675,9 +2067,11 @@
   function updateVisibility() {
     const filterDef = FILTERS.find(f => f.key === activeFilter);
     const allowed = new Set(filterDef ? filterDef.cats : []);
-    MARKERS.forEach(m => {
+    currentMarkers.forEach(m => {
+      const el = markerEls[m.id];
+      if (!el) return;
       const visible = allowed.has(m.cat) && legendOn[m.cat];
-      markerEls[m.id].classList.toggle('is-hidden', !visible);
+      el.classList.toggle('is-hidden', !visible);
     });
     // If active marker is now hidden, close the focus
     if (activeMarker) {
@@ -1692,6 +2086,18 @@
     document.querySelectorAll('.filter-pill').forEach(p => {
       p.classList.toggle('is-active', p.dataset.filter === key);
     });
+    // Swap the base plan drawing + its calibrated pointer set for this category.
+    const planSrc = PLAN_BASE[key] || PLAN_BASE.all;
+    const planMk  = PLAN_MARKERS[key] || MARKERS;
+    clearFocus();
+    if (imageEl.getAttribute('src') !== planSrc) {
+      imageEl.style.display = '';
+      fallback.classList.remove('is-on');
+      imageEl.setAttribute('src', planSrc);
+    }
+    renderMarkers(planMk);
+    renderLegend(planMk);
+    resetView();
     updateVisibility();
   }
 
@@ -1755,7 +2161,7 @@
 <!-- PWA-JS-START -->
 <script>
   // Service worker registration (PWA + offline cache)
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
     window.addEventListener('load', function() {
       var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});

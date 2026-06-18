@@ -33,7 +33,7 @@
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet" />
 
 <!-- GOAL 2: placeholder-marker styles (.nu) -->
 <style>
@@ -89,7 +89,7 @@
     width: 100%; height: 100%;
     background: var(--paper);
     color: var(--onyx-700);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-user-select: none; user-select: none;
@@ -106,7 +106,7 @@
   #stage-wrap {
     position: fixed; inset: 0; overflow: hidden;
     display: flex; align-items: center; justify-content: center;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: 0;   /* edge-to-edge — stage fills the whole viewport */
     isolation: isolate;
     /* Flat paper — matches the stage's own paper edge exactly, so the
        letterbox/pillarbox margins on non-16:10 screens (iPad 4:3, 65" 16:9)
@@ -121,9 +121,6 @@
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
-    will-change: transform;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
     background: transparent;
   }
   .stage-bg {
@@ -160,12 +157,12 @@
     transition: opacity 220ms ease;
   }
   .brand-back:hover { opacity: 0.82; }
-  .brand-wordmark { width: 170px; height: 56px; display: inline-flex; color: var(--onyx-700); }
+  .brand-wordmark { width: 156px; height: 43.2px; display: inline-flex; color: var(--onyx-700); }
   .brand-wordmark svg { width: 100%; height: 100%; }
 
   .top-chips { display: flex; align-items: center; gap: 10px; }
   .top-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.42em; text-transform: uppercase;
     color: var(--taupe-400);
@@ -182,7 +179,7 @@
     color: var(--gold-500);
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer;
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-weight: 300; font-size: 22px; line-height: 1;
     transition: background 220ms ease, color 220ms ease, border-color 220ms ease, transform 200ms ease;
   }
@@ -197,7 +194,7 @@
     background: linear-gradient(180deg, var(--gold-100), var(--gold-300));
     border: 1px solid var(--gold-500);
     color: var(--onyx-700);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 10px;
     letter-spacing: 0.36em; text-transform: uppercase;
     cursor: pointer;
@@ -207,7 +204,7 @@
     margin-left: 6px;
   }
   .add-window-pill .plus {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-weight: 400; font-size: 18px; line-height: 1;
     letter-spacing: 0; transform: translateY(-1px);
   }
@@ -227,7 +224,7 @@
     background: rgba(252, 250, 244, 0.72);
     border: 1px solid var(--hair);
     color: var(--gold-500);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.42em; text-transform: uppercase;
     text-decoration: none; cursor: pointer;
@@ -332,7 +329,7 @@
     min-width: 0;
   }
   .pw-title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
     font-weight: 500;
     font-size: var(--title-size);
     line-height: 1;
@@ -351,7 +348,7 @@
     border: 1px solid var(--gold-300);
     border-radius: 999px;
     color: var(--gold-500);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600;
     font-size: calc(var(--base-font) * 0.68);
     letter-spacing: 0.30em;
@@ -367,7 +364,7 @@
     margin-right: calc(var(--base-font) * 2.4);
   }
   .pw-carpet .lbl {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: calc(var(--base-font) * 0.68);
     letter-spacing: 0.36em; text-transform: uppercase;
@@ -375,7 +372,7 @@
     white-space: nowrap;
   }
   .pw-carpet .val {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic; font-weight: 500;
     font-size: var(--carpet-size);
     line-height: 1;
@@ -391,14 +388,14 @@
     margin-top: 6px;
   }
   .pw-sub {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-size: calc(var(--base-font) * 0.82);
     font-weight: 400;
     color: var(--taupe-500);
     letter-spacing: 0.06em;
   }
   .pw-sub-tag {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic; font-weight: 500;
     font-size: calc(var(--base-font) * 1.05);
     color: var(--gold-500);
@@ -416,7 +413,7 @@
     color: var(--taupe-400);
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 300; font-size: 18px; line-height: 1;
     transition: background 200ms ease, color 200ms ease, border-color 200ms ease, transform 160ms ease;
     -webkit-tap-highlight-color: transparent;
@@ -450,7 +447,7 @@
     background: transparent;
     border: none;
     color: var(--taupe-500);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600;
     font-size: calc(var(--base-font) * 0.72);
     letter-spacing: 0.18em;
@@ -482,7 +479,7 @@
     display: inline-flex; align-items: center; gap: 7px;
   }
   .pw-flabel {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600;
     font-size: calc(var(--base-font) * 0.68);
     letter-spacing: 0.36em; text-transform: uppercase;
@@ -498,7 +495,7 @@
     background: transparent;
     border: 1px solid var(--hair);
     color: var(--gold-500);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: calc(var(--base-font) * 0.78);
     letter-spacing: 0.16em;
@@ -533,7 +530,7 @@
     background: var(--paper-2);
     border: 1px solid var(--hair);
     color: var(--gold-500);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600;
     font-size: calc(var(--base-font) * 0.74);
     letter-spacing: 0.22em;
@@ -574,7 +571,7 @@
   }
   .pw-ctl.is-grow { flex: 1 1 40%; }
   .pw-ctl-lbl {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600;
     font-size: calc(var(--base-font) * 0.62);
     letter-spacing: 0.30em; text-transform: uppercase;
@@ -591,7 +588,7 @@
     background: var(--paper-2);
     border: 1px solid var(--hair);
     color: var(--onyx-700);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: calc(var(--base-font) * 0.82);
     letter-spacing: 0.02em;
@@ -647,12 +644,13 @@
     transform-origin: center center;
     transform: translate(0, 0) scale(1);
     transition: transform 200ms ease;
-    will-change: transform;
+    /* will-change only during active pan/pinch — lets the browser re-rasterize
+       the HD plan at the zoomed scale when idle, so it stays crisp (no blur). */
     cursor: grab;
     touch-action: none;
   }
   .pw-zoom-stage.is-zoomed { cursor: grab; }
-  .pw-zoom-stage.is-panning { cursor: grabbing; transition: none; }
+  .pw-zoom-stage.is-panning { cursor: grabbing; transition: none; will-change: transform; }
   .pw-blueprint {
     position: absolute;
     inset: 5% 5% 5% 5%;
@@ -706,7 +704,7 @@
     color: var(--gold-500);
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400;
     font-size: calc(var(--base-font) * 1.4);
     line-height: 1;
@@ -727,7 +725,7 @@
   .pw-zoom-indicator {
     position: absolute;
     bottom: calc(var(--base-font) * 1); left: calc(var(--base-font) * 1.2);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: calc(var(--base-font) * 0.66);
     letter-spacing: 0.28em;
@@ -770,14 +768,14 @@
   }
   .pw-spec .ico svg { width: 100%; height: 100%; }
   .pw-spec .num {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic; font-weight: 500;
     font-size: var(--spec-num);
     line-height: 1;
     color: var(--onyx-700);
   }
   .pw-spec .lbl {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600;
     font-size: calc(var(--base-font) * 0.60);
     letter-spacing: 0.30em;
@@ -793,7 +791,7 @@
     background: var(--paper-2);
   }
   .pw-price h4 {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600;
     font-size: calc(var(--base-font) * 0.72);
     letter-spacing: 0.36em;
@@ -808,13 +806,13 @@
   }
   .pw-row:last-of-type { border-bottom: none; }
   .pw-row .k {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-size: calc(var(--base-font) * 0.82);
     color: var(--taupe-500);
     letter-spacing: 0.02em;
   }
   .pw-row .v {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: calc(var(--base-font) * 0.88);
     color: var(--onyx-700);
@@ -828,7 +826,7 @@
     display: flex; justify-content: space-between; align-items: baseline;
   }
   .pw-total .k {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600;
     font-size: calc(var(--base-font) * 0.74);
     letter-spacing: 0.36em;
@@ -836,7 +834,7 @@
     color: var(--onyx-700);
   }
   .pw-total .v {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic; font-weight: 500;
     font-size: var(--total-size);
     color: var(--gold-500);
@@ -845,7 +843,7 @@
   }
   .pw-rera {
     margin: calc(var(--base-font) * 0.5) 0 0;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-size: calc(var(--base-font) * 0.60);
     letter-spacing: 0.26em;
     text-transform: uppercase;
@@ -859,7 +857,7 @@
     transform: translate(-50%, 12px);
     background: rgba(26, 24, 20, 0.92);
     color: var(--paper);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.06em;
@@ -894,6 +892,301 @@
   .pw-price{display:none !important;}
   /* full-sheet plans carry their own title/area/specs — hide window duplicates */
   .pw-carpet, .pw-specs, .pw-tier-pill, .pw-sub-row { display:none !important; }
+
+  /* ══════════════════════════════════════════════════════════════
+     COMPARE FLOW — pre-comparison picker, in-comparison switch drawer,
+     and the lightweight per-panel switch bar.
+     ══════════════════════════════════════════════════════════════ */
+
+  /* shared overlay surface — reads as a full, native screen (not a sheet):
+     same paper-texture + grain treatment the real screens use via .stage-bg
+     / .stage-grain, layered as pseudo-elements so no markup/JS changes. */
+  .fp-overlay {
+    position: absolute; inset: 0; z-index: 30;
+    display: flex; flex-direction: column;
+    background: transparent;
+    opacity: 0; visibility: hidden;
+    transition: opacity 420ms ease, visibility 0s linear 420ms;
+  }
+  /* paper layer — mirrors .stage-bg */
+  .fp-overlay::before {
+    content: ''; position: absolute; inset: -2px; z-index: 0; pointer-events: none;
+    background-color: var(--paper);
+    background-image: url('assets/bg-paper.png');
+    background-size: cover; background-position: center center; background-repeat: no-repeat;
+  }
+  /* grain layer — mirrors .stage-grain */
+  .fp-overlay::after {
+    content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    opacity: 0.022;
+    background-image:
+      radial-gradient(rgba(0,0,0,0.6) 1px, transparent 1px),
+      radial-gradient(rgba(0,0,0,0.5) 1px, transparent 1px);
+    background-size: 3px 3px, 5px 5px;
+    background-position: 0 0, 1px 1px;
+  }
+  /* keep all picker content above the texture layers */
+  .fp-overlay > * { position: relative; z-index: 2; }
+  .fp-overlay.is-open { opacity: 1; visibility: visible; transition: opacity 420ms ease; }
+
+  /* picker header — editorial, integrated (matches screen headers,
+     not a boxed modal title): gold Lato eyebrow + Cinzel title + a
+     thin centered gold hairline divider underneath. */
+  .fp-head {
+    flex: 0 0 auto;
+    padding: 56px 56px 18px;
+    text-align: center;
+  }
+  .fp-eyebrow {
+    font-family: 'Lato', sans-serif;
+    font-weight: 500; font-size: 10px;
+    letter-spacing: 0.5em; text-transform: uppercase;
+    color: var(--gold-500); margin-bottom: 14px;
+  }
+  .fp-title {
+    font-family: 'Cinzel', Georgia, serif;
+    font-weight: 600; font-size: 40px; line-height: 1.04;
+    letter-spacing: 0.03em; text-transform: uppercase;
+    color: var(--onyx-700); margin: 0 0 16px;
+  }
+  /* thin gold hairline under the title, centered like other screens */
+  .fp-head::after {
+    content: ''; display: block; width: 64px; height: 1px;
+    margin: 0 auto 16px;
+    background: var(--gold-500); opacity: 0.55;
+  }
+  .fp-sub {
+    font-family: 'Lato', sans-serif; font-weight: 300;
+    font-size: 14.5px; color: var(--taupe-500);
+    max-width: 560px; margin: 0 auto;
+  }
+
+  /* type tabs */
+  .fp-tabs {
+    flex: 0 0 auto;
+    display: flex; justify-content: center; gap: 6px;
+    padding: 14px 0 6px;
+  }
+  .fp-tab {
+    font-family: 'Lato', sans-serif; font-weight: 600;
+    font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--taupe-500);
+    padding: 11px 26px; border-radius: 999px;
+    background: transparent; border: 1px solid transparent;
+    cursor: pointer; transition: all 220ms ease;
+    -webkit-appearance: none; appearance: none;
+  }
+  .fp-tab:hover { color: var(--onyx-700); border-color: var(--hair); }
+  .fp-tab.is-active {
+    color: var(--paper); background: var(--gold-500);
+    border-color: var(--gold-500);
+    box-shadow: 0 6px 16px -8px rgba(148,111,56,0.7);
+  }
+
+  /* catalog (scrollable) */
+  .fp-catalog {
+    flex: 1 1 auto; overflow-y: auto; overflow-x: hidden;
+    padding: 18px 56px 24px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .fp-catalog::-webkit-scrollbar { width: 8px; }
+  .fp-catalog::-webkit-scrollbar-thumb { background: var(--hair); border-radius: 8px; }
+
+  .fp-sec { margin-bottom: 30px; }
+  .fp-sec-head {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+  }
+  .fp-sec-name {
+    font-family: 'Lato', sans-serif; font-weight: 700;
+    font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase;
+    color: var(--gold-600); white-space: nowrap;
+  }
+  .fp-sec-rule { flex: 1 1 auto; height: 1px; background: var(--hair-lo); }
+
+  .fp-cards {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(208px, 1fr));
+  }
+
+  /* a plan card */
+  .fp-card {
+    position: relative; text-align: left;
+    background: var(--paper);
+    border: 1px solid var(--hair-lo); border-radius: 12px;
+    padding: 12px; cursor: pointer; overflow: hidden;
+    transition: transform 220ms cubic-bezier(.2,.7,.3,1), box-shadow 240ms ease, border-color 220ms ease;
+    -webkit-appearance: none; appearance: none;
+  }
+  .fp-card:hover { transform: translateY(-3px); box-shadow: var(--card-shadow); border-color: var(--hair); }
+  .fp-card.is-selected { border-color: var(--gold-400); box-shadow: 0 0 0 2px var(--gold-300) inset, var(--card-shadow); }
+  .fp-card-thumb {
+    position: relative; width: 100%; aspect-ratio: 4 / 3;
+    border-radius: 8px; overflow: hidden;
+    background: var(--bone-50);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fp-card-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .fp-card-title {
+    font-family: 'Lato', sans-serif; font-weight: 700;
+    font-size: 13.5px; color: var(--onyx-700);
+    margin: 11px 2px 3px; line-height: 1.25;
+  }
+  .fp-card-sub {
+    font-family: 'Lato', sans-serif; font-weight: 400;
+    font-size: 11.5px; color: var(--taupe-500); margin: 0 2px;
+  }
+  .fp-card-badge {
+    position: absolute; top: 18px; right: 18px;
+    width: 26px; height: 26px; border-radius: 999px;
+    background: var(--gold-500); color: var(--paper);
+    display: none; align-items: center; justify-content: center;
+    font-family: 'Lato', sans-serif; font-weight: 700; font-size: 13px;
+    box-shadow: 0 4px 10px -3px rgba(148,111,56,0.8);
+  }
+  .fp-card.is-selected .fp-card-badge { display: inline-flex; }
+  .fp-card-pick {
+    position: absolute; top: 18px; right: 18px;
+    width: 26px; height: 26px; border-radius: 999px;
+    background: rgba(252,250,244,0.9); border: 1px solid var(--hair);
+    color: var(--gold-500); display: inline-flex; align-items:center; justify-content:center;
+    font-size: 15px; opacity: 0; transition: opacity 200ms ease;
+  }
+  .fp-card:hover .fp-card-pick { opacity: 1; }
+  .fp-card.is-selected .fp-card-pick { display: none; }
+
+  /* comparison tray (picker only) — a footer bar of the screen, not a
+     modal footer: hairline top edge + translucent paper wash that lets
+     the page texture read through, echoing the topbar treatment. */
+  .fp-tray {
+    flex: 0 0 auto;
+    display: flex; align-items: center; gap: 16px;
+    padding: 18px 56px 24px;
+    border-top: 1px solid var(--hair-lo);
+    background: linear-gradient(180deg, rgba(252,250,244,0) 0%, rgba(252,250,244,0.72) 32%, var(--paper-2) 100%);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  .fp-tray-label {
+    font-family: 'Lato', sans-serif; font-weight: 700;
+    font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--taupe-400); white-space: nowrap;
+  }
+  .fp-slots { display: flex; gap: 10px; flex: 1 1 auto; }
+  .fp-slot {
+    flex: 0 0 auto; min-width: 168px; max-width: 220px;
+    display: flex; align-items: center; gap: 9px;
+    padding: 9px 12px; border-radius: 10px;
+    background: var(--bone-50); border: 1px dashed var(--hair);
+    font-family: 'Lato', sans-serif;
+  }
+  .fp-slot.is-empty { color: var(--taupe-400); font-size: 12px; font-style: italic; border-style: dashed; }
+  .fp-slot.is-filled { border-style: solid; border-color: var(--hair); background: var(--paper); }
+  .fp-slot .n {
+    width: 20px; height: 20px; border-radius: 999px; flex: 0 0 auto;
+    background: var(--gold-500); color: var(--paper);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 11px;
+  }
+  .fp-slot .t { flex: 1 1 auto; font-size: 12px; font-weight: 600; color: var(--onyx-700);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fp-slot .x { flex: 0 0 auto; cursor: pointer; color: var(--taupe-400); font-size: 15px;
+    background: none; border: none; padding: 0 2px; }
+  .fp-slot .x:hover { color: var(--copper); }
+  .fp-compare {
+    flex: 0 0 auto;
+    font-family: 'Lato', sans-serif; font-weight: 700;
+    font-size: 13px; letter-spacing: 0.08em;
+    padding: 14px 30px; border-radius: 999px;
+    background: var(--onyx-700); color: var(--paper);
+    border: none; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 9px;
+    transition: transform 180ms ease, opacity 220ms ease, background 220ms ease;
+  }
+  .fp-compare:hover:not(:disabled) { transform: translateX(2px); background: var(--onyx-500); }
+  .fp-compare:disabled { opacity: 0.34; cursor: not-allowed; }
+  /* close — echoes the topbar circular control (.tc) so it reads as a
+     native screen control, not a modal dismiss. Sits above texture. */
+  .fp-close {
+    position: absolute; top: 30px; right: 40px; z-index: 6;
+    width: 44px; height: 44px; border-radius: 999px;
+    background: rgba(252, 250, 244, 0.72); border: 1px solid var(--hair);
+    color: var(--gold-500); font-weight: 300; font-size: 22px; line-height: 1;
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background 220ms ease, color 220ms ease, border-color 220ms ease, transform 200ms ease;
+  }
+  .fp-close:hover { background: var(--paper); color: var(--onyx-700); border-color: var(--hair-hi); }
+  .fp-close:active { transform: scale(0.94); }
+
+  /* slide-in drawer (in-comparison change) */
+  .fp-drawer {
+    position: absolute; top: 0; right: 0; bottom: 0; z-index: 40;
+    width: min(560px, 64%);
+    display: flex; flex-direction: column;
+    background: var(--paper);
+    box-shadow: -30px 0 80px -30px rgba(40,28,10,0.4);
+    transform: translateX(102%);
+    transition: transform 420ms cubic-bezier(.2,.8,.2,1);
+  }
+  .fp-drawer.is-open { transform: translateX(0); }
+  .fp-scrim {
+    position: absolute; inset: 0; z-index: 39;
+    background: rgba(26,24,20,0.32);
+    -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+    opacity: 0; visibility: hidden;
+    transition: opacity 380ms ease, visibility 0s linear 380ms;
+  }
+  .fp-scrim.is-open { opacity: 1; visibility: visible; transition: opacity 380ms ease; }
+  .fp-drawer-head {
+    flex: 0 0 auto; padding: 26px 30px 12px;
+    display: flex; align-items: flex-start; justify-content: space-between;
+    border-bottom: 1px solid var(--hair-lo);
+  }
+  .fp-drawer-head .ttl {
+    font-family: 'Cinzel', Georgia, serif; font-weight: 600;
+    font-size: 22px; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--onyx-700); margin: 0;
+  }
+  .fp-drawer-head .sub {
+    font-family: 'Lato', sans-serif; font-weight: 400; font-size: 12px;
+    color: var(--taupe-500); margin-top: 4px;
+  }
+  .fp-drawer .fp-tabs { padding: 14px 24px 4px; justify-content: flex-start; flex-wrap: wrap; }
+  .fp-drawer .fp-catalog { padding: 14px 24px 28px; }
+  .fp-drawer .fp-cards { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  .fp-drawer-close {
+    width: 36px; height: 36px; border-radius: 999px; flex: 0 0 auto;
+    background: var(--bone-50); border: 1px solid var(--hair-lo);
+    color: var(--taupe-500); font-size: 18px; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .fp-drawer-close:hover { color: var(--onyx-700); }
+
+  /* lightweight per-panel switch bar (replaces the old type/filter/dropdown stack) */
+  .pw-switch {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 4px 4px;
+  }
+  .pw-step {
+    width: 38px; height: 38px; flex: 0 0 auto; border-radius: 999px;
+    background: var(--paper); border: 1px solid var(--hair);
+    color: var(--gold-500); font-size: 18px; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all 180ms ease; -webkit-appearance: none; appearance: none;
+  }
+  .pw-step:hover { background: var(--bone-50); border-color: var(--hair-hi); color: var(--onyx-700); }
+  .pw-step:active { transform: scale(0.92); }
+  .pw-change {
+    flex: 1 1 auto;
+    display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+    font-family: 'Lato', sans-serif; font-weight: 700;
+    font-size: 12.5px; letter-spacing: 0.06em;
+    padding: 11px 18px; border-radius: 999px;
+    background: var(--bone-50); border: 1px solid var(--hair);
+    color: var(--onyx-700); cursor: pointer;
+    transition: all 200ms ease; -webkit-appearance: none; appearance: none;
+  }
+  .pw-change:hover { background: var(--paper); border-color: var(--gold-400); box-shadow: var(--card-shadow); }
+  .pw-change svg { width: 15px; height: 15px; stroke: var(--gold-500); }
 </style>
 
 <script>
@@ -909,6 +1202,11 @@
         vh = Math.min(vh, window.visualViewport.height);
       }
       const s = Math.min(vw / W, vh / H);
+      // FULL-SCREEN FILL: grow the stage to exactly cover the viewport. Uniform
+      // scale (no distortion); design dims stay >= 1440x900 so no content is
+      // cropped; the surplus is breathing room around the anchored chrome.
+      stage.style.width  = Math.ceil(vw / s) + 'px';
+      stage.style.height = Math.ceil(vh / s) + 'px';
       const t = 'scale(' + s + ')';
       stage.style.transform = t;
       stage.style.webkitTransform = t;
@@ -953,6 +1251,26 @@
 <!-- PWA-BLOCK-END -->
 </head>
 <body>
+<script>
+  /* LOCAL PREVIEW GUARD — on localhost, never let a stale service worker /
+     cache mask live edits. Production (real domain) is unaffected. */
+  (function () {
+    var h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0' || h === '') {
+      window.__EC_LOCAL = true;
+      try {
+        if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
+          navigator.serviceWorker.getRegistrations().then(function (rs) {
+            rs.forEach(function (r) { r.unregister(); });
+          }).catch(function () {});
+        }
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
+        }
+      } catch (e) {}
+    }
+  })();
+</script>
 
 <!-- Embassy Citadel wordmark — same SVG symbol as home -->
 <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -1020,6 +1338,40 @@
 
     <!-- cream veil for page exits -->
     <div class="veil" aria-hidden="true"></div>
+
+
+    <!-- ══ PRE-COMPARISON PICKER ══ -->
+    <section class="fp-overlay" id="planPicker" aria-label="Choose plans to compare">
+      <button class="fp-close" id="pickerClose" type="button" aria-label="Close">×</button>
+      <div class="fp-head">
+        <div class="fp-eyebrow">Plans · Compare</div>
+        <h2 class="fp-title">Choose Plans to Compare</h2>
+        <p class="fp-sub">Browse residences, typical floors and amenity levels. Pick two or three plans to set side by side.</p>
+      </div>
+      <div class="fp-tabs" id="pickerTabs"></div>
+      <div class="fp-catalog" id="pickerGrid"></div>
+      <div class="fp-tray">
+        <span class="fp-tray-label">Comparing</span>
+        <div class="fp-slots" id="pickerSlots"></div>
+        <button class="fp-compare" id="pickerCompare" type="button" disabled>
+          <span>Compare</span><span aria-hidden="true">&rarr;</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ══ IN-COMPARISON CHANGE DRAWER ══ -->
+    <div class="fp-scrim" id="drawerScrim" aria-hidden="true"></div>
+    <aside class="fp-drawer" id="planDrawer" aria-label="Change plan">
+      <div class="fp-drawer-head">
+        <div>
+          <h3 class="ttl">Change Plan</h3>
+          <div class="sub" id="drawerSub">Pick a plan for this panel</div>
+        </div>
+        <button class="fp-drawer-close" id="drawerClose" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="fp-tabs" id="drawerTabs"></div>
+      <div class="fp-catalog" id="drawerGrid"></div>
+    </aside>
 
   </div>
 </div>
@@ -1544,44 +1896,18 @@
     `;
     el.appendChild(head);
 
-    // Type segmented control — Unit · Typical · Amenity
-    const types = document.createElement('div');
-    types.className = 'pw-types';
-    types.setAttribute('role', 'tablist');
-    types.innerHTML = `
-      <button class="pw-type ${state.type === 'unit' ? 'is-active' : ''}" data-type="unit" type="button">Unit</button>
-      <button class="pw-type ${state.type === 'typical' ? 'is-active' : ''}" data-type="typical" type="button">Typical</button>
-      <button class="pw-type ${state.type === 'amenity' ? 'is-active' : ''}" data-type="amenity" type="button">Amenity</button>
+    // Lightweight switch bar — step ‹ › within the group, or open the catalog drawer
+    const sw = document.createElement('div');
+    sw.className = 'pw-switch';
+    sw.innerHTML = `
+      <button class="pw-step pw-prev" type="button" aria-label="Previous plan">‹</button>
+      <button class="pw-change" type="button" aria-label="Change plan">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M7 7h11l-3-3" /><path d="M17 17H6l3 3" /></svg>
+        <span>Change plan</span>
+      </button>
+      <button class="pw-step pw-next" type="button" aria-label="Next plan">›</button>
     `;
-    el.appendChild(types);
-
-    // Filter bar — only for Unit type (Bedrooms · Wing)
-    if (state.type === 'unit') {
-      const bar = document.createElement('div');
-      bar.className = 'pw-filterbar';
-      const bedPills = ['all'].concat(UNIT_BEDS).map(b => {
-        const lbl = b === 'all' ? 'All' : (b + ' Bed');
-        return `<button class="pw-fpill ${state.bedFilter === b ? 'is-active' : ''}" data-bed="${b}" type="button">${lbl}</button>`;
-      }).join('');
-      const wingPills = wingsForBed(state.bedFilter).map(w =>
-        `<button class="pw-fpill ${state.wing === w ? 'is-active' : ''}" data-wing="${w}" type="button">${WING_FULL[w]}</button>`
-      ).join('');
-      bar.innerHTML = `
-        <div class="pw-filter-group">
-          <span class="pw-flabel">Bedrooms</span>${bedPills}
-        </div>
-        <div class="pw-filter-group">
-          <span class="pw-flabel">Wing</span>${wingPills}
-        </div>
-      `;
-      el.appendChild(bar);
-    }
-
-    // Controls — selectors that load a plan into the frame
-    const controls = document.createElement('div');
-    controls.className = 'pw-controls';
-    controls.innerHTML = buildControlsMarkup(state);
-    el.appendChild(controls);
+    el.appendChild(sw);
 
     // Canvas
     const canvas = document.createElement('div');
@@ -1715,6 +2041,14 @@
       wireWindow(fresh, state);
       applyTransform(fresh, state);
     }
+
+    // Per-panel: step within the plan's group, or open the change drawer
+    const prevB = el.querySelector('.pw-prev');
+    const nextB = el.querySelector('.pw-next');
+    if (prevB) prevB.addEventListener('click', () => { focusedWinId = state.id; stepInGroup(state, -1); rebuild(); });
+    if (nextB) nextB.addEventListener('click', () => { focusedWinId = state.id; stepInGroup(state, 1); rebuild(); });
+    const changeB = el.querySelector('.pw-change');
+    if (changeB) changeB.addEventListener('click', () => { focusedWinId = state.id; openDrawer(state); });
 
     // Type segmented control — Unit · Typical · Amenity
     el.querySelectorAll('[data-type]').forEach(btn => {
@@ -1943,6 +2277,172 @@
     fadeTo('home.html');
   });
 
+  // ══════════════════════════════════════════════════════════════
+  // COMPARE FLOW — pre-comparison picker + in-comparison change drawer
+  //   Shared plan catalog rendered from REAL_PLAN_GROUPS.
+  // ══════════════════════════════════════════════════════════════
+  const TYPE_TABS = [
+    { key: 'residences', label: 'Residences' },
+    { key: 'typical',    label: 'Typical Floors' },
+    { key: 'amenity',    label: 'Amenities' },
+  ];
+  function sectionsForTab(tabKey) {
+    if (tabKey === 'typical') return [TYPICAL_GROUP];
+    if (tabKey === 'amenity') return [AMENITY_GROUP];
+    return REAL_PLAN_GROUPS.filter(g => /Unit/.test(g.group));
+  }
+  function tabForName(name) {
+    const t = planType(name);
+    return t === 'unit' ? 'residences' : (t === 'amenity' ? 'amenity' : 'typical');
+  }
+  function groupItemsOf(name) {
+    for (const g of REAL_PLAN_GROUPS) { if (g.items.some(i => i.name === name)) return g.items; }
+    return [];
+  }
+  function stepInGroup(state, dir) {
+    const list = groupItemsOf(state.realName);
+    if (!list.length) return;
+    let idx = list.findIndex(i => i.name === state.realName);
+    if (idx === -1) idx = 0;
+    idx = (idx + dir + list.length) % list.length;
+    state.realName = list[idx].name;
+    state.type = planType(state.realName);
+    syncUnitSelectorsToName(state);
+    state.scale = 1; state.tx = 0; state.ty = 0;
+  }
+  function planSubLabel(it) {
+    if (it.carpet) return it.carpet;
+    if (it.label && it.label.indexOf('·') >= 0) return it.label.split('·').slice(1).join(' · ').trim();
+    return '';
+  }
+  function cardHTML(it, badge) {
+    const sub = planSubLabel(it);
+    return '<button class="fp-card" type="button" data-name="' + it.name + '">' +
+      '<span class="fp-card-badge">' + (badge || '') + '</span>' +
+      '<span class="fp-card-pick">+</span>' +
+      '<span class="fp-card-thumb"><img loading="lazy" src="' + it.file + '" alt="' + (it.title || it.label) + '"></span>' +
+      '<div class="fp-card-title">' + (it.title || it.label) + '</div>' +
+      (sub ? '<div class="fp-card-sub">' + sub + '</div>' : '') +
+      '</button>';
+  }
+  function renderCatalog(gridEl, tabKey, selectedNames) {
+    let html = '';
+    sectionsForTab(tabKey).forEach(g => {
+      html += '<div class="fp-sec"><div class="fp-sec-head"><span class="fp-sec-name">' +
+        g.group + '</span><span class="fp-sec-rule"></span></div><div class="fp-cards">';
+      g.items.forEach(it => {
+        const bi = selectedNames ? selectedNames.indexOf(it.name) : -1;
+        html += cardHTML(it, bi >= 0 ? (bi + 1) : '');
+      });
+      html += '</div></div>';
+    });
+    gridEl.innerHTML = html;
+  }
+  function renderTabs(tabsEl, activeKey, onPick) {
+    tabsEl.innerHTML = TYPE_TABS.map(t =>
+      '<button class="fp-tab' + (t.key === activeKey ? ' is-active' : '') + '" data-tab="' + t.key + '" type="button">' + t.label + '</button>'
+    ).join('');
+    tabsEl.querySelectorAll('.fp-tab').forEach(b => b.addEventListener('click', () => onPick(b.dataset.tab)));
+  }
+
+  // ── PICKER ──
+  const picker        = document.getElementById('planPicker');
+  const pickerTabs    = document.getElementById('pickerTabs');
+  const pickerGrid    = document.getElementById('pickerGrid');
+  const pickerSlots   = document.getElementById('pickerSlots');
+  const pickerCompare = document.getElementById('pickerCompare');
+  let pickerTab = 'residences';
+  let pickerSel = [];
+
+  function renderPickerTray() {
+    let html = '';
+    for (let i = 0; i < 3; i++) {
+      const nm = pickerSel[i];
+      if (nm) {
+        const it = REAL_PLAN_BY_NAME[nm];
+        html += '<div class="fp-slot is-filled"><span class="n">' + (i + 1) + '</span>' +
+          '<span class="t">' + (it.title || it.label) + '</span>' +
+          '<button class="x" type="button" data-rm="' + nm + '" aria-label="Remove">×</button></div>';
+      } else if (i < 2 || pickerSel.length >= 2) {
+        html += '<div class="fp-slot is-empty">Slot ' + (i + 1) + (i < 2 ? '' : ' · optional') + '</div>';
+      }
+    }
+    pickerSlots.innerHTML = html;
+    pickerSlots.querySelectorAll('[data-rm]').forEach(b =>
+      b.addEventListener('click', () => { pickerSel = pickerSel.filter(n => n !== b.dataset.rm); renderPicker(); }));
+    pickerCompare.disabled = pickerSel.length < 2;
+  }
+  function renderPicker() {
+    renderTabs(pickerTabs, pickerTab, k => { pickerTab = k; renderPicker(); });
+    renderCatalog(pickerGrid, pickerTab, pickerSel);
+    pickerGrid.querySelectorAll('.fp-card').forEach(c => {
+      if (pickerSel.indexOf(c.dataset.name) >= 0) c.classList.add('is-selected');
+      c.addEventListener('click', () => {
+        const nm = c.dataset.name;
+        const i = pickerSel.indexOf(nm);
+        if (i >= 0) pickerSel.splice(i, 1);
+        else { if (pickerSel.length >= 3) { flashToast('Compare up to 3 plans.'); return; } pickerSel.push(nm); }
+        renderPicker();
+      });
+    });
+    renderPickerTray();
+  }
+  function openPicker() { renderPicker(); picker.classList.add('is-open'); }
+  function closePicker() { picker.classList.remove('is-open'); }
+  function startComparison(names) {
+    windows.length = 0;
+    names.forEach((nm, i) => windows.push(makeWindowState((i % 3) + 1, nm)));
+    focusedWinId = windows[0].id;
+    render();
+    closePicker();
+  }
+  pickerCompare.addEventListener('click', () => { if (pickerSel.length >= 2) startComparison(pickerSel.slice()); });
+  document.getElementById('pickerClose').addEventListener('click', () => {
+    if (windows.length) closePicker(); else fadeTo('home.html');
+  });
+
+  // ── DRAWER ──
+  const drawer      = document.getElementById('planDrawer');
+  const drawerScrim = document.getElementById('drawerScrim');
+  const drawerTabs  = document.getElementById('drawerTabs');
+  const drawerGrid  = document.getElementById('drawerGrid');
+  const drawerSub   = document.getElementById('drawerSub');
+  let drawerWin = null;
+  let drawerTab = 'residences';
+
+  function renderDrawer() {
+    renderTabs(drawerTabs, drawerTab, k => { drawerTab = k; renderDrawer(); });
+    renderCatalog(drawerGrid, drawerTab, null);
+    drawerGrid.querySelectorAll('.fp-card').forEach(c => {
+      if (drawerWin && c.dataset.name === drawerWin.realName) c.classList.add('is-selected');
+      c.addEventListener('click', () => {
+        if (!drawerWin) return;
+        drawerWin.realName = c.dataset.name;
+        drawerWin.type = planType(c.dataset.name);
+        syncUnitSelectorsToName(drawerWin);
+        drawerWin.scale = 1; drawerWin.tx = 0; drawerWin.ty = 0;
+        render();
+        closeDrawer();
+      });
+    });
+  }
+  function openDrawer(state) {
+    drawerWin = state;
+    drawerTab = tabForName(state.realName);
+    const rp = REAL_PLAN_BY_NAME[state.realName];
+    drawerSub.textContent = 'Currently · ' + (rp ? (rp.title || rp.label) : '');
+    renderDrawer();
+    drawerScrim.classList.add('is-open');
+    drawer.classList.add('is-open');
+  }
+  function closeDrawer() {
+    drawer.classList.remove('is-open');
+    drawerScrim.classList.remove('is-open');
+    drawerWin = null;
+  }
+  document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+  drawerScrim.addEventListener('click', closeDrawer);
+
   // ──────────────────────────────────────────────────────────────
   // INITIAL RENDER
   // ──────────────────────────────────────────────────────────────
@@ -1985,15 +2485,19 @@
       windows[0].type = planType(target);
       syncUnitSelectorsToName(windows[0]);
       windows[0].scale = 1; windows[0].tx = 0; windows[0].ty = 0;
+      window.__ecDeepLinked = true;
       render();
     }
   })();
+
+  // Show the picker first unless we deep-linked straight to a plan.
+  if (!window.__ecDeepLinked) { openPicker(); }
 </script>
 
 <!-- PWA-JS-START -->
 <script>
   // Service worker registration (PWA + offline cache)
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
     window.addEventListener('load', function() {
       var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});

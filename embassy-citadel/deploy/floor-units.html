@@ -45,7 +45,7 @@
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet" />
 <script src="assets/inventory-data.js"></script>
 <style>
   :root {
@@ -83,7 +83,7 @@
     margin: 0; padding: 0; width: 100%; height: 100%;
     background: var(--paper);
     color: var(--onyx-700);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-user-select: none; user-select: none;
@@ -101,7 +101,7 @@
     position: fixed; inset: 0; overflow: hidden;
     isolation: isolate;
     display: flex; align-items: center; justify-content: center;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: 0;   /* edge-to-edge — stage fills the whole viewport */
     background: url('assets/bg-paper.png') center/cover no-repeat, var(--paper);
   }
   #stage, .stage-inner {
@@ -112,9 +112,6 @@
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
-    will-change: transform;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
     background: var(--bone);
   }
 
@@ -159,7 +156,7 @@
     background: rgba(252, 250, 244, 0.72);
     border: 1px solid var(--hair);
     color: var(--gold-500);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.42em; text-transform: uppercase;
     text-decoration: none; cursor: pointer;
@@ -193,7 +190,7 @@
     content: '← Home';
     position: absolute; left: 100%; top: 50%;
     transform: translate(10px, -50%);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 8.5px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -205,7 +202,7 @@
     opacity: 0.85; transform: translate(14px, -50%);
   }
   .brand-wordmark {
-    width: 130px; height: 36px;
+    width: 156px; height: 43.2px;
     color: var(--onyx-700);
   }
   .brand-wordmark svg { width: 100%; height: 100%; display: block; }
@@ -233,7 +230,7 @@
   }
   .hero-eyebrow {
     display: flex; align-items: center; gap: 12px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500);
@@ -244,9 +241,9 @@
     background: var(--gold-500); opacity: 0.6;
   }
   .hero-title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
     font-weight: 400; font-size: 52px; line-height: 0.98;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.02em;
     color: var(--onyx-700);
     margin: 0;
   }
@@ -256,7 +253,7 @@
   }
   .hero-sub {
     margin-top: 7px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 11.5px;
     letter-spacing: 0.03em;
     color: var(--taupe-400);
@@ -273,6 +270,7 @@
     border: 1px solid var(--hair-lo);
     box-shadow: var(--card-shadow);
     overflow: hidden;
+    padding: 22px;
     display: flex; align-items: center; justify-content: center;
   }
   /* faint inner frame line for a drawn-on-paper feel */
@@ -284,11 +282,9 @@
     pointer-events: none;
   }
   .plate-img {
-    max-width: 100%; max-height: 100%;
     width: 100%; height: 100%;
     object-fit: contain;
     display: block;
-    padding: 26px;
     mix-blend-mode: multiply;
     filter: contrast(1.04);
   }
@@ -309,7 +305,7 @@
     position: absolute; top: 4px; left: 50%;
     transform: translateX(-50%);
     font-size: 8px; letter-spacing: 0.28em;
-    font-family: 'Inter', sans-serif; font-weight: 600;
+    font-family: 'Lato', sans-serif; font-weight: 600;
     text-transform: uppercase;
   }
   .plate-compass .needle {
@@ -330,13 +326,13 @@
     box-shadow: 0 4px 10px rgba(80, 58, 28, 0.08);
   }
   .plate-band .lbl {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 8px;
     letter-spacing: 0.36em; text-transform: uppercase;
     color: var(--taupe-400);
   }
   .plate-band .val {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic; font-weight: 500; font-size: 14px;
     color: var(--gold-500); line-height: 1;
   }
@@ -355,21 +351,20 @@
     padding: 30px 38px 16px 38px;
   }
   .rail-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.42em; text-transform: uppercase;
     color: var(--gold-500);
     margin-bottom: 8px;
   }
   .rail-title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
     font-weight: 400; font-size: 26px; line-height: 1.05;
     color: var(--onyx-700);
-    margin: 0;
-  }
+    margin: 0; letter-spacing: 0.045em;}
   .rail-hint {
     margin-top: 7px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 10.5px;
     letter-spacing: 0.02em;
     color: var(--taupe-400);
@@ -391,7 +386,7 @@
   .wing-group + .wing-group { margin-top: 18px; }
   .wing-label {
     display: flex; align-items: center; gap: 10px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 8.5px;
     letter-spacing: 0.36em; text-transform: uppercase;
     color: var(--taupe-400);
@@ -456,7 +451,7 @@
     display: grid; place-items: center;
     background: var(--bone-50);
     border: 1px solid var(--hair-lo);
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-weight: 500; font-size: 19px; letter-spacing: 0.02em;
     color: var(--onyx-700);
     transition: background 200ms ease, color 200ms ease, border-color 200ms ease;
@@ -466,13 +461,13 @@
   }
   .uc-main { min-width: 0; }
   .uc-wing {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 12px;
     color: var(--onyx-700);
     margin-bottom: 3px;
   }
   .uc-beds {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 10px;
     letter-spacing: 0.04em;
     color: var(--taupe-400);
@@ -483,13 +478,13 @@
     white-space: nowrap;
   }
   .uc-carpet .num {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-weight: 500; font-size: 21px; line-height: 1;
     color: var(--gold-500);
   }
   .uc-carpet .unit-lbl {
     display: block; margin-top: 4px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 7.5px;
     letter-spacing: 0.32em; text-transform: uppercase;
     color: var(--taupe-400);
@@ -498,7 +493,7 @@
   .rail-empty {
     padding: 40px 8px;
     text-align: center;
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: italic; font-size: 16px;
     color: var(--taupe-400);
   }
@@ -529,6 +524,59 @@
   /* Tab S7 / 65" handled by the stage scaler (contain). The 1440×900
      stage is the single source of truth; the scaler fits it to any
      4:3 / 16:10 / 16:9 viewport without reflow. */
+
+  /* ── Plate zoom (HD floor plate · pinch / wheel / drag / double-tap) ── */
+  .plate-card { touch-action: none; }
+  .plate-card.is-zoomed  { cursor: grab; }
+  .plate-card.is-grabbing { cursor: grabbing; }
+  #plateWrap {
+    position: relative; display: block;
+    transform-origin: center center;
+    container-type: inline-size;
+    transition: transform 200ms cubic-bezier(.2,.7,.2,1);
+  }
+  /* will-change only while actively manipulating — keeps the zoomed HD plate crisp at rest */
+  #plateWrap.is-dragging { transition: none; will-change: transform; }
+  /* North / South wing highlight (shown on typical floor plates) */
+  .wing-hl { position: absolute; border-radius: 5px; pointer-events: none; opacity: 0; transition: opacity 320ms ease; }
+  .wing-hl .wl {
+    position: absolute; top: 4%; left: 6%;
+    font-family: 'Lato', sans-serif; font-weight: 700;
+    font-size: clamp(7px, 2.2cqw, 17px);
+    letter-spacing: 0.16em; text-transform: uppercase;
+    padding: 0.25em 0.6em; border-radius: 999px; line-height: 1; white-space: nowrap;
+  }
+  .wing-n { left: 4%; top: 21%; width: 40%; height: 56%; border: 2px solid rgba(47,90,120,0.92); background: rgba(47,90,120,0.15); }
+  .wing-n .wl { background: rgba(47,90,120,0.94); color: #F4F2ED; }
+  .wing-s { left: 56%; top: 21%; width: 40%; height: 56%; border: 2px solid rgba(148,111,56,0.95); background: rgba(148,111,56,0.16); }
+  .wing-s .wl { background: var(--gold-500); color: var(--paper); }
+  #plateWrap.show-both .wing-n, #plateWrap.show-both .wing-s { opacity: 1; }
+  .plate-zoom {
+    position: absolute; bottom: 16px; right: 16px; z-index: 5;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .plate-zbtn {
+    width: 34px; height: 34px; border-radius: 999px;
+    background: rgba(252,250,244,0.92); border: 1px solid var(--hair);
+    color: var(--gold-500); font-family: 'Lato', sans-serif; font-weight: 400;
+    font-size: 17px; line-height: 1; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(40,28,10,0.08);
+    transition: background 200ms ease, color 200ms ease, border-color 200ms ease, transform 160ms ease;
+    -webkit-tap-highlight-color: transparent; -webkit-appearance: none; appearance: none;
+  }
+  .plate-zbtn:hover { background: var(--paper); color: var(--onyx-700); border-color: var(--hair-hi); }
+  .plate-zbtn:active { transform: scale(0.92); }
+  .plate-zbtn.plate-zfit { font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700; color: var(--taupe-400); }
+  .plate-zpct {
+    position: absolute; bottom: 18px; right: 60px; z-index: 5;
+    font-family: 'Lato', sans-serif; font-weight: 600; font-size: 9px;
+    letter-spacing: 0.22em; color: var(--taupe-400);
+    background: rgba(252,250,244,0.85); border: 1px solid var(--hair-lo);
+    padding: 5px 9px; border-radius: 999px; font-variant-numeric: tabular-nums;
+    opacity: 0; transition: opacity 220ms ease; pointer-events: none;
+  }
+  .plate-zpct.is-on { opacity: 1; }
 </style>
 
 <script>
@@ -544,6 +592,11 @@
         vh = Math.min(vh, window.visualViewport.height);
       }
       const s = Math.min(vw / W, vh / H);
+      // FULL-SCREEN FILL: grow the stage to exactly cover the viewport. Uniform
+      // scale (no distortion); design dims stay >= 1440x900 so no content is
+      // cropped; the surplus is breathing room around the anchored chrome.
+      stage.style.width  = Math.ceil(vw / s) + 'px';
+      stage.style.height = Math.ceil(vh / s) + 'px';
       const t = 'scale(' + s + ')';
       stage.style.transform = t;
       stage.style.webkitTransform = t;
@@ -589,6 +642,26 @@
 <!-- PWA-BLOCK-END -->
 </head>
 <body>
+<script>
+  /* LOCAL PREVIEW GUARD — on localhost, never let a stale service worker /
+     cache mask live edits. Production (real domain) is unaffected. */
+  (function () {
+    var h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0' || h === '') {
+      window.__EC_LOCAL = true;
+      try {
+        if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
+          navigator.serviceWorker.getRegistrations().then(function (rs) {
+            rs.forEach(function (r) { r.unregister(); });
+          }).catch(function () {});
+        }
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
+        }
+      } catch (e) {}
+    }
+  })();
+</script>
 
 <!-- Embassy Citadel wordmark — same SVG symbol as home -->
 <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -630,7 +703,11 @@
         </div>
 
         <div class="plate-card">
-          <img class="plate-img" id="plateImg" alt="" decoding="async">
+          <span class="plan-wrap" id="plateWrap">
+            <img class="plate-img" id="plateImg" alt="" decoding="async">
+            <span class="wing-hl wing-n"><span class="wl">North</span></span>
+            <span class="wing-hl wing-s"><span class="wl">South</span></span>
+          </span>
           <div class="plate-compass" aria-hidden="true">
             <span class="n">N</span>
             <span class="needle"></span>
@@ -638,6 +715,12 @@
           <div class="plate-band">
             <span class="lbl">Plate</span>
             <span class="val" id="plateBand">—</span>
+          </div>
+          <div class="plate-zpct" id="plZpct">100%</div>
+          <div class="plate-zoom" aria-label="Plan zoom">
+            <button class="plate-zbtn" id="plZin"  type="button" aria-label="Zoom in">+</button>
+            <button class="plate-zbtn" id="plZout" type="button" aria-label="Zoom out">−</button>
+            <button class="plate-zbtn plate-zfit" id="plZfit" type="button" aria-label="Fit">Fit</button>
           </div>
         </div>
       </section>
@@ -662,59 +745,71 @@
 </div>
 
 <script>
-  // ── 1 · Read the selected floor (sessionStorage; default 45) ─────
-  var lvl = parseInt(sessionStorage.getItem('ec.floor') || '45', 10);
-  if (!(lvl >= 1 && lvl <= 79)) lvl = 45;
+  // ── 1 · Read the selected section + floor (sessionStorage) ───────
+  var rawFloor = sessionStorage.getItem('ec.floor') || '45';
+  var section  = sessionStorage.getItem('ec.section') || 'residential';
+  var lvlNum   = parseInt(rawFloor, 10);
+  var lvl      = (lvlNum >= 1 && lvlNum <= 79) ? lvlNum : (isNaN(lvlNum) ? 0 : lvlNum);
+  var displayFloor = isNaN(lvlNum) ? rawFloor : String(lvlNum);
 
   var INV = window.EC_INV || null;
+  var hasUnits = INV ? INV.sectionHasUnits(section) : true;
 
-  // ── 2 · HERO — full typical floor plate ──────────────────────────
-  function nearestTypical(level) {
-    // floorToTypical can return null for some levels (e.g. 19/34/48 are
-    // refuge-only, or 41/55/70). Fall back to the band whose floor list
-    // is numerically closest so the hero always shows a full plate.
-    if (!INV) return null;
-    var direct = INV.floorToTypical(level);
-    if (direct) return direct;
-    var best = null, bestDist = Infinity;
-    (INV.TYPICAL || []).forEach(function (p) {
-      (p.floors || []).forEach(function (f) {
-        var d = Math.abs(f - level);
-        if (d < bestDist) { bestDist = d; best = p; }
-      });
-    });
-    return best;
-  }
-
+  // ── 2 · HERO — exact plan for THIS section + floor (no fuzzy match) ─
   (function paintHero() {
-    document.getElementById('heroLvl').textContent = String(lvl);
-    var plate = nearestTypical(lvl);
+    document.getElementById('heroLvl').textContent = displayFloor;
+    var plan = INV ? INV.planFor(section, rawFloor) : null;
     var img = document.getElementById('plateImg');
     var band = document.getElementById('plateBand');
-    if (plate && plate.file) {
-      img.src = plate.file;
-      img.alt = 'Embassy Citadel — full floor plate for floor ' + lvl;
-      // Band label: "Floors 43–47" style, derived from the band string.
-      var bandTxt = (plate.band || '').replace(/-/g, '–').replace(/\+/g, ' · ');
-      band.textContent = bandTxt ? ('Floors ' + bandTxt) : ('Floor ' + lvl);
-      // If the matched plate isn't this exact floor's typical, note kind.
-      if (plate.kind === 'refuge') band.textContent = 'Refuge · ' + (bandTxt || lvl);
+    if (plan && plan.file) {
+      img.style.display = '';
+      img.src = plan.file;
+      img.alt = 'Embassy Citadel — plan for ' + section + ' ' + displayFloor;
+      if (plan.label) {
+        band.textContent = plan.label;                       // amenity/parking/basement/etc.
+      } else {
+        var bandTxt = (plan.band || '').replace(/-/g, '–').replace(/\+/g, ' · ');
+        band.textContent = bandTxt ? ('Floors ' + bandTxt) : ('Floor ' + displayFloor);
+        if (plan.kind === 'refuge') band.textContent = 'Refuge · ' + (bandTxt || displayFloor);
+      }
     } else {
       img.style.display = 'none';
-      band.textContent = 'Floor ' + lvl;
+      band.textContent = 'Plan pending';
     }
   })();
 
   // ── 3 · UNIT RAIL — selectable residences on this floor ──────────
-  function wingName(code) { return code.charAt(0) === 'N' ? 'North' : 'South'; }
+  function wingName(code) {
+    if (code === 'MN') return 'North Tower';
+    if (code === 'MS') return 'South Tower';
+    return code.charAt(0) === 'N' ? 'North' : 'South';
+  }
+  function isMansion(code) { return code === 'MN' || code === 'MS'; }
   function bedsLabel(n) { return n + ' Bedroom' + (n === 1 ? '' : 's'); }
 
+  function sectionNote() {
+    switch (section) {
+      case 'amenity':  return 'Amenity level — a shared floor. No individual residences here.';
+      case 'basement': return 'Basement level — parking & services. No individual residences.';
+      case 'parking':  return 'Parking podium — no individual residences on this level.';
+      case 'entrance': return 'Arrival lobby — no individual residences on this level.';
+      case 'service':  return 'Service floor — building plant. No individual residences.';
+      default:         return 'No residences listed for this floor.';
+    }
+  }
   function buildRail() {
     var scroll = document.getElementById('railScroll');
-    var units = INV ? INV.unitsOnFloor(lvl) : [];
 
+    // Non-residential sections: plan-only, no unit selection.
+    if (!hasUnits) {
+      scroll.innerHTML = '<div class="rail-empty">' + sectionNote() + '</div>';
+      document.getElementById('railTitle').textContent = 'Floor plan';
+      return;
+    }
+
+    var units = INV ? INV.unitsOnFloor(lvl) : [];
     if (!units.length) {
-      scroll.innerHTML = '<div class="rail-empty">No residences listed for this floor.</div>';
+      scroll.innerHTML = '<div class="rail-empty">' + sectionNote() + '</div>';
       document.getElementById('railTitle').textContent = 'Select a home';
       return;
     }
@@ -723,8 +818,8 @@
       units.length + (units.length === 1 ? ' residence' : ' residences');
 
     // Split into North / South groups, preserving N01..N03, S01..S03 order.
-    var north = units.filter(function (u) { return u.code.charAt(0) === 'N'; });
-    var south = units.filter(function (u) { return u.code.charAt(0) === 'S'; });
+    var north = units.filter(function (u) { return u.code === 'MN' || (u.code.charAt(0) === 'N' && u.code !== 'MS'); });
+    var south = units.filter(function (u) { return u.code === 'MS' || (u.code.charAt(0) === 'S'); });
 
     var html = '';
     function groupHtml(arr, label) {
@@ -734,8 +829,9 @@
         + '<div class="wing-label">' + label + '</div>'
         + rows + '</div>';
     }
-    html += groupHtml(north, 'North Wing');
-    html += groupHtml(south, 'South Wing');
+    var wingWord = (section === 'mansion') ? ' Tower' : ' Wing';
+    html += groupHtml(north, 'North' + wingWord);
+    html += groupHtml(south, 'South' + wingWord);
     scroll.innerHTML = html;
 
     // Wire selection on each card.
@@ -761,6 +857,21 @@
 
   function unitCardHtml(u) {
     var carpet = u.carpet || '—';
+    if (isMansion(u.code)) {
+      return ''
+        + '<button type="button" class="unit-card" data-code="' + u.code + '" '
+        +   'aria-label="' + wingName(u.code) + ' Mansion, triplex residence">'
+        +   '<span class="uc-code">' + (u.code === 'MN' ? 'N' : 'S') + '</span>'
+        +   '<span class="uc-main">'
+        +     '<span class="uc-wing">' + wingName(u.code) + ' Mansion</span>'
+        +     '<span class="uc-beds">Triplex \u00b7 3 levels</span>'
+        +   '</span>'
+        +   '<span class="uc-carpet">'
+        +     '<span class="num">' + bedsLabel(u.beds).replace(' Bedrooms','') + '</span>'
+        +     '<span class="unit-lbl">bedrooms</span>'
+        +   '</span>'
+        + '</button>';
+    }
     return ''
       + '<button type="button" class="unit-card" data-code="' + u.code + '" '
       +   'aria-label="' + u.code + ', ' + wingName(u.code) + ' wing, '
@@ -799,10 +910,91 @@
   }
 </script>
 
+<script>
+  /* Plate zoom controller — pinch / wheel / drag / double-tap + buttons.
+     Keeps the HD plan crisp (will-change toggled only during gestures). */
+  (function () {
+    var card = document.querySelector('.plate-card');
+    var img  = document.getElementById('plateImg');
+    var wrap = document.getElementById('plateWrap');
+    if (!card || !img || !wrap) return;
+    var pct = document.getElementById('plZpct');
+    var z = { s: 1, x: 0, y: 0 };
+    function apply(anim) {
+      wrap.style.transition = anim === false ? 'none' : '';
+      wrap.style.transform = 'translate(' + z.x + 'px,' + z.y + 'px) scale(' + z.s + ')';
+      card.classList.toggle('is-zoomed', z.s > 1.01);
+      if (pct) { pct.textContent = Math.round(z.s * 100) + '%'; pct.classList.toggle('is-on', z.s > 1.01); }
+    }
+    function clamp() {
+      var r = card.getBoundingClientRect();
+      var mx = Math.max(0, (r.width  * (z.s - 1)) / 2);
+      var my = Math.max(0, (r.height * (z.s - 1)) / 2);
+      z.x = Math.max(-mx, Math.min(mx, z.x));
+      z.y = Math.max(-my, Math.min(my, z.y));
+    }
+    function setS(n, anim) { z.s = Math.max(1, Math.min(4, n)); if (z.s <= 1.01) { z.x = 0; z.y = 0; } else clamp(); apply(anim); }
+    function reset() { z.s = 1; z.x = 0; z.y = 0; apply(false); }
+    document.getElementById('plZin').addEventListener('click', function () { setS(z.s + 0.4); });
+    document.getElementById('plZout').addEventListener('click', function () { setS(z.s - 0.4); });
+    document.getElementById('plZfit').addEventListener('click', reset);
+    card.addEventListener('wheel', function (e) { e.preventDefault(); setS(z.s + (e.deltaY < 0 ? 0.35 : -0.35), false); }, { passive: false });
+    card.addEventListener('dblclick', function () { if (z.s > 1.01) reset(); else { z.s = 2.2; clamp(); apply(true); } });
+    var pts = new Map(), panning = false, sx = 0, sy = 0, tx0 = 0, ty0 = 0, pinch = null;
+    card.addEventListener('pointerdown', function (e) {
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pts.size === 1 && z.s > 1.01) {
+        panning = true; sx = e.clientX; sy = e.clientY; tx0 = z.x; ty0 = z.y;
+        card.classList.add('is-grabbing'); wrap.classList.add('is-dragging');
+        try { card.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+    });
+    card.addEventListener('pointermove', function (e) {
+      if (!pts.has(e.pointerId)) return;
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pts.size === 2) {
+        panning = false;
+        var p = Array.from(pts.values());
+        var d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+        if (pinch == null) { pinch = { d: d, s: z.s }; wrap.classList.add('is-dragging'); }
+        else { setS(pinch.s * (d / pinch.d), false); }
+        return;
+      }
+      if (panning && z.s > 1.01) { z.x = tx0 + (e.clientX - sx); z.y = ty0 + (e.clientY - sy); clamp(); apply(false); }
+    });
+    function up(e) {
+      pts.delete(e.pointerId);
+      if (pts.size < 2) pinch = null;
+      if (pts.size === 0) { panning = false; card.classList.remove('is-grabbing'); wrap.classList.remove('is-dragging'); apply(true); try { card.releasePointerCapture(e.pointerId); } catch (_) {} }
+    }
+    card.addEventListener('pointerup', up);
+    card.addEventListener('pointercancel', up);
+    card.addEventListener('pointerleave', up);
+    function fitWrap() {                                   // size wrap = image box (so wing overlays align)
+      if (!img.naturalWidth || !img.naturalHeight) return;
+      var pad = 22;
+      var cw = card.clientWidth - pad * 2, ch = card.clientHeight - pad * 2;
+      if (cw <= 0 || ch <= 0) return;
+      var ar = img.naturalWidth / img.naturalHeight;
+      var w = cw, h = cw / ar;
+      if (h > ch) { h = ch; w = ch * ar; }
+      wrap.style.width = Math.round(w) + 'px';
+      wrap.style.height = Math.round(h) + 'px';
+    }
+    img.addEventListener('load', function () {            // reset zoom + size + align wing overlay on each new plan
+      reset();
+      fitWrap();
+      var src = img.getAttribute('src') || '';
+      wrap.classList.toggle('show-both', /typical-lvl-/.test(src));   // wings only on typical floor plates
+    });
+    window.addEventListener('resize', fitWrap);
+    if (img.complete) { reset(); fitWrap(); var s0 = img.getAttribute('src') || ''; wrap.classList.toggle('show-both', /typical-lvl-/.test(s0)); }
+  })();
+</script>
 <!-- PWA-JS-START -->
 <script>
   // Service worker registration (PWA + offline cache)
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
     window.addEventListener('load', function() {
       var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});

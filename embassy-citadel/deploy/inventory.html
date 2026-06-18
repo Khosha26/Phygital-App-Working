@@ -23,7 +23,7 @@
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet" />
 <style>
   :root {
     --paper: #FCFAF4; --bone: #F4F2ED; --bone-50: #F7F5EF; --bone-200: #E8E2D6;
@@ -37,7 +37,7 @@
   html, body {
     margin: 0; padding: 0; width: 100%; height: 100%;
     background: var(--paper); color: var(--onyx-700);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     -webkit-user-select: none; user-select: none;
     -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none;
@@ -49,7 +49,7 @@
   #stage-wrap {
     position: fixed; inset: 0; overflow: hidden;
     display: flex; align-items: center; justify-content: center;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: 0;   /* edge-to-edge — stage fills the whole viewport */
     isolation: isolate;
     background: url('assets/bg-paper.png') center/cover no-repeat, var(--paper);
   }
@@ -61,8 +61,6 @@
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
-    will-change: transform;
-    -webkit-backface-visibility: hidden; backface-visibility: hidden;
     background: transparent;
     pointer-events: none;           /* chrome re-enables below; gaps pass to tower */
   }
@@ -98,21 +96,21 @@
     to   { opacity: 1; transform: translateY(0); }
   }
   .inv-head .eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500); opacity: 0.85;
   }
   .inv-head .title {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic; font-weight: 400;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
+     font-weight: 400;
     font-size: 46px; line-height: 1.02;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.02em;
     color: var(--onyx-700);
     text-shadow: 0 1px 0 rgba(255,255,255,0.4);
   }
   .inv-head .sub {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 11px;
     letter-spacing: 0.28em; text-transform: uppercase;
     color: var(--taupe-400);
@@ -184,6 +182,7 @@
     pointer-events: auto;
   }
 
+
   /* auto-glow loop — solid bands breathe 10%↔60% on their own */
   @keyframes sectPulse { 0%, 100% { opacity: 0.10; } 50% { opacity: 0.60; } }
   .sect[data-type="mansion"]     .sect-fill, .sect[data-type="mansion"]     .sect-glow { animation-delay: 0s; }
@@ -216,13 +215,13 @@
   .lbl-grp { pointer-events: none; }
   .lbl-grp .lbl-swatch { rx: 2; }
   .lbl-grp .lbl-name {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 27px;
     letter-spacing: 0.5px;
     fill: var(--onyx-700);
   }
   .lbl-grp .lbl-kicker {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 17px;
     letter-spacing: 3px; text-transform: uppercase;
     fill: var(--taupe-400);
@@ -254,7 +253,7 @@
     to   { opacity: 1; transform: translateY(-50%) translateX(0); }
   }
   .legend-title {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -278,7 +277,7 @@
     transition: transform 200ms ease, box-shadow 200ms ease;
   }
   .legend-row .nm {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 12.5px;
     letter-spacing: 0.01em;
     color: var(--onyx-100);
@@ -286,7 +285,7 @@
   }
   .legend-row .ct {
     margin-left: auto;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.04em;
     color: var(--taupe-400);
@@ -306,7 +305,7 @@
   .legend-hint {
     margin-top: 12px; padding-top: 10px;
     border-top: 1px solid var(--hair-lo);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 9px;
     letter-spacing: 0.28em; text-transform: uppercase;
     color: var(--taupe-400);
@@ -340,7 +339,7 @@
     background: rgba(252, 250, 244, 0.72);
     border: 1px solid var(--hair);
     color: var(--gold-500);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.42em; text-transform: uppercase;
     text-decoration: none; cursor: pointer;
@@ -359,7 +358,7 @@
     user-select: none; -webkit-user-select: none;
     touch-action: manipulation;
   }
-  .brand-wordmark { width: 130px; height: 36px; color: var(--onyx-700); }
+  .brand-wordmark { width: 156px; height: 43.2px; color: var(--onyx-700); }
   .brand-wordmark svg { width: 100%; height: 100%; display: block; }
 
   /* ── Veil (cream fade) ────────────────────────────────────────── */
@@ -392,6 +391,11 @@
         vh = Math.min(vh, window.visualViewport.height);
       }
       const s = Math.min(vw / W, vh / H);
+      // FULL-SCREEN FILL: grow the stage to exactly cover the viewport. Uniform
+      // scale (no distortion); design dims stay >= 1440x900 so no content is
+      // cropped; the surplus is breathing room around the anchored chrome.
+      stage.style.width  = Math.ceil(vw / s) + 'px';
+      stage.style.height = Math.ceil(vh / s) + 'px';
       const t = 'scale(' + s + ')';
       stage.style.transform = t;
       stage.style.webkitTransform = t;
@@ -436,6 +440,26 @@
 <!-- PWA-BLOCK-END -->
 </head>
 <body>
+<script>
+  /* LOCAL PREVIEW GUARD — on localhost, never let a stale service worker /
+     cache mask live edits. Production (real domain) is unaffected. */
+  (function () {
+    var h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0' || h === '') {
+      window.__EC_LOCAL = true;
+      try {
+        if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
+          navigator.serviceWorker.getRegistrations().then(function (rs) {
+            rs.forEach(function (r) { r.unregister(); });
+          }).catch(function () {});
+        }
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
+        }
+      } catch (e) {}
+    }
+  })();
+</script>
 
 <!-- Embassy Citadel wordmark symbol (top-left back button) -->
 <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -467,26 +491,30 @@
             <rect x="0" y="0" width="2752" height="2064" fill="url(#featherMask)" style="mix-blend-mode:multiply"/>
           </mask>
           <!-- Per-type gradients -->
+          <!-- Palette = the client diagram legend (exact hues). -->
           <linearGradient id="g-mansion" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#C0392B"/><stop offset="1" stop-color="#E67E22"/>
+            <stop offset="0" stop-color="#fdd9c9"/><stop offset="1" stop-color="#f7b69c"/>
           </linearGradient>
           <linearGradient id="g-residential" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#E67E22"/><stop offset="1" stop-color="#F1C40F"/>
+            <stop offset="0" stop-color="#fffce8"/><stop offset="1" stop-color="#fdf09a"/>
           </linearGradient>
           <linearGradient id="g-refuge" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#16A085"/><stop offset="1" stop-color="#2ECC71"/>
+            <stop offset="0" stop-color="#a9e6c6"/><stop offset="1" stop-color="#2faa6a"/>
           </linearGradient>
           <linearGradient id="g-amenity" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#C0398A"/><stop offset="1" stop-color="#E8788F"/>
+            <stop offset="0" stop-color="#fde0df"/><stop offset="1" stop-color="#f7bab9"/>
           </linearGradient>
           <linearGradient id="g-parking" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#2E6FC4"/><stop offset="1" stop-color="#36C6D3"/>
+            <stop offset="0" stop-color="#fff1e6"/><stop offset="1" stop-color="#fcd6b6"/>
           </linearGradient>
           <linearGradient id="g-entrance" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#7DBE3C"/><stop offset="1" stop-color="#B7E27A"/>
+            <stop offset="0" stop-color="#eef8f1"/><stop offset="1" stop-color="#cbe7d5"/>
           </linearGradient>
           <linearGradient id="g-basement" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#4B4FB0"/><stop offset="1" stop-color="#8E5BC9"/>
+            <stop offset="0" stop-color="#ecf3fb"/><stop offset="1" stop-color="#c6dcf3"/>
+          </linearGradient>
+          <linearGradient id="g-service" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#bdbdbd"/><stop offset="1" stop-color="#8c8c8c"/>
           </linearGradient>
           <!-- (Animated feGaussianBlur glow removed — it re-rendered the blur
                every frame on the Tab and caused the flicker. Glow is now a cheap
@@ -498,9 +526,10 @@
              visible; the feather hides the letterboxed margins seamlessly. -->
         <g mask="url(#sceneFeather)">
           <image class="tower-base" x="0" y="0" width="2752" height="2064"
-                 href="assets/inventory/tower-types.webp"
+                 href="assets/inventory/tower-types-v2.webp"
                  preserveAspectRatio="xMidYMid meet"></image>
         </g>
+
 
         <!-- ── SECTION BUTTONS — exact coords from inventory-types.svg ──
              Each group: glow (blurred dup) + gradient fill + bronze edge
@@ -509,61 +538,66 @@
         <!-- MANSION (cls-7, top) -->
         <g class="sect" data-type="mansion" id="sect-mansion">
           <polygon class="sect-glow" fill="url(#g-mansion)"
-            points="1177.66 495.71 1424.85 329.98 1442.7 320.63 1526.47 447.23 1526.47 389.45 1441.85 243.32 1429.1 258.18 1422.31 247.99 1330.55 323.61 1328 369.51 1294.86 396.67 1271.92 369.51 1183.56 444.25 1186.96 453.6 1177.66 457.85 1177.66 495.71"/>
+            points="1177.66 510.71 1427.62 346.53 1445.79 337.01 1526.47 454.83 1526.47 397.05 1443.27 244.84 1428.54 254.66 1422.71 246.37 1327.61 324.3 1328 377.11 1295.42 396.42 1274.14 370.28 1183.94 443.85 1188 449.53 1188.41 460.54 1177.66 465.45 1177.66 510.71"/>
           <polygon class="sect-fill" fill="url(#g-mansion)"
-            points="1177.66 495.71 1424.85 329.98 1442.7 320.63 1526.47 447.23 1526.47 389.45 1441.85 243.32 1429.1 258.18 1422.31 247.99 1330.55 323.61 1328 369.51 1294.86 396.67 1271.92 369.51 1183.56 444.25 1186.96 453.6 1177.66 457.85 1177.66 495.71"/>
+            points="1177.66 510.71 1427.62 346.53 1445.79 337.01 1526.47 454.83 1526.47 397.05 1443.27 244.84 1428.54 254.66 1422.71 246.37 1327.61 324.3 1328 377.11 1295.42 396.42 1274.14 370.28 1183.94 443.85 1188 449.53 1188.41 460.54 1177.66 465.45 1177.66 510.71"/>
           <polygon class="sect-edge"
-            points="1177.66 495.71 1424.85 329.98 1442.7 320.63 1526.47 447.23 1526.47 389.45 1441.85 243.32 1429.1 258.18 1422.31 247.99 1330.55 323.61 1328 369.51 1294.86 396.67 1271.92 369.51 1183.56 444.25 1186.96 453.6 1177.66 457.85 1177.66 495.71"/>
+            points="1177.66 510.71 1427.62 346.53 1445.79 337.01 1526.47 454.83 1526.47 397.05 1443.27 244.84 1428.54 254.66 1422.71 246.37 1327.61 324.3 1328 377.11 1295.42 396.42 1274.14 370.28 1183.94 443.85 1188 449.53 1188.41 460.54 1177.66 465.45 1177.66 510.71"/>
           <polygon class="sect-hit" role="button" tabindex="0" aria-label="Mansion Level"
-            points="1177.66 495.71 1424.85 329.98 1442.7 320.63 1526.47 447.23 1526.47 389.45 1441.85 243.32 1429.1 258.18 1422.31 247.99 1330.55 323.61 1328 369.51 1294.86 396.67 1271.92 369.51 1183.56 444.25 1186.96 453.6 1177.66 457.85 1177.66 495.71"/>
+            points="1177.66 510.71 1427.62 346.53 1445.79 337.01 1526.47 454.83 1526.47 397.05 1443.27 244.84 1428.54 254.66 1422.71 246.37 1327.61 324.3 1328 377.11 1295.42 396.42 1274.14 370.28 1183.94 443.85 1188 449.53 1188.41 460.54 1177.66 465.45 1177.66 510.71"/>
         </g>
 
         <!-- RESIDENTIAL (cls-4) -->
         <g class="sect" data-type="residential" id="sect-residential">
           <polygon class="sect-glow" fill="url(#g-residential)"
-            points="1177.66 900.34 1427.41 784.05 1452.17 784.05 1526.47 842.2 1526.47 471.8 1445.71 343.67 1427.41 349.06 1177.66 517.03 1177.66 900.34"/>
+            points="1177.66 900.34 1427.41 784.05 1452.17 784.05 1526.47 842.2 1526.47 475.8 1445.71 355.67 1427.41 360.06 1177.66 528.03 1177.66 900.34"/>
           <polygon class="sect-fill" fill="url(#g-residential)"
-            points="1177.66 900.34 1427.41 784.05 1452.17 784.05 1526.47 842.2 1526.47 471.8 1445.71 343.67 1427.41 349.06 1177.66 517.03 1177.66 900.34"/>
+            points="1177.66 900.34 1427.41 784.05 1452.17 784.05 1526.47 842.2 1526.47 475.8 1445.71 355.67 1427.41 360.06 1177.66 528.03 1177.66 900.34"/>
           <polygon class="sect-edge"
-            points="1177.66 900.34 1427.41 784.05 1452.17 784.05 1526.47 842.2 1526.47 471.8 1445.71 343.67 1427.41 349.06 1177.66 517.03 1177.66 900.34"/>
+            points="1177.66 900.34 1427.41 784.05 1452.17 784.05 1526.47 842.2 1526.47 475.8 1445.71 355.67 1427.41 360.06 1177.66 528.03 1177.66 900.34"/>
           <polygon class="sect-hit" role="button" tabindex="0" aria-label="Residential Floor"
-            points="1177.66 900.34 1427.41 784.05 1452.17 784.05 1526.47 842.2 1526.47 471.8 1445.71 343.67 1427.41 349.06 1177.66 517.03 1177.66 900.34"/>
+            points="1177.66 900.34 1427.41 784.05 1452.17 784.05 1526.47 842.2 1526.47 475.8 1445.71 355.67 1427.41 360.06 1177.66 528.03 1177.66 900.34"/>
         </g>
 
-        <!-- REFUGE — upper (cls-5) -->
-        <g class="sect" data-type="refuge" data-refuge="1" id="sect-refuge-upper">
-          <polygon class="sect-glow" fill="url(#g-refuge)"
-            points="1177.66 1313.81 1423.1 1261.05 1448.94 1261.05 1526.47 1303.04 1525.39 890.65 1526.47 873.42 1452.17 806.67 1428.48 806.67 1177.66 920.8 1177.66 1313.81"/>
-          <polygon class="sect-fill" fill="url(#g-refuge)"
-            points="1177.66 1313.81 1423.1 1261.05 1448.94 1261.05 1526.47 1303.04 1525.39 890.65 1526.47 873.42 1452.17 806.67 1428.48 806.67 1177.66 920.8 1177.66 1313.81"/>
+        <!-- RESIDENTIAL — mid band (was mislabelled refuge) -->
+        <g class="sect" data-type="residential" id="sect-residential-2">
+          <polygon class="sect-glow" fill="url(#g-residential)"
+            points="1177.66 1313.81 1423.1 1261.05 1448.94 1261.05 1526.47 1303.04 1526.47 890.46 1526.47 861.32 1452.17 806.67 1428.48 806.67 1177.66 920.8 1177.66 1313.81"/>
+          <polygon class="sect-fill" fill="url(#g-residential)"
+            points="1177.66 1313.81 1423.1 1261.05 1448.94 1261.05 1526.47 1303.04 1526.47 890.46 1526.47 861.32 1452.17 806.67 1428.48 806.67 1177.66 920.8 1177.66 1313.81"/>
           <polygon class="sect-edge"
-            points="1177.66 1313.81 1423.1 1261.05 1448.94 1261.05 1526.47 1303.04 1525.39 890.65 1526.47 873.42 1452.17 806.67 1428.48 806.67 1177.66 920.8 1177.66 1313.81"/>
-          <polygon class="sect-hit" role="button" tabindex="0" aria-label="Refuge Area"
-            points="1177.66 1313.81 1423.1 1261.05 1448.94 1261.05 1526.47 1303.04 1525.39 890.65 1526.47 873.42 1452.17 806.67 1428.48 806.67 1177.66 920.8 1177.66 1313.81"/>
+            points="1177.66 1313.81 1423.1 1261.05 1448.94 1261.05 1526.47 1303.04 1526.47 890.46 1526.47 861.32 1452.17 806.67 1428.48 806.67 1177.66 920.8 1177.66 1313.81"/>
+          <polygon class="sect-hit" role="button" tabindex="0" aria-label="Residential Floor"
+            points="1177.66 1313.81 1423.1 1261.05 1448.94 1261.05 1526.47 1303.04 1526.47 890.46 1526.47 861.32 1452.17 806.67 1428.48 806.67 1177.66 920.8 1177.66 1313.81"/>
         </g>
 
-        <!-- REFUGE — lower (cls-5) -->
-        <g class="sect" data-type="refuge" data-refuge="1" id="sect-refuge-lower">
-          <polygon class="sect-glow" fill="url(#g-refuge)"
-            points="1177.66 1475.31 1427.41 1439.78 1453.25 1439.78 1526.47 1466.7 1526.47 1326.73 1446.79 1289.04 1422.02 1289.04 1177.66 1331.03 1177.66 1475.31"/>
-          <polygon class="sect-fill" fill="url(#g-refuge)"
-            points="1177.66 1475.31 1427.41 1439.78 1453.25 1439.78 1526.47 1466.7 1526.47 1326.73 1446.79 1289.04 1422.02 1289.04 1177.66 1331.03 1177.66 1475.31"/>
+        <!-- RESIDENTIAL — lower band (was mislabelled refuge) -->
+        <g class="sect" data-type="residential" id="sect-residential-3">
+          <polygon class="sect-glow" fill="url(#g-residential)"
+            points="1178.66 1475.31 1427.41 1439.78 1453.25 1439.78 1526.47 1466.7 1526.47 1317.93 1446.82 1276.5 1425.94 1276.5 1177.66 1330.04 1178.66 1475.31"/>
+          <polygon class="sect-fill" fill="url(#g-residential)"
+            points="1178.66 1475.31 1427.41 1439.78 1453.25 1439.78 1526.47 1466.7 1526.47 1317.93 1446.82 1276.5 1425.94 1276.5 1177.66 1330.04 1178.66 1475.31"/>
           <polygon class="sect-edge"
-            points="1177.66 1475.31 1427.41 1439.78 1453.25 1439.78 1526.47 1466.7 1526.47 1326.73 1446.79 1289.04 1422.02 1289.04 1177.66 1331.03 1177.66 1475.31"/>
-          <polygon class="sect-hit" role="button" tabindex="0" aria-label="Refuge Area"
-            points="1177.66 1475.31 1427.41 1439.78 1453.25 1439.78 1526.47 1466.7 1526.47 1326.73 1446.79 1289.04 1422.02 1289.04 1177.66 1331.03 1177.66 1475.31"/>
+            points="1178.66 1475.31 1427.41 1439.78 1453.25 1439.78 1526.47 1466.7 1526.47 1317.93 1446.82 1276.5 1425.94 1276.5 1177.66 1330.04 1178.66 1475.31"/>
+          <polygon class="sect-hit" role="button" tabindex="0" aria-label="Residential Floor"
+            points="1178.66 1475.31 1427.41 1439.78 1453.25 1439.78 1526.47 1466.7 1526.47 1317.93 1446.82 1276.5 1425.94 1276.5 1177.66 1330.04 1178.66 1475.31"/>
         </g>
 
         <!-- AMENITY (cls-3) -->
         <g class="sect" data-type="amenity" id="sect-amenity">
           <polygon class="sect-glow" fill="url(#g-amenity)"
-            points="1177.66 1490.35 1424.67 1453.86 1449.93 1453.86 1527.12 1480.53 1536.41 1481.7 1525.15 1490.35 1526.17 1502.19 1536.41 1510.03 1525.15 1522.67 1536.41 1527.79 1550.75 1538.03 1550.75 1552.37 1557.86 1561.83 1557.86 1576.88 1478.48 1561.83 1179.7 1588.92 1177.66 1490.35"/>
+            points="1178.66 1490.35 1424.67 1453.86 1449.93 1453.86 1527.12 1480.53 1536.41 1481.7 1525.15 1490.35 1526.17 1502.19 1536.41 1510.03 1525.15 1522.67 1536.41 1527.79 1543.53 1532.87 1542.73 1540.81 1453.71 1521.39 1425.46 1521.39 1179.7 1548.92 1178.66 1490.35"/>
           <polygon class="sect-fill" fill="url(#g-amenity)"
-            points="1177.66 1490.35 1424.67 1453.86 1449.93 1453.86 1527.12 1480.53 1536.41 1481.7 1525.15 1490.35 1526.17 1502.19 1536.41 1510.03 1525.15 1522.67 1536.41 1527.79 1550.75 1538.03 1550.75 1552.37 1557.86 1561.83 1557.86 1576.88 1478.48 1561.83 1179.7 1588.92 1177.66 1490.35"/>
+            points="1178.66 1490.35 1424.67 1453.86 1449.93 1453.86 1527.12 1480.53 1536.41 1481.7 1525.15 1490.35 1526.17 1502.19 1536.41 1510.03 1525.15 1522.67 1536.41 1527.79 1543.53 1532.87 1542.73 1540.81 1453.71 1521.39 1425.46 1521.39 1179.7 1548.92 1178.66 1490.35"/>
           <polygon class="sect-edge"
-            points="1177.66 1490.35 1424.67 1453.86 1449.93 1453.86 1527.12 1480.53 1536.41 1481.7 1525.15 1490.35 1526.17 1502.19 1536.41 1510.03 1525.15 1522.67 1536.41 1527.79 1550.75 1538.03 1550.75 1552.37 1557.86 1561.83 1557.86 1576.88 1478.48 1561.83 1179.7 1588.92 1177.66 1490.35"/>
+            points="1178.66 1490.35 1424.67 1453.86 1449.93 1453.86 1527.12 1480.53 1536.41 1481.7 1525.15 1490.35 1526.17 1502.19 1536.41 1510.03 1525.15 1522.67 1536.41 1527.79 1543.53 1532.87 1542.73 1540.81 1453.71 1521.39 1425.46 1521.39 1179.7 1548.92 1178.66 1490.35"/>
           <polygon class="sect-hit" role="button" tabindex="0" aria-label="Amenity Floor"
-            points="1177.66 1490.35 1424.67 1453.86 1449.93 1453.86 1527.12 1480.53 1536.41 1481.7 1525.15 1490.35 1526.17 1502.19 1536.41 1510.03 1525.15 1522.67 1536.41 1527.79 1550.75 1538.03 1550.75 1552.37 1557.86 1561.83 1557.86 1576.88 1478.48 1561.83 1179.7 1588.92 1177.66 1490.35"/>
+            points="1178.66 1490.35 1424.67 1453.86 1449.93 1453.86 1527.12 1480.53 1536.41 1481.7 1525.15 1490.35 1526.17 1502.19 1536.41 1510.03 1525.15 1522.67 1536.41 1527.79 1543.53 1532.87 1542.73 1540.81 1453.71 1521.39 1425.46 1521.39 1179.7 1548.92 1178.66 1490.35"/>
+          <!-- amenity crown — small piece at the top -->
+          <polygon class="sect-glow" fill="url(#g-amenity)" points="1275.38 446.52 1275.38 421.2 1287.2 428.52 1287.2 386.33 1295.42 396.42 1328 377.11 1327.92 367.13 1328 411.96 1275.38 446.52"/>
+          <polygon class="sect-fill" fill="url(#g-amenity)" points="1275.38 446.52 1275.38 421.2 1287.2 428.52 1287.2 386.33 1295.42 396.42 1328 377.11 1327.92 367.13 1328 411.96 1275.38 446.52"/>
+          <polygon class="sect-edge" points="1275.38 446.52 1275.38 421.2 1287.2 428.52 1287.2 386.33 1295.42 396.42 1328 377.11 1327.92 367.13 1328 411.96 1275.38 446.52"/>
+          <polygon class="sect-hit" role="button" tabindex="0" aria-label="Amenity Floor" points="1275.38 446.52 1275.38 421.2 1287.2 428.52 1287.2 386.33 1295.42 396.42 1328 377.11 1327.92 367.13 1328 411.96 1275.38 446.52"/>
         </g>
 
         <!-- PARKING (cls-1, path) -->
@@ -602,6 +636,47 @@
             points="1165.68 1804.87 1165.68 1784.06 1280.93 1775.14 1420.77 1775.14 1575.98 1782.58 1575.98 1815.28 1423.84 1815.28 1271.71 1815.28 1165.68 1804.87"/>
         </g>
 
+        <!-- ── REFUGE FLOORS — 9 thin plates, drawn ON TOP of everything,
+             interactive as a single refuge band (all 9 light together). ── -->
+        <g class="sect" data-type="refuge" id="sect-refuge">
+          <polygon class="sect-glow" fill="url(#g-refuge)" points="1178.46 1446.42 1178.46 1433.44 1421.42 1387.13 1450.77 1388.13 1526.47 1418.78 1526.47 1433.51 1451.95 1404.74 1422.59 1404.16 1178.46 1446.42"/>
+          <polygon class="sect-glow" fill="url(#g-refuge)" points="1178.46 1343.45 1178.46 1330.47 1423.42 1276.16 1447.77 1276.16 1526.47 1315.81 1526.47 1330.54 1448.95 1290.77 1425.59 1290.18 1178.46 1343.45"/>
+          <polygon class="sect-glow" fill="url(#g-refuge)" points="1178.46 1246.52 1178.46 1233.54 1423.42 1179.22 1447.77 1179.22 1526.47 1218.87 1526.47 1233.6 1448.95 1193.83 1425.59 1193.25 1178.46 1246.52"/>
+          <polygon class="sect-glow" fill="url(#g-refuge)" points="1178.46 1134.83 1178.46 1121.85 1423.42 1054.54 1447.77 1054.54 1526.47 1107.19 1526.47 1121.92 1447.95 1068.15 1424.59 1067.56 1178.46 1134.83"/>
+          <polygon class="sect-glow" fill="url(#g-refuge)" points="1178.46 1016.59 1178.46 1003.61 1423.42 909.3 1447.77 909.3 1526.47 948.94 1526.47 963.68 1448.95 923.91 1425.59 923.32 1178.46 1016.59"/>
+          <polygon class="sect-glow" fill="url(#g-refuge)" points="1178.46 926.21 1178.46 913.23 1428.42 806.92 1452.77 806.92 1526.47 860.57 1526.47 874.3 1451.95 821.53 1428.59 820.95 1178.46 926.21"/>
+          <polygon class="sect-glow" fill="url(#g-refuge)" points="1178.46 762.15 1178.46 749.17 1425.81 617.85 1450.16 617.85 1526.47 696.5 1526.47 710.23 1449.95 631.47 1426.59 630.88 1178.46 762.15"/>
+          <polygon class="sect-glow" fill="url(#g-refuge)" points="1178.46 648.17 1178.46 635.19 1425.81 503.87 1450.16 503.87 1526.47 582.52 1526.47 596.25 1449.95 517.48 1426.59 516.9 1178.46 648.17"/>
+          <polygon class="sect-glow" fill="url(#g-refuge)" points="1178.06 541.25 1178.06 528.27 1427.01 361.18 1445.31 355.79 1526.07 475.6 1526.07 489.33 1444.66 373.63 1428.08 374.53 1178.06 541.25"/>
+          <polygon class="sect-fill" fill="url(#g-refuge)" points="1178.46 1446.42 1178.46 1433.44 1421.42 1387.13 1450.77 1388.13 1526.47 1418.78 1526.47 1433.51 1451.95 1404.74 1422.59 1404.16 1178.46 1446.42"/>
+          <polygon class="sect-fill" fill="url(#g-refuge)" points="1178.46 1343.45 1178.46 1330.47 1423.42 1276.16 1447.77 1276.16 1526.47 1315.81 1526.47 1330.54 1448.95 1290.77 1425.59 1290.18 1178.46 1343.45"/>
+          <polygon class="sect-fill" fill="url(#g-refuge)" points="1178.46 1246.52 1178.46 1233.54 1423.42 1179.22 1447.77 1179.22 1526.47 1218.87 1526.47 1233.6 1448.95 1193.83 1425.59 1193.25 1178.46 1246.52"/>
+          <polygon class="sect-fill" fill="url(#g-refuge)" points="1178.46 1134.83 1178.46 1121.85 1423.42 1054.54 1447.77 1054.54 1526.47 1107.19 1526.47 1121.92 1447.95 1068.15 1424.59 1067.56 1178.46 1134.83"/>
+          <polygon class="sect-fill" fill="url(#g-refuge)" points="1178.46 1016.59 1178.46 1003.61 1423.42 909.3 1447.77 909.3 1526.47 948.94 1526.47 963.68 1448.95 923.91 1425.59 923.32 1178.46 1016.59"/>
+          <polygon class="sect-fill" fill="url(#g-refuge)" points="1178.46 926.21 1178.46 913.23 1428.42 806.92 1452.77 806.92 1526.47 860.57 1526.47 874.3 1451.95 821.53 1428.59 820.95 1178.46 926.21"/>
+          <polygon class="sect-fill" fill="url(#g-refuge)" points="1178.46 762.15 1178.46 749.17 1425.81 617.85 1450.16 617.85 1526.47 696.5 1526.47 710.23 1449.95 631.47 1426.59 630.88 1178.46 762.15"/>
+          <polygon class="sect-fill" fill="url(#g-refuge)" points="1178.46 648.17 1178.46 635.19 1425.81 503.87 1450.16 503.87 1526.47 582.52 1526.47 596.25 1449.95 517.48 1426.59 516.9 1178.46 648.17"/>
+          <polygon class="sect-fill" fill="url(#g-refuge)" points="1178.06 541.25 1178.06 528.27 1427.01 361.18 1445.31 355.79 1526.07 475.6 1526.07 489.33 1444.66 373.63 1428.08 374.53 1178.06 541.25"/>
+          <polygon class="sect-edge" points="1178.46 1446.42 1178.46 1433.44 1421.42 1387.13 1450.77 1388.13 1526.47 1418.78 1526.47 1433.51 1451.95 1404.74 1422.59 1404.16 1178.46 1446.42"/>
+          <polygon class="sect-edge" points="1178.46 1343.45 1178.46 1330.47 1423.42 1276.16 1447.77 1276.16 1526.47 1315.81 1526.47 1330.54 1448.95 1290.77 1425.59 1290.18 1178.46 1343.45"/>
+          <polygon class="sect-edge" points="1178.46 1246.52 1178.46 1233.54 1423.42 1179.22 1447.77 1179.22 1526.47 1218.87 1526.47 1233.6 1448.95 1193.83 1425.59 1193.25 1178.46 1246.52"/>
+          <polygon class="sect-edge" points="1178.46 1134.83 1178.46 1121.85 1423.42 1054.54 1447.77 1054.54 1526.47 1107.19 1526.47 1121.92 1447.95 1068.15 1424.59 1067.56 1178.46 1134.83"/>
+          <polygon class="sect-edge" points="1178.46 1016.59 1178.46 1003.61 1423.42 909.3 1447.77 909.3 1526.47 948.94 1526.47 963.68 1448.95 923.91 1425.59 923.32 1178.46 1016.59"/>
+          <polygon class="sect-edge" points="1178.46 926.21 1178.46 913.23 1428.42 806.92 1452.77 806.92 1526.47 860.57 1526.47 874.3 1451.95 821.53 1428.59 820.95 1178.46 926.21"/>
+          <polygon class="sect-edge" points="1178.46 762.15 1178.46 749.17 1425.81 617.85 1450.16 617.85 1526.47 696.5 1526.47 710.23 1449.95 631.47 1426.59 630.88 1178.46 762.15"/>
+          <polygon class="sect-edge" points="1178.46 648.17 1178.46 635.19 1425.81 503.87 1450.16 503.87 1526.47 582.52 1526.47 596.25 1449.95 517.48 1426.59 516.9 1178.46 648.17"/>
+          <polygon class="sect-edge" points="1178.06 541.25 1178.06 528.27 1427.01 361.18 1445.31 355.79 1526.07 475.6 1526.07 489.33 1444.66 373.63 1428.08 374.53 1178.06 541.25"/>
+          <polygon class="sect-hit" role="button" tabindex="0" aria-label="Refuge Floors" points="1178.46 1446.42 1178.46 1433.44 1421.42 1387.13 1450.77 1388.13 1526.47 1418.78 1526.47 1433.51 1451.95 1404.74 1422.59 1404.16 1178.46 1446.42"/>
+          <polygon class="sect-hit" points="1178.46 1343.45 1178.46 1330.47 1423.42 1276.16 1447.77 1276.16 1526.47 1315.81 1526.47 1330.54 1448.95 1290.77 1425.59 1290.18 1178.46 1343.45"/>
+          <polygon class="sect-hit" points="1178.46 1246.52 1178.46 1233.54 1423.42 1179.22 1447.77 1179.22 1526.47 1218.87 1526.47 1233.6 1448.95 1193.83 1425.59 1193.25 1178.46 1246.52"/>
+          <polygon class="sect-hit" points="1178.46 1134.83 1178.46 1121.85 1423.42 1054.54 1447.77 1054.54 1526.47 1107.19 1526.47 1121.92 1447.95 1068.15 1424.59 1067.56 1178.46 1134.83"/>
+          <polygon class="sect-hit" points="1178.46 1016.59 1178.46 1003.61 1423.42 909.3 1447.77 909.3 1526.47 948.94 1526.47 963.68 1448.95 923.91 1425.59 923.32 1178.46 1016.59"/>
+          <polygon class="sect-hit" points="1178.46 926.21 1178.46 913.23 1428.42 806.92 1452.77 806.92 1526.47 860.57 1526.47 874.3 1451.95 821.53 1428.59 820.95 1178.46 926.21"/>
+          <polygon class="sect-hit" points="1178.46 762.15 1178.46 749.17 1425.81 617.85 1450.16 617.85 1526.47 696.5 1526.47 710.23 1449.95 631.47 1426.59 630.88 1178.46 762.15"/>
+          <polygon class="sect-hit" points="1178.46 648.17 1178.46 635.19 1425.81 503.87 1450.16 503.87 1526.47 582.52 1526.47 596.25 1449.95 517.48 1426.59 516.9 1178.46 648.17"/>
+          <polygon class="sect-hit" points="1178.06 541.25 1178.06 528.27 1427.01 361.18 1445.31 355.79 1526.07 475.6 1526.07 489.33 1444.66 373.63 1428.08 374.53 1178.06 541.25"/>
+        </g>
+
         <!-- ── LEADER LINES + DOTS + LABELS (from source cls-9 pointers) ──
              Right-side leaders: mansion, residential(upper res band area),
              refuge(lower right). Left-side leaders: residential(upper-left),
@@ -635,7 +710,7 @@
           <circle class="lead-dot" cx="1844.44" cy="1101.19" r="16.38"/>
           <g class="lbl-grp">
             <rect class="lbl-swatch" x="1872" y="1067" width="22" height="22" rx="3" fill="url(#g-refuge)"/>
-            <text class="lbl-name" x="1904" y="1086">Refuge Area</text>
+            <text class="lbl-name" x="1904" y="1086">Refuge Floors</text>
             <text class="lbl-kicker" x="1904" y="1113">Service / safety levels</text>
           </g>
         </g>
@@ -732,42 +807,42 @@
   window.EC_SECTIONS = {
     mansion: {
       key: 'mansion', name: 'Mansion Level', kicker: 'Sky residences',
-      from: '#C0392B', to: '#E67E22', glow: 'rgba(230,126,34,0.55)',
-      levels: [79, 78, 77, 76, 75, 74, 73, 72]
+      from: '#fdd9c9', to: '#f7b69c', glow: 'rgba(247,182,156,0.60)',
+      levels: [81, 80, 79]
     },
     residential: {
       key: 'residential', name: 'Residential Floor', kicker: 'Tower homes',
-      from: '#E67E22', to: '#F1C40F', glow: 'rgba(241,196,15,0.55)',
+      from: '#fffce8', to: '#fdf09a', glow: 'rgba(253,240,154,0.62)',
       levels: [71,69,68,67,66,65,64,62,61,60,59,58,57,54,53,52,51,50,49,47,46,45,44,43,42,40,39,38,37,36,35,33,32,31,30,29,28,25,24,23,22,21,20,18,17]
     },
     refuge: {
-      key: 'refuge', name: 'Refuge Area', kicker: 'Service / safety levels',
-      from: '#16A085', to: '#2ECC71', glow: 'rgba(46,204,113,0.55)',
-      levels: [70, 63, 55, 48, 41, 34, 26, 19]
+      key: 'refuge', name: 'Refuge Area', kicker: 'Code-mandated refuge levels',
+      from: '#a9e6c6', to: '#2faa6a', glow: 'rgba(47,170,106,0.62)',
+      levels: [77, 70, 63, 55, 48, 41, 34, 26, 19]
     },
     service: {
       key: 'service', name: 'Service Floor', kicker: 'Plant & utilities',
-      from: '#5D6D7E', to: '#AEB6BF', glow: 'rgba(174,182,191,0.55)',
-      levels: [11], legendOnly: true
+      from: '#bdbdbd', to: '#8c8c8c', glow: 'rgba(140,140,140,0.55)',
+      levels: [56, 27, 16, 11], legendOnly: true
     },
     amenity: {
       key: 'amenity', name: 'Amenity Floor', kicker: 'Clubs & wellness',
-      from: '#C0398A', to: '#E8788F', glow: 'rgba(232,120,143,0.55)',
+      from: '#fde0df', to: '#f7bab9', glow: 'rgba(247,186,185,0.60)',
       levels: [79, 15, 14, 13, 12, 10]
     },
     parking: {
       key: 'parking', name: 'Residential Parking', kicker: 'Podium decks',
-      from: '#2E6FC4', to: '#36C6D3', glow: 'rgba(54,198,211,0.55)',
+      from: '#fff1e6', to: '#fcd6b6', glow: 'rgba(252,214,182,0.60)',
       levels: ['P9','P8','P7','P6','P5','P4','P3','P2','P1']
     },
     entrance: {
       key: 'entrance', name: 'Double-Height Entrance', kicker: 'Ground arrival',
-      from: '#7DBE3C', to: '#B7E27A', glow: 'rgba(125,190,60,0.55)',
+      from: '#eef8f1', to: '#cbe7d5', glow: 'rgba(203,231,213,0.62)',
       levels: ['Ground']
     },
     basement: {
       key: 'basement', name: 'Basement Level', kicker: 'Lower decks',
-      from: '#4B4FB0', to: '#8E5BC9', glow: 'rgba(142,91,201,0.55)',
+      from: '#ecf3fb', to: '#c6dcf3', glow: 'rgba(198,220,243,0.62)',
       levels: ['B1','B2','B3']
     }
   };
@@ -800,7 +875,7 @@
       row.className = 'legend-row' + (s.legendOnly ? ' is-disabled' : '');
       row.dataset.type = k;
       row.style.setProperty('--glow', s.glow);
-      const count = s.legendOnly ? '—' : s.levels.length;
+      const count = s.levels.length;
       row.innerHTML =
         '<span class="sw" style="background:linear-gradient(135deg,' + s.from + ',' + s.to + ')"></span>' +
         '<span class="nm">' + s.name + '</span>' +
@@ -892,7 +967,7 @@
 <!-- PWA-JS-START -->
 <script>
   // Service worker registration (PWA + offline cache)
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
     window.addEventListener('load', function() {
       var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});

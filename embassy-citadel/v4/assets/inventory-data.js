@@ -3,3 +3,80 @@ window.EC_INV.floorToTypical=function(lvl){var t=this.TYPICAL.filter(function(p)
 window.EC_INV.unitsOnFloor=function(lvl){var by={};this.UNITS.forEach(function(u){if(u.floors.indexOf(lvl)>=0&&!by[u.code])by[u.code]=u;});return ['N01','N02','N03','S01','S02','S03'].map(function(c){return by[c];}).filter(Boolean);};
 window.EC_INV.unitBands=function(code){return this.UNITS.filter(function(u){return u.code===code;});};
 window.EC_INV.unitByCodeFloor=function(code,lvl){return this.UNITS.filter(function(u){return u.code===code&&u.floors.indexOf(lvl)>=0;})[0]||this.unitBands(code)[0]||null;};
+
+// ── Non-residential plans + a single resolver used across the flow ──────
+window.EC_INV.SECTION_PLANS = {
+  amenity: {
+    '79':'assets/floorplans-final/amenity/amenity-lvl-79.webp',
+    '15':'assets/floorplans-final/amenity/amenity-lvl-15.webp',
+    '14':'assets/floorplans-final/amenity/amenity-lvl-14.webp',
+    '13':'assets/floorplans-final/amenity/amenity-lvl-13.webp',
+    '12':'assets/floorplans-final/amenity/amenity-lvl-12.webp',
+    '10':'assets/floorplans-final/amenity/amenity-lvl-10.webp',
+    'Ground':'assets/floorplans-final/amenity/amenity-ground-floor.webp'
+  },
+  basement: {
+    'B1':'assets/floorplans/parking/basement-1.webp',
+    'B2':'assets/floorplans/parking/basement-2.webp',
+    'B3':'assets/floorplans/parking/basement-3.webp'
+  },
+  parking: {
+    'P1':'assets/floorplans/parking/parking-level-1.webp',
+    'P2':'assets/floorplans/parking/parking-level-2.webp',
+    'P3':'assets/floorplans/parking/parking-level-3-5-7.webp',
+    'P5':'assets/floorplans/parking/parking-level-3-5-7.webp',
+    'P7':'assets/floorplans/parking/parking-level-3-5-7.webp',
+    'P4':'assets/floorplans/parking/parking-level-4-6.webp',
+    'P6':'assets/floorplans/parking/parking-level-4-6.webp',
+    'P8':'assets/floorplans/parking/parking-level-8.webp',
+    'P9':'assets/floorplans/parking/parking-level-9.webp'
+  },
+  entrance: { 'Ground':'assets/floorplans-final/amenity/amenity-ground-floor.webp' },
+  mansion:  { '79':'assets/floorplans/mansion/mansion-entrance-level-79th.webp' }
+};
+// Sections that have NO individually-selectable residences (plan-only view).
+window.EC_INV.NO_UNIT_SECTIONS = ['amenity','basement','parking','entrance','service'];
+window.EC_INV.sectionHasUnits = function(section){
+  return this.NO_UNIT_SECTIONS.indexOf(section) < 0;
+};
+window.EC_INV._planLabel = function(section, key){
+  if (section==='amenity')  return key==='Ground' ? 'Amenity · Arrival' : 'Amenity · Level '+key;
+  if (section==='basement') return 'Basement · '+key;
+  if (section==='parking')  return 'Parking · '+key;
+  if (section==='entrance') return 'Arrival · Ground Lobby';
+  if (section==='mansion')  return 'Mansion · Level '+key;
+  return null;
+};
+// Resolve the EXACT plan for a section + floor (floor may be number or
+// string like 'P3','B1','Ground'). Returns {file,label,band,kind} or null.
+window.EC_INV.planFor = function(section, rawLvl){
+  var key = String(rawLvl);
+  var sp = this.SECTION_PLANS[section];
+  if (sp && sp[key]) return { file: sp[key], label: this._planLabel(section, key), kind: section };
+  var n = parseInt(key, 10);
+  if (!isNaN(n)) {
+    var t = this.floorToTypical(n);              // residential / refuge / mansion 72-76
+    if (t) return { file: t.file, band: t.band, kind: t.kind, label: null };
+  }
+  return null;                                    // honest: no fuzzy "nearest" mismatch
+};
+
+// ── MANSION residences: 2 triplexes (North/South Tower), 3 levels each ──
+window.EC_INV.UNITS.push(
+ {code:'MN',band:'MN-0',file:'assets/floorplans-final/mansion/mansion-north-l0.webp',carpet:'\u2014',beds:4,floors:[79],floorsLabel:'Level 0 \u00b7 79th',stem:'mansion-north-l0'},
+ {code:'MN',band:'MN-1',file:'assets/floorplans-final/mansion/mansion-north-l1.webp',carpet:'\u2014',beds:4,floors:[80],floorsLabel:'Level 1 \u00b7 80th',stem:'mansion-north-l1'},
+ {code:'MN',band:'MN-2',file:'assets/floorplans-final/mansion/mansion-north-l2.webp',carpet:'\u2014',beds:4,floors:[81],floorsLabel:'Level 2 \u00b7 81st',stem:'mansion-north-l2'},
+ {code:'MS',band:'MS-0',file:'assets/floorplans-final/mansion/mansion-south-l0.webp',carpet:'\u2014',beds:4,floors:[79],floorsLabel:'Level 0 \u00b7 79th',stem:'mansion-south-l0'},
+ {code:'MS',band:'MS-1',file:'assets/floorplans-final/mansion/mansion-south-l1.webp',carpet:'\u2014',beds:4,floors:[80],floorsLabel:'Level 1 \u00b7 80th',stem:'mansion-south-l1'},
+ {code:'MS',band:'MS-2',file:'assets/floorplans-final/mansion/mansion-south-l2.webp',carpet:'\u2014',beds:4,floors:[81],floorsLabel:'Level 2 \u00b7 81st',stem:'mansion-south-l2'}
+);
+// include mansion codes when listing residences on a floor
+window.EC_INV.unitsOnFloor=function(lvl){var by={};this.UNITS.forEach(function(u){if(u.floors.indexOf(lvl)>=0&&!by[u.code])by[u.code]=u;});return ['N01','N02','N03','S01','S02','S03','MN','MS'].map(function(c){return by[c];}).filter(Boolean);};
+// mansion floors -> shared mansion/amenity entrance plate for the floor-units hero
+window.EC_INV.SECTION_PLANS.mansion = {
+  '79':'assets/floorplans-final/mansion/mansion-entrance.webp',
+  '80':'assets/floorplans-final/mansion/mansion-entrance.webp',
+  '81':'assets/floorplans-final/mansion/mansion-entrance.webp'
+};
+window.EC_INV.MANSION_CODES = ['MN','MS'];
+window.EC_INV.isMansionCode = function(c){ return this.MANSION_CODES.indexOf(c) >= 0; };

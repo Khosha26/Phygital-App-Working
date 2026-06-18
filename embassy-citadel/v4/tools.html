@@ -25,7 +25,7 @@
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet" />
 <style>
   :root {
     --paper:      #FCFAF4;
@@ -72,7 +72,7 @@
     width: 100%; height: 100%;
     background: var(--paper);
     color: var(--onyx-700);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-user-select: none; user-select: none;
@@ -89,7 +89,7 @@
   #stage-wrap {
     position: fixed; inset: 0; overflow: hidden;
     display: flex; align-items: center; justify-content: center;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: 0;   /* edge-to-edge — stage fills the whole viewport */
     isolation: isolate;
     /* Flat paper — matches the stage's own paper edge so letterbox/pillarbox
        margins (iPad 4:3, 65" 16:9) blend with no visible "cut". */
@@ -103,8 +103,6 @@
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
-    will-change: transform;
-    -webkit-backface-visibility: hidden; backface-visibility: hidden;
   }
   .stage-bg {
     position: absolute; inset: 0;
@@ -148,7 +146,7 @@
   .ec-brand-back:hover { opacity: 0.78; transform: translateX(-1px); }
   .ec-brand-back:focus-visible { outline: none; opacity: 0.78; }
   .brand-wordmark {
-    width: 130px; height: 36px;
+    width: 156px; height: 43.2px;
     color: var(--onyx-700);
   }
   .brand-wordmark svg { width: 100%; height: 100%; display: block; }
@@ -161,7 +159,7 @@
     background: rgba(252, 250, 244, 0.72);
     border: 1px solid var(--hair);
     color: var(--gold-500);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.42em; text-transform: uppercase;
     text-decoration: none; cursor: pointer;
@@ -188,7 +186,7 @@
     gap: 12px;
   }
   .lr-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500);
@@ -246,7 +244,7 @@
   .tool-card .ic-wrap svg { width: 22px; height: 22px; display: block; }
   .tool-card .body { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
   .tool-card .title {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 11px;
     letter-spacing: 0.20em; text-transform: uppercase;
     color: var(--onyx-700);
@@ -254,7 +252,7 @@
   }
   .tool-card.is-active .title { color: var(--onyx-900); }
   .tool-card .sub {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 10.5px;
     line-height: 1.4;
     color: var(--taupe-400);
@@ -314,18 +312,18 @@
   }
   .page-title-wrap { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
   .page-title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
     font-weight: 400;     /* REGULAR — NOT italic, NOT bold */
     font-style: normal;
     font-size: 46px;
     line-height: 1;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.02em;
     color: var(--onyx-700);
     margin: 0;
   }
   .breadcrumb {
     display: flex; align-items: center; gap: 10px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 11px;
     letter-spacing: 0.22em; text-transform: uppercase;
     color: var(--onyx-100); opacity: 0.92;
@@ -362,7 +360,7 @@
     grid-template-columns: 14px 110px 1fr;
     align-items: center;
     column-gap: 8px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-size: 10px;
   }
   .info-row .ric { width: 12px; height: 12px; color: var(--gold-500); display: inline-flex; }
@@ -407,7 +405,7 @@
     overflow: hidden;
   }
   .sel-label {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 9px;
     letter-spacing: 0.36em; text-transform: uppercase;
     color: var(--gold-500);
@@ -421,7 +419,7 @@
     border: 1px solid var(--hair);
     background: var(--bone-50);
     border-radius: 10px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 12px;
     color: var(--onyx-700);
     cursor: pointer;
@@ -465,7 +463,7 @@
     border-radius: 14px;
     display: inline-flex; align-items: center; justify-content: center;
     padding: 0 8px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 12px;
     color: var(--onyx-300);
     cursor: pointer;
@@ -507,7 +505,7 @@
     border: 1px solid var(--hair);
     background: var(--paper);
     color: var(--onyx-700);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 11px;
     letter-spacing: 0.04em;
     cursor: pointer;
@@ -573,12 +571,12 @@
     background: linear-gradient(135deg, var(--gold-300) 0%, var(--gold-500) 100%);
     color: #FFFFFF;
     display: grid; place-items: center;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 16px;
     box-shadow: 0 2px 6px rgba(148,111,56,0.24);
   }
   .pb-head .label {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 11px;
     letter-spacing: 0.36em; text-transform: uppercase;
     color: var(--gold-500);
@@ -590,7 +588,7 @@
     flex: 1;
   }
   .pb-table thead th {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 9.5px;
     letter-spacing: 0.32em; text-transform: uppercase;
     color: var(--taupe-400);
@@ -601,7 +599,7 @@
   .pb-table thead th:first-child { text-align: left; padding-left: 0; }
   .pb-table thead th:last-child  { padding-right: 0; }
   .pb-table tbody td {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 12.5px;
     color: var(--onyx-700);
     padding: 10px 8px;
@@ -624,7 +622,7 @@
   .pb-table tbody tr.sub td:last-child { color: var(--copper); font-size: 14px; }
   .pb-table tbody tr.tax td { border-bottom: 1px solid var(--hair-lo); }
   .pb-table tbody tr.total td {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-style: normal;
     font-weight: 400;     /* REGULAR */
     font-size: 26px;
@@ -669,13 +667,13 @@
   .sm-item .sp-icon-circle svg { width: 20px; height: 20px; fill: currentColor; }
   .sm-item .text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .sm-item .k {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 8.5px;
     letter-spacing: 0.32em; text-transform: uppercase;
     color: var(--gold-500);
   }
   .sm-item .v {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 12.5px;
     color: var(--onyx-700);
     letter-spacing: 0.02em;
@@ -707,7 +705,7 @@
     border-bottom: 1px solid var(--hair-lo);
   }
   .calc-head .label {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 11px;
     letter-spacing: 0.32em; text-transform: uppercase;
     color: var(--gold-500);
@@ -718,12 +716,12 @@
     background: linear-gradient(135deg, var(--gold-300) 0%, var(--gold-500) 100%);
     color: #FFFFFF;
     display: grid; place-items: center;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 14px;
   }
   .calc-field { display: flex; flex-direction: column; gap: 6px; }
   .calc-field .k {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 9.5px;
     letter-spacing: 0.32em; text-transform: uppercase;
     color: var(--taupe-400);
@@ -738,7 +736,7 @@
   }
   .calc-field .prefix {
     padding: 0 12px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 12px;
     color: var(--gold-500);
     border-right: 1px solid var(--hair-lo);
@@ -750,7 +748,7 @@
     border: none; outline: none;
     background: transparent;
     padding: 0 14px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 13px;
     color: var(--onyx-700);
     font-variant-numeric: tabular-nums;
@@ -761,7 +759,7 @@
   .calc-field input::placeholder { color: var(--taupe-400); }
   .calc-field .suffix {
     padding: 0 12px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 11px;
     color: var(--taupe-400);
     border-left: 1px solid var(--hair-lo);
@@ -781,20 +779,20 @@
   }
   .calc-rrow:last-child { border-bottom: none; padding-top: 18px; }
   .calc-rrow .rk {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.32em; text-transform: uppercase;
     color: var(--taupe-400);
   }
   .calc-rrow .rv {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 16px;
     color: var(--onyx-700);
     font-variant-numeric: tabular-nums;
   }
   .calc-rrow.hero .rk { color: var(--copper); font-weight: 600; }
   .calc-rrow.hero .rv {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
     font-style: normal;
     font-size: 32px;
     color: var(--copper);
@@ -812,13 +810,13 @@
     gap: 18px;
   }
   .calc-side .eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 9px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--copper);
   }
   .calc-side h3 {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
     font-weight: 400;
     font-style: normal;
     font-size: 26px;
@@ -828,7 +826,7 @@
     line-height: 1.1;
   }
   .calc-side .desc {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-size: 11.5px;
     line-height: 1.55;
     color: var(--onyx-100);
@@ -843,13 +841,13 @@
     gap: 12px;
   }
   .slider-field .sf-label {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 9.5px;
     letter-spacing: 0.32em; text-transform: uppercase;
     color: var(--taupe-400);
   }
   .slider-field .sf-value {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 600; font-size: 13.5px;
     color: var(--onyx-700);
     font-variant-numeric: tabular-nums;
@@ -863,7 +861,7 @@
   }
   .slider-field .sf-bounds {
     display: flex; justify-content: space-between;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.24em; text-transform: uppercase;
     color: var(--taupe-400); opacity: 0.72;
@@ -974,6 +972,11 @@
         vh = Math.min(vh, window.visualViewport.height);
       }
       const s = Math.min(vw / W, vh / H);
+      // FULL-SCREEN FILL: grow the stage to exactly cover the viewport. Uniform
+      // scale (no distortion); design dims stay >= 1440x900 so no content is
+      // cropped; the surplus is breathing room around the anchored chrome.
+      stage.style.width  = Math.ceil(vw / s) + 'px';
+      stage.style.height = Math.ceil(vh / s) + 'px';
       const t = 'scale(' + s + ')';
       stage.style.transform = t;
       stage.style.webkitTransform = t;
@@ -1018,6 +1021,26 @@
 <!-- PWA-BLOCK-END -->
 </head>
 <body>
+<script>
+  /* LOCAL PREVIEW GUARD — on localhost, never let a stale service worker /
+     cache mask live edits. Production (real domain) is unaffected. */
+  (function () {
+    var h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0' || h === '') {
+      window.__EC_LOCAL = true;
+      try {
+        if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
+          navigator.serviceWorker.getRegistrations().then(function (rs) {
+            rs.forEach(function (r) { r.unregister(); });
+          }).catch(function () {});
+        }
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
+        }
+      } catch (e) {}
+    }
+  })();
+</script>
 
 <!-- Embassy Citadel wordmark -->
 <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -1784,7 +1807,7 @@
 <!-- PWA-JS-START -->
 <script>
   // Service worker registration (PWA + offline cache)
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
     window.addEventListener('load', function() {
       var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});

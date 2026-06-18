@@ -65,7 +65,7 @@
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet" />
 <style>
   :root {
     --paper:      #FCFAF4;
@@ -110,7 +110,7 @@
     width: 100%; height: 100%;
     background: var(--paper);
     color: var(--onyx-700);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-user-select: none; user-select: none;
@@ -127,7 +127,7 @@
   /* ── Stage scaler — flex-center letterbox ─────────────────────────── */
   #stage-wrap {
     position: fixed; inset: 0; overflow: hidden;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: 0;   /* edge-to-edge — stage fills the whole viewport */
     display: flex; align-items: center; justify-content: center;
     isolation: isolate;
     /* Flat paper — matches the stage's own paper edge so letterbox/pillarbox
@@ -150,9 +150,6 @@
     transform-origin: center center;
     transform: scale(1);
     overflow: hidden;
-    will-change: transform;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
   }
 
   .stage-bg {
@@ -257,12 +254,12 @@
   }
   .ec-brand-back .brand-text { display: flex; flex-direction: column; gap: 2px; line-height: 1; }
   .ec-brand-back .brand-text .name {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-weight: 500; font-size: 22px;
     color: var(--onyx-700); letter-spacing: 0.04em;
   }
   .ec-brand-back .brand-text .loc {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -276,7 +273,7 @@
     background: rgba(252, 250, 244, 0.72);
     border: 1px solid var(--hair);
     color: var(--gold-500);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 10px;
     letter-spacing: 0.42em; text-transform: uppercase;
     text-decoration: none; cursor: pointer;
@@ -314,7 +311,7 @@
     position: absolute;
     left: 100%; top: 50%;
     transform: translate(8px, -50%);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 8.5px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -328,13 +325,13 @@
     transform: translate(12px, -50%);
   }
   .brand-wordmark {
-    width: 130px; height: 36px;
+    width: 156px; height: 43.2px;
     color: var(--onyx-700);
     margin-top: -18px;
   }
   .brand-wordmark svg { width: 100%; height: 100%; display: block; }
   .top-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 9px;
     letter-spacing: 0.55em; text-transform: uppercase;
     color: var(--gold-500); opacity: 0.78;
@@ -342,7 +339,7 @@
   }
   .top-right {
     display: flex; align-items: center; gap: 14px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 10px;
     letter-spacing: 0.32em; text-transform: uppercase;
     color: var(--onyx-100); opacity: 0.78;
@@ -367,7 +364,7 @@
     z-index: 6;
   }
   .eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500);
@@ -375,11 +372,11 @@
     margin-bottom: 22px;
   }
   .display-h {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
     font-weight: 400;
     font-size: 56px;
     line-height: 0.98;
-    letter-spacing: -0.012em;
+    letter-spacing: 0.02em;
     color: var(--onyx-700);
     margin: 0;
   }
@@ -391,7 +388,7 @@
     margin: 22px 0 22px 0;
   }
   .body-p {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400;
     font-size: 13px;
     line-height: 1.65;
@@ -410,7 +407,7 @@
     background: var(--paper);
     border: 1px solid var(--hair);
     box-shadow: 0 6px 14px rgba(20,14,6,0.07);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 10px;
     letter-spacing: 0.32em;
@@ -535,7 +532,7 @@
   }
   .value .bubble svg { width: 26px; height: 26px; }
   .value .lbl {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 9px;
     letter-spacing: 0.35em;
@@ -555,22 +552,22 @@
     pointer-events: none;
   }
   .hero-caption .e {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 8.5px;
     letter-spacing: 0.55em; text-transform: uppercase;
     color: var(--gold-200);
     margin-bottom: 6px;
   }
   .hero-caption .t {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
     font-weight: 400; font-size: 28px;
     color: var(--paper);
     line-height: 1;
-    letter-spacing: -0.005em;
+    letter-spacing: 0.02em;
     margin-bottom: 4px;
   }
   .hero-caption .s {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-weight: 400; font-style: italic;
     font-size: 14px;
     color: var(--gold-200);
@@ -593,7 +590,7 @@
     background: var(--paper);
     border: 1px solid var(--hair);
     box-shadow: 0 8px 18px rgba(20,14,6,0.08);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 10px;
     letter-spacing: 0.35em;
@@ -636,11 +633,11 @@
 
   /* Value write-up — matches the editorial register of the timeline */
   .value-view .vv-title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif; letter-spacing: 0.04em;
     font-weight: 400;
     font-size: 42px;
     line-height: 1.02;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.02em;
     color: var(--onyx-700);
     margin: 0 0 18px 0;
   }
@@ -651,7 +648,7 @@
     margin: 0 0 22px 0;
   }
   .value-view .vv-body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400;
     font-size: 14px;
     line-height: 1.72;
@@ -699,7 +696,7 @@
     transform: scale(1.15);
   }
   .milestone .year {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-weight: 400;
     font-size: 32px;
     line-height: 1;
@@ -707,7 +704,7 @@
     margin: 0 0 6px 0;
   }
   .milestone .ttl {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 10px;
     letter-spacing: 0.3em;
@@ -716,7 +713,7 @@
     margin-bottom: 8px;
   }
   .milestone .desc {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400;
     font-size: 12px;
     line-height: 1.55;
@@ -798,7 +795,7 @@
       0 12px 26px -10px rgba(80, 58, 28, 0.16);
   }
   .value-readout .vr-eyebrow {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.42em; text-transform: uppercase;
     color: var(--gold-500);
@@ -806,11 +803,11 @@
     margin-bottom: 12px;
   }
   .value-readout .vr-title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif; letter-spacing: 0.04em;
     font-weight: 400;
     font-size: 34px;
     line-height: 1.04;
-    letter-spacing: -0.008em;
+    letter-spacing: 0.02em;
     color: var(--onyx-700);
     margin: 0 0 14px 0;
   }
@@ -821,7 +818,7 @@
     margin: 0 0 16px 0;
   }
   .value-readout .vr-body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400;
     font-size: 13px;
     line-height: 1.62;
@@ -879,7 +876,7 @@
     margin-bottom: 10px;
   }
   .popup .head .lbl {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 9px;
     letter-spacing: 0.4em;
@@ -904,7 +901,7 @@
     margin-bottom: 10px;
   }
   .popup .body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400;
     font-size: 12px;
     line-height: 1.55;
@@ -991,7 +988,7 @@
   }
   .stat .icon svg { width: 100%; height: 100%; display: block; }
   .stat .num {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-weight: 400;
     font-size: 38px;
     line-height: 1;
@@ -1000,7 +997,7 @@
     font-variant-numeric: tabular-nums;
   }
   .stat .lbl {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 8.5px;
     letter-spacing: 0.3em;
@@ -1009,7 +1006,7 @@
     margin-bottom: 6px;
   }
   .stat .more {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 8px;
     letter-spacing: 0.35em;
@@ -1059,7 +1056,7 @@
     gap: 14px;
   }
   .video-card .title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Lato', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-weight: 400;
     font-size: 22px;
     line-height: 1.05;
@@ -1094,7 +1091,7 @@
   }
   .scroll-indicator {
     display: flex; align-items: center; gap: 10px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 8px;
     letter-spacing: 0.5em; text-transform: uppercase;
     color: var(--gold-500);
@@ -1144,7 +1141,7 @@
     margin-bottom: 14px;
   }
   .modal-card .head .lbl {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 500; font-size: 9px;
     letter-spacing: 0.4em; text-transform: uppercase;
     color: var(--gold-500);
@@ -1166,14 +1163,13 @@
     margin-bottom: 14px;
   }
   .modal-card .title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
     font-weight: 400; font-size: 26px;
     line-height: 1.1;
     color: var(--onyx-700);
-    margin: 0 0 10px 0;
-  }
+    margin: 0 0 10px 0; letter-spacing: 0.045em;}
   .modal-card .body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400; font-size: 12.5px;
     line-height: 1.6;
     color: var(--onyx-100);
@@ -1210,6 +1206,11 @@
         vh = Math.min(vh, window.visualViewport.height);
       }
       const s = Math.min(vw / W, vh / H);
+      // FULL-SCREEN FILL: grow the stage to exactly cover the viewport. Uniform
+      // scale (no distortion); design dims stay >= 1440x900 so no content is
+      // cropped; the surplus is breathing room around the anchored chrome.
+      stage.style.width  = Math.ceil(vw / s) + 'px';
+      stage.style.height = Math.ceil(vh / s) + 'px';
       const t = 'scale(' + s + ')';
       stage.style.transform = t;
       stage.style.webkitTransform = t;
@@ -1253,6 +1254,26 @@
 <!-- PWA-BLOCK-END -->
 </head>
 <body>
+<script>
+  /* LOCAL PREVIEW GUARD — on localhost, never let a stale service worker /
+     cache mask live edits. Production (real domain) is unaffected. */
+  (function () {
+    var h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0' || h === '') {
+      window.__EC_LOCAL = true;
+      try {
+        if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
+          navigator.serviceWorker.getRegistrations().then(function (rs) {
+            rs.forEach(function (r) { r.unregister(); });
+          }).catch(function () {});
+        }
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
+        }
+      } catch (e) {}
+    }
+  })();
+</script>
 
 <!-- Embassy Citadel wordmark — same SVG symbol as gallery/home -->
 <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -1872,7 +1893,7 @@
 <!-- PWA-JS-START -->
 <script>
   // Service worker registration (PWA + offline cache)
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && !window.__EC_LOCAL) {
     window.addEventListener('load', function() {
       var ecHadCtrl = !!navigator.serviceWorker.controller;
       navigator.serviceWorker.register('sw.js').catch(function(){});
