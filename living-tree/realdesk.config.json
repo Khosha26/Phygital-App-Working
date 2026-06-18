@@ -1,0 +1,9 @@
+{
+  "slug": "living-tree",
+  "name": "Living Tree by Kalyani Developers",
+  "project_id": "84fae7a2-d306-4a80-b30e-23258721381b",
+  "write_token": "rdk_ed9ca67d92edab8542490bd59f44639d6bd3a7a7b53f7105",
+  "base": "https://analytics.khosha.tech",
+  "registered_via": "/realdesk-analytics",
+  "note": "Write-only token — safe to ship in the client. Re-registering slug 'living-tree' returns this same token."
+}

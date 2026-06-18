@@ -1,0 +1,60 @@
+{
+  "screens": [
+    { "key": "intro",       "title": "Intro · Portal",        "file": "experience.jsx (SplashScreen)" },
+    { "key": "home",        "title": "Constellation Home",    "file": "experience.jsx (LivingTreeExperience)" },
+    { "key": "projectover", "title": "Project Overview",      "file": "screen-projectover.jsx" },
+    { "key": "gallery",     "title": "Gallery",               "file": "screen-gallery.jsx" },
+    { "key": "masterplan",  "title": "Master Plan",           "file": "screen-masterplan.jsx" },
+    { "key": "location",    "title": "Location",              "file": "screen-location.jsx" },
+    { "key": "floorplan",   "title": "Floor Plans",           "file": "screen-floorplan.jsx" },
+    { "key": "inventory",   "title": "Inventory",             "file": "screen-inventory.jsx" },
+    { "key": "amenities",   "title": "Amenities",             "file": "screen-amenities.jsx" },
+    { "key": "booking",     "title": "Booking",               "file": "screen-booking.jsx" },
+    { "key": "gre",         "title": "GRE App",               "file": "screen-gre.jsx" },
+    { "key": "emailsender", "title": "Email Sender",          "file": "screen-emailsender.jsx" },
+    { "key": "minicrm",     "title": "Mini CRM",              "file": "screen-minicrm.jsx" }
+  ],
+  "buttons": [
+    { "label": "Project Overview", "target": "projectover" },
+    { "label": "Gallery",          "target": "gallery" },
+    { "label": "Master Plan",      "target": "masterplan" },
+    { "label": "Location",         "target": "location" },
+    { "label": "Floor Plans",      "target": "floorplan" },
+    { "label": "Inventory",        "target": "inventory" },
+    { "label": "Amenities",        "target": "amenities" },
+    { "label": "Booking",          "target": "booking" },
+    { "label": "GRE App",          "target": "gre" },
+    { "label": "Email Sender",     "target": "emailsender" },
+    { "label": "Mini CRM",         "target": "minicrm" }
+  ],
+  "assets": [
+    "assets/intro.jpg", "assets/bird.webp",
+    "assets/masterplan-render.jpg", "assets/towers-3d.jpg", "assets/towers-3d-day.jpg",
+    "assets/tower-single.webp", "assets/unit-floor.jpg",
+    "assets/maps/location-02.jpg",
+    "assets/renders/cover-01.png", "assets/renders/masterplan-03.jpg",
+    "assets/renders/render-04.jpg", "assets/renders/render-05.jpg", "assets/renders/backcover-15.jpg",
+    "assets/plans/plan-07.jpg", "assets/plans/plan-07-e.jpg", "assets/plans/plan-07-w.jpg",
+    "assets/plans/plan-08.jpg", "assets/plans/plan-08-e.jpg", "assets/plans/plan-08-w.jpg",
+    "assets/plans/plan-09.jpg", "assets/plans/plan-09-e.jpg", "assets/plans/plan-09-w.jpg",
+    "assets/plans/plan-10.jpg", "assets/plans/plan-10-e.jpg", "assets/plans/plan-10-w.jpg",
+    "assets/plans/plan-11.jpg", "assets/plans/plan-11-e.jpg", "assets/plans/plan-11-w.jpg",
+    "assets/plans/plan-12.jpg", "assets/plans/plan-12-e.jpg", "assets/plans/plan-12-w.jpg"
+  ],
+  "meta": {
+    "total_screens": 13,
+    "has_3d": false,
+    "3d_elements": [],
+    "animation_level": "high",
+    "asset_counts": { "jpg": 28, "png": 5, "webp": 2 },
+    "tech": {
+      "pwa": true,
+      "offline": true,
+      "engine_3d": null,
+      "anim_libs": ["css-keyframes", "requestAnimationFrame"],
+      "spa": true,
+      "framework": "React 18 UMD (pre-compiled bundle, no runtime Babel)",
+      "note": "Single-page app — screens swap client-side; per-screen page_view wired into the React router via RDA.track."
+    }
+  }
+}

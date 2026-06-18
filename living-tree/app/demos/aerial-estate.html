@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>LivingTree · Aerial Estate — Home Concept</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+<!--
+  ============================================================
+  AERIAL ESTATE — alternate home-screen concept (1 of 3)
+  LivingTree by Kalyani Developers · tablet sales studio
+  ------------------------------------------------------------
+  JUNIOR PASS — assumptions & reasoning:
+  · Narrative role: immersive launch / hero screen.
+  · Viewer distance: 1-3m, salesperson holds tablet facing client.
+  · Temperature: calm, authoritative, premium — not playful.
+  · The 11 modules are WAYPOINT PINS dropped onto an isometric
+    render of the actual 25-acre development. Each pin sits on a
+    real landmark so the screen doubles as a live project map a
+    salesperson can literally point at.
+  · Pin placement (% of 2560x1600 stage), tuned to estate.png:
+      Overview   -> site entrance road (lower-left)
+      Gallery    -> viewing pavilion (left clubhouse area)
+      Masterplan -> central green park
+      Inventory  -> towers cluster (LIVE) — top centre-right
+      Amenities  -> right clubhouse
+      Location   -> entry road edge (lower-left margin)
+      Floor Plan -> a single tower (left towers)
+      Booking    -> gold-emphasis, near right clubhouse forecourt
+      Email/GRE/Dashboard -> grouped utility cluster, lower-right,
+                              rendered slightly smaller.
+  · Palette/fonts mirror the live app (styles.css): forest green,
+    gold #c9a865/#e8d8a8, parchment; Cormorant Garamond serif,
+    JetBrains Mono, Inter.
+  · Anti-slop: no emoji, no purple, no card+left-border. Pins are
+    a bespoke luminous-pin system, not generic markers.
+  ============================================================
+-->
+<style>
+  :root{
+    --forest-deep:#1f3522; --forest:#2e4a2c;
+    --gold:#c9a865; --gold-soft:#e8d8a8; --gold-deep:#b08e45;
+    --parchment:#f4edda; --ivory:#fbf6ea;
+    --ink:#1a1f17;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{
+    height:100%; background:#0c140d; overflow:hidden;
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    user-select:none; -webkit-tap-highlight-color:transparent;
+    cursor:auto;
+  }
+  #root{position:fixed;inset:0;}
+
+  /* ---- letterbox stage host ---- */
+  .stage-host{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(ellipse at 50% 35%,#16241a,#080d09);
+  }
+  .stage{
+    width:2560px; height:1600px; flex-shrink:0;
+    position:relative; overflow:hidden;
+    background:#0c140d;
+    transform-origin:center;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+/* ========================================================== *
+ *  AUTO-FIT — scale the 2560x1600 stage to fit any window     *
+ * ========================================================== */
+function useFitScale(W=2560, H=1600, pad=0){
+  const [scale,setScale]=useState(1);
+  useEffect(()=>{
+    const measure=()=>{
+      const s=Math.min((window.innerWidth-pad)/W,(window.innerHeight-pad)/H);
+      setScale(s);
+    };
+    measure();
+    window.addEventListener('resize',measure);
+    window.addEventListener('orientationchange',measure);
+    return ()=>{
+      window.removeEventListener('resize',measure);
+      window.removeEventListener('orientationchange',measure);
+    };
+  },[W,H,pad]);
+  return scale;
+}
+
+/* ========================================================== *
+ *  WAYPOINT DATA — placement in % of the 2560x1600 stage.     *
+ *  x,y = the pin's ground anchor (where the stem touches map).*
+ *  side = which way the label card extends.                   *
+ * ========================================================== */
+const WAYPOINTS = [
+  { id:'overview',  n:1,  name:'Project Overview', sub:'THE STORY, IN ONE SCREEN',
+    x:18.0, y:80.0, side:'right', tier:'primary' },
+  { id:'gallery',   n:2,  name:'Gallery',          sub:'RENDERS & WALKTHROUGHS',
+    x:23.5, y:61.0, side:'right', tier:'primary' },
+  { id:'masterplan',n:3,  name:'Masterplan',       sub:'SITE PLAN · TEN TOWERS',
+    x:49.0, y:54.0, side:'right', tier:'primary' },
+  { id:'inventory', n:4,  name:'Inventory',        sub:'AVAILABLE UNITS, LIVE',
+    x:63.0, y:21.0, side:'left',  tier:'primary', live:true },
+  { id:'amenities', n:5,  name:'Amenities',        sub:'65 ACROSS TWO CLUBHOUSES',
+    x:68.5, y:62.0, side:'left',  tier:'primary' },
+  { id:'location',  n:6,  name:'Location Advantage', sub:'KIADB · 15 MIN TO AIRPORT',
+    x:10.0, y:90.0, side:'right', tier:'primary' },
+  { id:'floorplan', n:7,  name:'Floor Plan',       sub:'1 · 2 · 2.5 · 3 BHK',
+    x:31.0, y:25.0, side:'right', tier:'primary' },
+  { id:'booking',   n:8,  name:'Booking',          sub:'RESERVE A RESIDENCE',
+    x:80.0, y:50.0, side:'left',  tier:'gold' },
+  { id:'email',     n:9,  name:'Email Sender',     sub:'BROCHURE · QUOTE · RECEIPT',
+    x:81.0, y:81.5, side:'left',  tier:'utility' },
+  { id:'gre',       n:10, name:'GRE',              sub:'GUEST RELATIONS WORKSPACE',
+    x:90.0, y:74.0, side:'left',  tier:'utility' },
+  { id:'dashboard', n:11, name:'Mini Dashboard',   sub:'LIVE NUMBERS',
+    x:91.5, y:88.0, side:'left',  tier:'utility' },
+];
+
+/* soft route path connecting the journey: entrance -> story -> plan -> towers -> book */
+const ROUTE = ['overview','gallery','masterplan','floorplan','inventory','amenities','booking'];
+
+/* ========================================================== *
+ *  LIVE DOT — the small green status indicator                *
+ * ========================================================== */
+function LiveDot(){
+  return (
+    <span style={{display:'inline-flex',alignItems:'center',gap:6,
+      fontFamily:"'JetBrains Mono',monospace",fontSize:10,letterSpacing:'.14em',
+      color:'#9ec98a'}}>
+      <span style={{
+        width:8,height:8,borderRadius:'50%',background:'#7fc46a',
+        boxShadow:'0 0 8px 2px rgba(127,196,106,.8)',
+        animation:'livePulse 1800ms ease-in-out infinite',
+      }}/>
+      LIVE
+    </span>
+  );
+}
+
+/* ========================================================== *
+ *  WAYPOINT PIN                                               *
+ * ========================================================== */
+function Waypoint({ wp, dropDelay }){
+  const [hover,setHover]=useState(false);
+  const isGold = wp.tier==='gold';
+  const isUtility = wp.tier==='utility';
+
+  const pinSize   = isUtility ? 16 : (isGold ? 24 : 20);
+  const ringColor = isGold ? '#e8d8a8' : '#c9a865';
+  const dotFill   = isGold ? '#e8d8a8' : (isUtility ? '#d8c98e' : '#c9a865');
+  const stemH     = isUtility ? 32 : (isGold ? 50 : 42);
+
+  return (
+    <div
+      onMouseEnter={()=>setHover(true)}
+      onMouseLeave={()=>setHover(false)}
+      style={{
+        position:'absolute', left:wp.x+'%', top:wp.y+'%',
+        transform:'translate(-50%,-100%)',
+        zIndex: hover?60 : (isGold?40:(isUtility?20:30)),
+        cursor:'pointer',
+        animation:`pinDrop 760ms cubic-bezier(.34,1.32,.5,1) ${dropDelay}ms both`,
+        pointerEvents:'auto',
+      }}
+    >
+      {/* whole pin lifts on hover */}
+      <div style={{
+        transition:'transform 320ms cubic-bezier(.2,.8,.2,1)',
+        transform: hover ? 'translateY(-9px)' : 'translateY(0)',
+        display:'flex', flexDirection:'column', alignItems:'center',
+      }}>
+
+        {/* ---- label card ---- */}
+        <div style={{
+          marginBottom: 12,
+          padding: isUtility ? '8px 14px 9px' : '11px 19px 12px',
+          background: isGold
+            ? 'linear-gradient(155deg,rgba(48,38,14,.93),rgba(28,22,8,.95))'
+            : 'linear-gradient(155deg,rgba(20,32,22,.86),rgba(11,19,13,.92))',
+          border:`1px solid ${isGold?'rgba(232,216,168,.55)':'rgba(201,168,101,.30)'}`,
+          borderRadius: 3,
+          boxShadow: hover
+            ? `0 16px 40px rgba(0,0,0,.55), 0 0 0 1px ${isGold?'rgba(232,216,168,.4)':'rgba(201,168,101,.28)'}`
+            : '0 8px 22px rgba(0,0,0,.42)',
+          backdropFilter:'blur(3px)',
+          transition:'box-shadow 320ms ease, border-color 320ms ease',
+          textAlign: wp.side==='left' ? 'right' : 'left',
+          whiteSpace:'nowrap',
+        }}>
+          <div style={{
+            fontFamily:"'Cormorant Garamond',serif",
+            fontWeight:600,
+            fontSize: isUtility ? 22 : (isGold?30:26),
+            lineHeight:1.02,
+            letterSpacing:'.005em',
+            color: hover
+              ? (isGold?'#fbf3da':'#f6efd6')
+              : (isGold?'#f0e3bd':'#e6dcc0'),
+            transition:'color 280ms ease',
+            display:'flex', alignItems:'center', gap:9,
+            justifyContent: wp.side==='left'?'flex-end':'flex-start',
+          }}>
+            {wp.live && wp.side!=='left' && <LiveDot/>}
+            <span>{wp.name}</span>
+            {wp.live && wp.side==='left' && <LiveDot/>}
+          </div>
+          <div style={{
+            fontFamily:"'JetBrains Mono',monospace",
+            fontSize: isUtility?10:11.5,
+            letterSpacing:'.16em',
+            color: isGold ? 'rgba(232,216,168,.78)' : 'rgba(168,194,147,.72)',
+            marginTop:5,
+          }}>{wp.sub}</div>
+        </div>
+
+        {/* ---- pin head ---- */}
+        <div style={{position:'relative',width:pinSize,height:pinSize}}>
+          {/* pulse ring */}
+          <div style={{
+            position:'absolute', left:'50%', top:'50%',
+            width:pinSize, height:pinSize, borderRadius:'50%',
+            border:`1.5px solid ${ringColor}`,
+            transform:'translate(-50%,-50%)',
+            animation:`pinPulse 2800ms ease-out infinite ${dropDelay%1400}ms`,
+          }}/>
+          {/* outer glow ring */}
+          <div style={{
+            position:'absolute', left:'50%', top:'50%',
+            width:pinSize+9, height:pinSize+9, borderRadius:'50%',
+            border:`1px solid ${ringColor}`,
+            opacity: hover?0.9:0.5,
+            transform:'translate(-50%,-50%)',
+            transition:'opacity 320ms ease',
+          }}/>
+          {/* core dot */}
+          <div style={{
+            position:'absolute', left:'50%', top:'50%',
+            width:pinSize-7, height:pinSize-7, borderRadius:'50%',
+            background:`radial-gradient(circle at 35% 30%, #fff7e0, ${dotFill} 62%, ${isGold?'#b08e45':'#8a6f38'})`,
+            transform:'translate(-50%,-50%)',
+            boxShadow: hover
+              ? `0 0 22px 5px ${isGold?'rgba(232,216,168,.85)':'rgba(201,168,101,.7)'}`
+              : `0 0 12px 2px ${isGold?'rgba(232,216,168,.6)':'rgba(201,168,101,.42)'}`,
+            transition:'box-shadow 320ms ease',
+          }}/>
+        </div>
+
+        {/* ---- drop stem ---- */}
+        <div style={{
+          width:1.5, height:stemH,
+          background:`linear-gradient(to bottom, ${ringColor}, rgba(201,168,101,0))`,
+        }}/>
+
+        {/* ---- ground glow + bloom ring ---- */}
+        <div style={{position:'relative',width:0,height:0}}>
+          <div style={{
+            position:'absolute', left:'50%', top:-3,
+            width: isUtility?40:54, height:isUtility?14:18,
+            transform:'translateX(-50%)',
+            borderRadius:'50%',
+            background:`radial-gradient(ellipse, ${isGold?'rgba(232,216,168,.5)':'rgba(201,168,101,.42)'}, transparent 70%)`,
+            filter:'blur(2px)',
+          }}/>
+          {/* bloom ring on hover */}
+          <div style={{
+            position:'absolute', left:'50%', top:-3,
+            width:18, height:7, transform:'translate(-50%,-50%)',
+            border:`1.5px solid ${ringColor}`, borderRadius:'50%',
+            opacity:0,
+            animation: hover?'groundBloom 1100ms ease-out infinite':'none',
+          }}/>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================== *
+ *  ROUTE PATH — soft connector through the journey pins       *
+ * ========================================================== */
+function RoutePath(){
+  const pts = ROUTE.map(id=>{
+    const w=WAYPOINTS.find(p=>p.id===id);
+    return { x:w.x/100*2560, y:w.y/100*1600 };
+  });
+  let d=`M ${pts[0].x} ${pts[0].y}`;
+  for(let i=0;i<pts.length-1;i++){
+    const a=pts[i], b=pts[i+1];
+    const mx=(a.x+b.x)/2, my=(a.y+b.y)/2 - 26;
+    d+=` Q ${mx} ${my} ${b.x} ${b.y}`;
+  }
+  return (
+    <svg viewBox="0 0 2560 1600" preserveAspectRatio="none"
+      style={{position:'absolute',inset:0,width:'100%',height:'100%',
+        pointerEvents:'none',zIndex:12}}>
+      <path d={d} fill="none" stroke="rgba(232,216,168,.34)"
+        strokeWidth="2" strokeDasharray="2 11" strokeLinecap="round"
+        style={{animation:'routeFade 1400ms ease 1200ms both'}}/>
+    </svg>
+  );
+}
+
+/* ========================================================== *
+ *  BRAND CHROME                                               *
+ * ========================================================== */
+function Wordmark(){
+  return (
+    <div style={{display:'flex',alignItems:'baseline',
+      fontFamily:"'Cormorant Garamond',serif",fontSize:42,lineHeight:1,
+      letterSpacing:'.01em'}}>
+      <span style={{fontStyle:'italic',fontWeight:500,color:'#e8d8a8'}}>Living</span>
+      <span style={{fontWeight:600,color:'#f4edda'}}>Tree</span>
+    </div>
+  );
+}
+
+function LiveClock(){
+  const [t,setT]=useState(new Date());
+  useEffect(()=>{const i=setInterval(()=>setT(new Date()),1000);return()=>clearInterval(i);},[]);
+  const hh=String(t.getHours()).padStart(2,'0');
+  const mm=String(t.getMinutes()).padStart(2,'0');
+  const ss=String(t.getSeconds()).padStart(2,'0');
+  return (
+    <div style={{textAlign:'right'}}>
+      <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:30,
+        fontWeight:500,color:'#f4edda',letterSpacing:'.06em'}}>
+        {hh}:{mm}<span style={{color:'rgba(232,216,168,.55)'}}>:{ss}</span>
+      </div>
+      <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10.5,
+        letterSpacing:'.2em',color:'rgba(168,194,147,.7)',marginTop:4}}>
+        ON-SITE · {t.toLocaleDateString('en-IN',{day:'2-digit',month:'short'}).toUpperCase()}
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================== *
+ *  STAGE                                                      *
+ * ========================================================== */
+function AerialEstate(){
+  const scale=useFitScale(2560,1600,0);
+  const [loaded,setLoaded]=useState(false);
+  useEffect(()=>{const t=setTimeout(()=>setLoaded(true),120);return()=>clearTimeout(t);},[]);
+
+  return (
+    <div className="stage-host">
+      <div className="stage" style={{transform:`scale(${scale})`}}>
+
+        {/* ---- HERO MAP (full-bleed) + ambient drift ---- */}
+        <div style={{
+          position:'absolute', inset:'-3%',
+          backgroundImage:'url(assets/estate.png)',
+          backgroundSize:'cover', backgroundPosition:'center 46%',
+          opacity: loaded?1:0,
+          transform: loaded?'scale(1)':'scale(1.06)',
+          transition:'opacity 1500ms ease, transform 1900ms cubic-bezier(.2,.7,.2,1)',
+          animation: loaded?'ambientDrift 26s ease-in-out infinite':'none',
+        }}/>
+
+        {/* ---- warm atmospheric overlay — top & bottom bands keep chrome legible ---- */}
+        <div style={{position:'absolute',inset:0,pointerEvents:'none',
+          background:'linear-gradient(180deg, rgba(20,33,24,.52) 0%, rgba(20,33,24,.10) 18%, rgba(20,33,24,0) 44%, rgba(20,33,24,0) 62%, rgba(12,18,11,.58) 100%)'}}/>
+        {/* warm gold haze — gentle, lifts the centre */}
+        <div style={{position:'absolute',inset:0,pointerEvents:'none',
+          background:'radial-gradient(ellipse at 52% 42%, rgba(232,216,168,.10), transparent 56%)'}}/>
+        {/* soft vignette — light, just frames the edges */}
+        <div style={{position:'absolute',inset:0,pointerEvents:'none',
+          boxShadow:'inset 0 0 260px 40px rgba(8,13,9,.55)'}}/>
+
+        {/* ---- route path ---- */}
+        {loaded && <RoutePath/>}
+
+        {/* ---- waypoints ---- */}
+        {WAYPOINTS.map((wp,i)=>(
+          loaded && <Waypoint key={wp.id} wp={wp} dropDelay={420 + i*95}/>
+        ))}
+
+        {/* ================= TOP CHROME ================= */}
+        <div style={{position:'absolute',top:46,left:54,right:54,
+          display:'flex',justifyContent:'space-between',alignItems:'flex-start',
+          zIndex:80,
+          opacity:loaded?1:0,transform:loaded?'translateY(0)':'translateY(-12px)',
+          transition:'opacity 900ms ease 300ms, transform 900ms ease 300ms'}}>
+          {/* brand */}
+          <div>
+            <Wordmark/>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,
+              letterSpacing:'.26em',color:'rgba(168,194,147,.78)',marginTop:9}}>
+              SALES STUDIO · NORTH BENGALURU
+            </div>
+          </div>
+          {/* clock */}
+          <LiveClock/>
+        </div>
+
+        {/* a quiet 'aerial view' tab, centred top — orients the salesperson */}
+        <div style={{position:'absolute',top:54,left:'50%',transform:'translateX(-50%)',
+          zIndex:80,
+          display:'flex',alignItems:'center',gap:13,
+          padding:'9px 22px',
+          background:'rgba(11,19,13,.55)',
+          border:'1px solid rgba(201,168,101,.26)',
+          borderRadius:2,
+          backdropFilter:'blur(3px)',
+          opacity:loaded?1:0,transition:'opacity 1000ms ease 700ms'}}>
+          <span style={{width:6,height:6,borderRadius:'50%',background:'#c9a865',
+            boxShadow:'0 0 8px 2px rgba(201,168,101,.6)'}}/>
+          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,
+            letterSpacing:'.22em',color:'#e8d8a8'}}>
+            AERIAL VIEW · 25 ACRES · TAP A WAYPOINT TO FLY IN
+          </span>
+        </div>
+
+        {/* ================= BOTTOM CHROME ================= */}
+        <div style={{position:'absolute',bottom:42,left:54,right:54,
+          display:'flex',justifyContent:'space-between',alignItems:'flex-end',
+          zIndex:80,
+          opacity:loaded?1:0,transform:loaded?'translateY(0)':'translateY(12px)',
+          transition:'opacity 900ms ease 500ms, transform 900ms ease 500ms'}}>
+          {/* RERA */}
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10.5,
+            letterSpacing:'.13em',color:'rgba(244,237,218,.62)',flex:'0 0 auto'}}>
+            RERA · PRM/KA/RERA/1251/309/PR/260924/007084
+          </div>
+          {/* tagline centred */}
+          <div style={{position:'absolute',left:'50%',bottom:0,
+            transform:'translateX(-50%)',textAlign:'center'}}>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontStyle:'italic',
+              fontWeight:500,fontSize:23,color:'#e8d8a8',letterSpacing:'.01em'}}>
+              Rooted in Luxury, Branching into the Future
+            </div>
+          </div>
+          {/* parent brand */}
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10.5,
+            letterSpacing:'.18em',color:'rgba(244,237,218,.62)',flex:'0 0 auto'}}>
+            A KALYANI DEVELOPERS PROJECT
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================== *
+ *  KEYFRAMES (injected)                                       *
+ * ========================================================== */
+const css = document.createElement('style');
+css.textContent = `
+@keyframes pinDrop{
+  0%{ opacity:0; transform:translate(-50%,-130%) scale(.82); }
+  70%{ opacity:1; }
+  100%{ opacity:1; transform:translate(-50%,-100%) scale(1); }
+}
+@keyframes pinPulse{
+  0%{ opacity:.55; transform:translate(-50%,-50%) scale(1); }
+  70%{ opacity:0; transform:translate(-50%,-50%) scale(2.6); }
+  100%{ opacity:0; transform:translate(-50%,-50%) scale(2.6); }
+}
+@keyframes groundBloom{
+  0%{ opacity:.7; transform:translate(-50%,-50%) scale(.5); }
+  100%{ opacity:0; transform:translate(-50%,-50%) scale(2.4); }
+}
+@keyframes livePulse{
+  0%,100%{ opacity:1; }
+  50%{ opacity:.4; }
+}
+@keyframes ambientDrift{
+  0%{ transform:scale(1.0) translate(0,0); }
+  25%{ transform:scale(1.035) translate(-0.9%,-0.5%); }
+  55%{ transform:scale(1.05) translate(0.7%,0.4%); }
+  80%{ transform:scale(1.028) translate(0.4%,-0.3%); }
+  100%{ transform:scale(1.0) translate(0,0); }
+}
+@keyframes routeFade{
+  from{ opacity:0; }
+  to{ opacity:1; }
+}
+`;
+document.head.appendChild(css);
+
+ReactDOM.createRoot(document.getElementById('root')).render(<AerialEstate/>);
+</script>
+</body>
+</html>

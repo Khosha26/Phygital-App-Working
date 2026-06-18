@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Living Tree · The Residence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #050a07; font-family: Inter, system-ui, sans-serif; overflow: hidden; }
+  * { box-sizing: border-box; }
+
+  /* Stage fits viewport with letterboxing */
+  #stage-wrap {
+    position: fixed; inset: 0; overflow: hidden;
+    background: radial-gradient(ellipse at center, #0a120d 0%, #050a07 80%);
+  }
+  #stage {
+    position: absolute; left: 50%; top: 50%;
+    width: 1440px; height: 900px;
+    transform-origin: center center;
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow: 0 60px 140px rgba(0,0,0,0.6);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  /* ====== KEYFRAMES ====== */
+  @keyframes leafFall {
+    0%   { transform: translate(0, 0) rotate(var(--rotS)); }
+    100% { transform: translate(var(--driftX), calc(100vh + 80px)) rotate(var(--rotE)); }
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1);    opacity: 0.55; }
+    50%      { transform: scale(1.04); opacity: 0.85; }
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.4); opacity: 0.6; }
+  }
+  @keyframes veinDraw {
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes bladeDraw {
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes budIn {
+    0%   { opacity: 0; transform: scale(0.4); }
+    70%  { opacity: 1; }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes scaleFadeIn {
+    from { opacity: 0; transform: scale(0.7); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes nudge {
+    0%, 100% { transform: translateX(0); }
+    50%      { transform: translateX(4px); }
+  }
+  @keyframes kenBurns {
+    0%   { transform: scale(1.0) translate(0, 0); }
+    50%  { transform: scale(1.08) translate(-1%, -1.5%); }
+    100% { transform: scale(1.0) translate(0, 0); }
+  }
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.55; }
+    50%      { opacity: 0.95; }
+  }
+  @keyframes branchFade {
+    from { opacity: 0; }
+    to   { opacity: 0.5; }
+  }
+  @keyframes birdBob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-7px); }
+  }
+  .canopyBg { animation: kenBurns 36s ease-in-out infinite; }
+</style>
+<script>
+  // Stage scaling — plain JS, runs reliably
+  (function() {
+    const W = 1440, H = 900;
+    function scale() {
+      const wrap = document.getElementById("stage-wrap");
+      const stage = document.getElementById("stage");
+      if (!wrap || !stage) return;
+      const s = Math.min(wrap.clientWidth / W, wrap.clientHeight / H);
+      stage.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+    }
+    window.__ltScale = scale;
+    window.addEventListener("resize", scale);
+    document.addEventListener("DOMContentLoaded", scale);
+    window.addEventListener("load", scale);
+  })();
+</script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="stage-wrap">
+  <div id="stage"></div>
+</div>
+
+<script type="text/babel">
+// ============================================================
+// Living Tree — Home Screen · Direction A · v2 "The Branch"
+// 11 buttons seated on a thick outlined branch, corner to corner,
+// with three medium offshoot branches. One self-contained file.
+// ============================================================
+
+const STAGE_W = 1440;
+const STAGE_H = 900;
+
+const FACTS = {
+  loc: "KIADB Aerospace Park · Bagalur · North Bengaluru",
+  airport: "15 min · Kempegowda Int'l Airport",
+  acres: 25,
+  openPct: 80,
+  rera: "1251/309",
+  estd: 1991,
+};
+
+// ------------------------------------------------------------
+// ICONS — architectural-primitive line set (64x64 viewBox)
+// reused + 3 new, all 1.4 stroke weight for consistency
+// ------------------------------------------------------------
+const IconOverview = ({ size = 32, stroke = "currentColor", strokeWidth = 1.4 }) => (
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none"
+       stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="32" cy="32" r="22"/>
+    <line x1="32" y1="28" x2="32" y2="44"/>
+    <circle cx="32" cy="20" r="1.6" fill={stroke}/>
+  </svg>
+);
+
+const IconMasterPlan = ({ size = 32, stroke = "currentColor", strokeWidth = 1.4 }) => (
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none"
+       stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M32 6 L56 18 L56 46 L32 58 L8 46 L8 18 Z"/>
+    <path d="M32 6 L32 58"/>
+    <path d="M8 18 L56 46"/>
+    <path d="M56 18 L8 46"/>
+    <circle cx="32" cy="32" r="4"/>
+  </svg>
+);
+
+const IconFloorPlan = ({ size = 32, stroke = "currentColor", strokeWidth = 1.4 }) => (
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none"
+       stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="8" y="10" width="48" height="44" rx="1"/>
+    <path d="M8 30 L34 30"/>
+    <path d="M34 10 L34 54"/>
+    <path d="M34 42 L56 42"/>
+    <path d="M20 30 L20 26 M26 30 L26 26"/>
+    <path d="M34 18 L38 18 M34 24 L38 24"/>
+  </svg>
+);
+
+const IconAdvantages = ({ size = 32, stroke = "currentColor", strokeWidth = 1.4 }) => (
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none"
+       stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 50 C14 30 28 14 50 14 C50 36 36 50 14 50 Z"/>
+    <path d="M14 50 L40 24"/>
+    <path d="M22 42 L32 42 M26 38 L34 30"/>
+  </svg>
+);
+
+const IconLocation = ({ size = 32, stroke = "currentColor", strokeWidth = 1.4 }) => (
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none"
+       stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M32 8 C22 8 14 16 14 26 C14 38 32 56 32 56 C32 56 50 38 50 26 C50 16 42 8 32 8 Z"/>
+    <circle cx="32" cy="26" r="6"/>
+  </svg>
+);
+
+const IconInventory = ({ size = 32, stroke = "currentColor", strokeWidth = 1.4 }) => (
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none"
+       stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="10" y="10" width="18" height="18" rx="1"/>
+    <rect x="36" y="10" width="18" height="18" rx="1"/>
+    <rect x="10" y="36" width="18" height="18" rx="1"/>
+    <rect x="36" y="36" width="18" height="18" rx="1"/>
+    <circle cx="45" cy="45" r="4"/>
+  </svg>
+);
+
+const IconBooking = ({ size = 32, stroke = "currentColor", strokeWidth = 1.4 }) => (
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none"
+       stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="10" y="14" width="44" height="40" rx="2"/>
+    <line x1="10" y1="26" x2="54" y2="26"/>
+    <line x1="20" y1="8" x2="20" y2="18"/>
+    <line x1="44" y1="8" x2="44" y2="18"/>
+    <path d="M22 38 L29 45 L43 33"/>
+  </svg>
+);
+
+const IconGRE = ({ size = 32, stroke = "currentColor", strokeWidth = 1.4 }) => (
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none"
+       stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="32" cy="22" r="10"/>
+    <path d="M14 52 C14 41 22 35 32 35 C42 35 50 41 50 52"/>
+  </svg>
+);
+
+// --- NEW ICON 1 · Gallery (framed views, architectural-primitive) ---
+const IconGallery = ({ size = 32, stroke = "currentColor", strokeWidth = 1.4 }) => (
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none"
+       stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="10" y="14" width="44" height="36" rx="2"/>
+    <circle cx="22" cy="25" r="4"/>
+    <path d="M10 44 L26 30 L36 40 L44 33 L54 43"/>
+  </svg>
+);
+
+// --- NEW ICON 2 · Email Sender (envelope + sending arc) ---
+const IconEmail = ({ size = 32, stroke = "currentColor", strokeWidth = 1.4 }) => (
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none"
+       stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="8" y="16" width="40" height="30" rx="2"/>
+    <path d="M8 19 L28 34 L48 19"/>
+    <path d="M40 52 L56 44 L48 60 L45 52 Z"/>
+  </svg>
+);
+
+// --- NEW ICON 3 · miniCRM (lead node + follow-up branches) ---
+const IconCRM = ({ size = 32, stroke = "currentColor", strokeWidth = 1.4 }) => (
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none"
+       stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="20" cy="32" r="9"/>
+    <path d="M29 32 L41 32"/>
+    <path d="M29 32 L40 18 M29 32 L40 46"/>
+    <circle cx="46" cy="32" r="5"/>
+    <circle cx="45" cy="15" r="4.5"/>
+    <circle cx="45" cy="49" r="4.5"/>
+  </svg>
+);
+
+// Leaf — ambient particle + twig foliage
+const Leaf = ({ size = 16, fill = "currentColor", opacity = 1, rotate = 0 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} style={{ opacity, transform: `rotate(${rotate}deg)` }}>
+    <path d="M3 21 C3 11 11 3 21 3 C21 13 13 21 3 21 Z"/>
+    <path d="M3 21 L21 3" stroke={fill} strokeWidth="0.6" fill="none" opacity="0.4"/>
+  </svg>
+);
+
+// ------------------------------------------------------------
+// The 11 menu buttons, threaded along a branch that sweeps
+// from the lower-left corner up to the upper-right corner.
+// Coordinate space: a 1320 (w) x 470 (h) frame.
+// ------------------------------------------------------------
+// x/y = button centres — placed per the hand-drawn cluster sketch:
+// Project Overview large at the centre, the rest spread 1-3-3-3-1.
+const BRANCH_NODES = [
+  { key: "overview", label: "Project Overview", hint: "Rooted in luxury, branching forward", Icon: IconOverview,   x: 738,  y: 242 },
+  { key: "gallery",  label: "Gallery",          hint: "Exteriors · interiors · walkthrough", Icon: IconGallery,    x: 1009, y: 242 },
+  { key: "master",   label: "Master Plan",      hint: "Twenty-five acres · ten towers",      Icon: IconMasterPlan, x: 393,  y: 242 },
+  { key: "floor",    label: "Floor Plan",       hint: "1 · 2 · 2.5 · 3 BHK",                 Icon: IconFloorPlan,  x: 110,  y: 246 },
+  { key: "amenities",label: "Amenities",        hint: "Sixty amenities · two clubhouses",    Icon: IconAdvantages, x: 405,  y: 386 },
+  { key: "location", label: "Location",         hint: "Aerospace Park · Bagalur",            Icon: IconLocation,   x: 751,  y: 64  },
+  { key: "inventory",label: "Inventory",        hint: "Live unit availability",              Icon: IconInventory,  x: 738,  y: 389 },
+  { key: "booking",  label: "Booking",          hint: "EOI · payment plan",                  Icon: IconBooking,    x: 380,  y: 74  },
+  { key: "email",    label: "Email Sender",     hint: "Send brochure & details",             Icon: IconEmail,      x: 977,  y: 106 },
+  { key: "gre",      label: "GRE",              hint: "Guest Relationship Executive",        Icon: IconGRE,        x: 1210, y: 239 },
+  { key: "crm",      label: "miniCRM",          hint: "Lead capture & follow-up",            Icon: IconCRM,        x: 1021, y: 365 },
+];
+
+// ---- Branch geometry helpers --------------------------------
+// Smooth "C" segments through a list of points (Catmull-Rom -> Bezier).
+const segsThrough = (pts) => {
+  let d = "";
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] || pts[i + 1];
+    const c1x = p1.x + (p2.x - p0.x) / 6;
+    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6;
+    const c2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
+  return d;
+};
+
+// One thin strand running along a tapered limb, offset from the
+// spine by `frac` of the local half-width (frac +1 / -1 are the two
+// edges, 0 is the centreline). Stacking several strands at different
+// fractions builds a thick, textured branch out of pure fine lines
+// — no fill, just line-art (the finish carried over from the leaf).
+const limbStrand = (spine, wStart, wEnd, frac) => {
+  const n = spine.length;
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const a = spine[Math.max(0, i - 1)];
+    const b = spine[Math.min(n - 1, i + 1)];
+    let tx = b.x - a.x, ty = b.y - a.y;
+    const L = Math.hypot(tx, ty) || 1; tx /= L; ty /= L;
+    const nx = -ty, ny = tx;                       // unit normal
+    const t = n === 1 ? 0 : i / (n - 1);
+    const ease = t * t * (3 - 2 * t);              // smoothstep taper
+    const hw = (wStart + (wEnd - wStart) * ease) / 2;
+    pts.push({ x: spine[i].x + nx * hw * frac, y: spine[i].y + ny * hw * frac });
+  }
+  return `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}` + segsThrough(pts);
+};
+
+// ============================================================
+// Ambient drifting leaves
+// ============================================================
+const AmbientLeaves = () => {
+  const leaves = React.useMemo(() =>
+    Array.from({ length: 24 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      size: 10 + Math.random() * 16,
+      duration: 24 + Math.random() * 28,
+      delay: -Math.random() * 40,
+      drift: (Math.random() - 0.5) * 140,
+      rotateStart: Math.random() * 360,
+      rotateEnd: Math.random() * 720 + 360,
+      opacity: 0.07 + Math.random() * 0.16,
+      depth: Math.random(),
+    })), []);
+  return (
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
+      {leaves.map(l => (
+        <div key={l.id} style={{
+          position: "absolute",
+          left: `${l.left}%`,
+          top: "-40px",
+          animation: `leafFall ${l.duration}s linear ${l.delay}s infinite`,
+          "--driftX": `${l.drift}px`,
+          "--rotS": `${l.rotateStart}deg`,
+          "--rotE": `${l.rotateEnd}deg`,
+          opacity: l.opacity,
+          filter: `blur(${(1 - l.depth) * 1.5}px)`,
+        }}>
+          <Leaf size={l.size} fill="#d9b27a" />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ============================================================
+// BranchCluster — one real branch outline (traced from the
+// client's branch artwork) sweeps corner to corner, off-screen
+// at both ends, white at 50% opacity with a soft glow. The 11
+// buttons are placed per the hand-drawn cluster sketch.
+// ============================================================
+const BranchCluster = ({ activeKey, setActiveKey }) => {
+  const FRAME_W = 1320;
+  const FRAME_H = 470;
+
+  return (
+    <div style={{ position: "relative", width: FRAME_W, height: FRAME_H }}>
+
+      {/* the 11 circular glass buttons — seated on the branch */}
+      {BRANCH_NODES.map((n, i) => {
+        const isActive = activeKey === n.key;
+        const D = n.key === "overview" ? 110 : 84;
+        return (
+          <div key={n.key}
+            onMouseEnter={() => setActiveKey(n.key)}
+            onMouseLeave={() => setActiveKey(null)}
+            style={{
+              position: "absolute",
+              left: n.x, top: n.y,
+              transform: "translate(-50%,-50%)",
+              cursor: "pointer",
+              animation: `budIn 0.7s cubic-bezier(0.34,1.56,0.64,1) ${1.7 + i * 0.08}s backwards`,
+              zIndex: isActive ? 7 : 5,
+            }}>
+            <div style={{
+              width: D, height: D, borderRadius: "50%",
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", gap: 3,
+              background: isActive
+                ? "linear-gradient(150deg, rgba(217,178,122,0.96), rgba(184,135,74,0.9))"
+                : "rgba(244,234,216,0.055)",
+              border: `1px solid ${isActive ? "rgba(232,205,160,0.9)" : "rgba(217,178,122,0.34)"}`,
+              backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+              boxShadow: isActive
+                ? "0 22px 50px rgba(217,178,122,0.42), inset 0 1px 0 rgba(255,255,255,0.3)"
+                : "0 14px 34px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12)",
+              transform: isActive ? "scale(1.1)" : "scale(1)",
+              transition: "background .35s, border-color .35s, box-shadow .35s, transform .35s cubic-bezier(0.34,1.56,0.64,1)",
+            }}>
+              <n.Icon size={D >= 100 ? 38 : 28} stroke={isActive ? "#1a2620" : "#f4ead8"} strokeWidth={1.4}/>
+              <div style={{
+                fontSize: D >= 100 ? 9.5 : 8, fontWeight: 600, letterSpacing: 0.4,
+                textTransform: "uppercase",
+                color: isActive ? "#1a2620" : "rgba(244,234,216,0.92)",
+                textAlign: "center", lineHeight: 1.15, maxWidth: D - 14,
+              }}>{n.label}</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// ============================================================
+// useCount — animated counter for the showcase numerals
+// ============================================================
+const useCount = (target, { duration = 1600, delay = 0 } = {}) => {
+  const [value, setValue] = React.useState(0);
+  React.useEffect(() => {
+    let raf;
+    const startTime = performance.now() + delay;
+    const tick = (now) => {
+      if (now < startTime) { raf = requestAnimationFrame(tick); return; }
+      const t = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setValue(target * eased);
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration, delay]);
+  return value;
+};
+
+// ============================================================
+// FactsShowcase — two hero numerals (25 / 80%) in Cormorant
+// italic + supporting facts.
+// ============================================================
+const FactsShowcase = () => {
+  const acres = useCount(FACTS.acres,   { duration: 1500, delay: 2400 });
+  const open  = useCount(FACTS.openPct, { duration: 1500, delay: 2550 });
+
+  const support = [
+    { v: "10", l: "towers · G+23 each" },
+    { v: "2,522", l: "homes · 4 generations" },
+    { v: "60+", l: "amenities · 2 clubhouses" },
+    { v: "15", l: "min to KIA airport" },
+  ];
+
+  const heroNumStyle = {
+    fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic",
+    fontWeight: 500, color: "#f4ead8", lineHeight: 0.9,
+    letterSpacing: -1,
+  };
+
+  return (
+    <div style={{
+      display: "flex", alignItems: "stretch", gap: 36,
+      animation: "fadeUp 1s ease 2.5s backwards",
+    }}>
+      {/* HERO 1 — 25 acres */}
+      <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+          <span style={{ ...heroNumStyle, fontSize: 96 }}>
+            {acres.toFixed(0)}
+          </span>
+          <span style={{
+            fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic",
+            fontSize: 24, color: "#d9b27a",
+          }}>acres</span>
+        </div>
+        <div style={{
+          fontSize: 11, letterSpacing: 2.6, textTransform: "uppercase",
+          color: "rgba(244,234,216,0.6)", marginTop: 6,
+        }}>of rooted land</div>
+      </div>
+
+      {/* vertical divider */}
+      <div style={{
+        width: 1, alignSelf: "stretch", margin: "8px 0",
+        background: "linear-gradient(180deg, transparent, rgba(217,178,122,0.4) 30%, rgba(217,178,122,0.4) 70%, transparent)",
+      }}/>
+
+      {/* HERO 2 — 80% open */}
+      <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 2 }}>
+          <span style={{ ...heroNumStyle, fontSize: 96 }}>
+            {open.toFixed(0)}
+          </span>
+          <span style={{ ...heroNumStyle, fontSize: 52, color: "#d9b27a" }}>%</span>
+        </div>
+        <div style={{
+          fontSize: 11, letterSpacing: 2.6, textTransform: "uppercase",
+          color: "rgba(244,234,216,0.6)", marginTop: 6,
+        }}>open to green &amp; sky</div>
+      </div>
+
+      {/* divider before supporting facts */}
+      <div style={{
+        width: 1, alignSelf: "stretch", margin: "8px 0",
+        background: "linear-gradient(180deg, transparent, rgba(217,178,122,0.28) 30%, rgba(217,178,122,0.28) 70%, transparent)",
+      }}/>
+
+      {/* supporting facts — refined 2x2, distinctly smaller */}
+      <div style={{
+        display: "grid", gridTemplateColumns: "1fr 1fr",
+        gap: "14px 30px", alignContent: "center",
+      }}>
+        {support.map((s, i) => (
+          <div key={i}>
+            <div style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: 27, fontWeight: 500, color: "#f4ead8", lineHeight: 1,
+            }}>{s.v}</div>
+            <div style={{
+              fontSize: 9, letterSpacing: 1.4, textTransform: "uppercase",
+              color: "rgba(244,234,216,0.52)", marginTop: 4,
+            }}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ============================================================
+// Birds — 5 birds fly in from off-screen, perch on a random
+// button for 3 seconds, then fly back out. Each loops forever
+// on its own independent timing.
+// ============================================================
+const BIRD_W = 82;
+const BIRD_H = BIRD_W * 449 / 468;
+
+function Bird({ idx, perches }) {
+  const [tf, setTf]       = React.useState(null);   // {x,y} centre in stage coords
+  const [dur, setDur]     = React.useState(0);      // transition ms
+  const [face, setFace]   = React.useState(1);      // 1 or -1 (flip)
+  const [flying, setFly]  = React.useState(true);
+  const [shown, setShown] = React.useState(false);
+
+  React.useEffect(() => {
+    let alive = true;
+    const wait = (ms) => new Promise(r => setTimeout(r, ms));
+    (async () => {
+      await wait(800 + idx * 1700 + Math.random() * 900);
+      while (alive) {
+        const p = perches[Math.floor(Math.random() * perches.length)];
+        const fromLeft = Math.random() < 0.5;
+        const sx = fromLeft ? -150 : STAGE_W + 150;
+        const sy = 70 + Math.random() * 240;
+        // appear off-screen instantly
+        setShown(true); setFly(true); setDur(0);
+        setFace(fromLeft ? 1 : -1);
+        setTf({ x: sx, y: sy });
+        await wait(60); if (!alive) return;
+        // fly in to the perch
+        const inMs = 2200 + Math.random() * 700;
+        setDur(inMs);
+        setFace(p.x >= sx ? 1 : -1);
+        setTf({ x: p.x, y: p.y });
+        await wait(inMs); if (!alive) return;
+        // perched — sit still for 3 seconds
+        setFly(false);
+        await wait(3000); if (!alive) return;
+        // fly back out
+        const exitLeft = Math.random() < 0.5;
+        const ex = exitLeft ? -170 : STAGE_W + 170;
+        const ey = 50 + Math.random() * 220;
+        const outMs = 1900 + Math.random() * 600;
+        setFly(true);
+        setFace(ex >= p.x ? 1 : -1);
+        setDur(outMs);
+        setTf({ x: ex, y: ey });
+        await wait(outMs); if (!alive) return;
+        setShown(false);
+        await wait(1500 + Math.random() * 3600);
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  if (!shown || !tf) return null;
+  return (
+    <div style={{
+      position: "absolute", left: 0, top: 0,
+      width: BIRD_W, height: BIRD_H,
+      transform: `translate(${tf.x - BIRD_W / 2}px, ${tf.y - BIRD_H / 2}px)`,
+      transition: dur ? `transform ${dur}ms cubic-bezier(0.42,0.05,0.5,0.98)` : "none",
+      pointerEvents: "none", willChange: "transform",
+    }}>
+      <div style={{ width: "100%", height: "100%", transform: `scaleX(${face})` }}>
+        <div style={{
+          width: "100%", height: "100%",
+          animation: flying ? "birdBob 0.82s ease-in-out infinite" : "none",
+        }}>
+          <img src="assets/bird.gif" alt="" style={{
+            width: "100%", height: "100%", objectFit: "contain", display: "block",
+            filter: "drop-shadow(0 6px 9px rgba(0,0,0,0.45))",
+          }}/>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const Birds = () => {
+  // perch points = button centres in stage coords, lifted so the
+  // bird's feet rest on the top rim of the button.
+  const perches = React.useMemo(() => BRANCH_NODES.map(n => ({
+    x: 60 + n.x,
+    y: 150 + n.y - 64,
+  })), []);
+  return (
+    <div style={{
+      position: "absolute", inset: 0, overflow: "hidden",
+      pointerEvents: "none", zIndex: 9,
+    }}>
+      {[0, 1, 2, 3, 4].map(i => <Bird key={i} idx={i} perches={perches} />)}
+    </div>
+  );
+};
+
+// ============================================================
+// MAIN APP
+// ============================================================
+function LivingTreeExperience() {
+  const [activeKey, setActiveKey] = React.useState(null);
+  const [lang, setLang] = React.useState(0);
+  const [time, setTime] = React.useState(new Date());
+
+  React.useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 60000);
+    return () => clearInterval(t);
+  }, []);
+
+  const timeStr = time.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false });
+  const active = BRANCH_NODES.find(n => n.key === activeKey);
+
+  return (
+    <div style={{
+      width: STAGE_W, height: STAGE_H, position: "relative", overflow: "hidden",
+      fontFamily: "Inter, sans-serif", color: "#f4ead8",
+      background: "#0a120d",
+    }}>
+      {/* faint canopy backdrop */}
+      <div className="canopyBg" style={{
+        position: "absolute", inset: 0,
+        backgroundImage: `url(https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1800&q=80&auto=format&fit=crop)`,
+        backgroundSize: "cover", backgroundPosition: "center 35%",
+      }}/>
+      {/* darkening + green tint */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "linear-gradient(180deg, rgba(10,18,13,0.8) 0%, rgba(10,18,13,0.66) 35%, rgba(10,18,13,0.8) 65%, rgba(10,18,13,0.96) 100%)",
+      }}/>
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "radial-gradient(ellipse at center, transparent 0%, rgba(10,18,13,0.55) 72%)",
+      }}/>
+
+      <AmbientLeaves />
+
+      {/* ============ TOP BAR ============ */}
+      <div style={{
+        position: "absolute", top: 26, left: 46, right: 46,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        animation: "fadeDown 0.8s ease backwards", zIndex: 10,
+      }}>
+        {/* REAL LOGO — transparent monogram+wordmark on a deliberate pale card */}
+        <div style={{
+          display: "flex", alignItems: "center",
+          background: "linear-gradient(160deg, #e8ecdc, #dce0cb)",
+          border: "1px solid rgba(217,178,122,0.45)",
+          borderRadius: 14, padding: "9px 18px 9px 12px",
+          boxShadow: "0 14px 34px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.6)",
+        }}>
+          <img src="assets/brand/livingtree-mark.png" alt="LivingTree by Kalyani Developers"
+            style={{ height: 38, width: "auto", display: "block" }}/>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11 }}>
+          <div style={{
+            padding: "8px 14px", border: "1px solid rgba(217,178,122,0.3)", borderRadius: 999,
+            letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(244,234,216,0.75)",
+            display: "flex", alignItems: "center", gap: 8, whiteSpace: "nowrap",
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#d9b27a" }}/>
+            RERA · {FACTS.rera}
+          </div>
+          <div style={{ display: "flex", gap: 4 }}>
+            {["EN", "ಕ", "हि"].map((l, i) => (
+              <button key={l} onClick={() => setLang(i)} style={{
+                width: 34, height: 34, borderRadius: "50%",
+                background: i === lang ? "rgba(217,178,122,0.2)" : "transparent",
+                border: `1px solid ${i === lang ? "rgba(217,178,122,0.6)" : "rgba(217,178,122,0.25)"}`,
+                color: "#f4ead8", fontSize: 12, fontWeight: 500, cursor: "pointer",
+                transition: "all .25s",
+              }}>{l}</button>
+            ))}
+          </div>
+          <div style={{
+            display: "flex", alignItems: "center", gap: 10,
+            padding: "5px 14px 5px 5px",
+            background: "linear-gradient(135deg, rgba(217,178,122,0.18), rgba(217,178,122,0.06))",
+            border: "1px solid rgba(217,178,122,0.35)",
+            borderRadius: 999, whiteSpace: "nowrap",
+          }}>
+            <div style={{
+              width: 30, height: 30, borderRadius: "50%",
+              background: "linear-gradient(135deg, #d9b27a, #b9874a)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 11, fontWeight: 700, color: "#1a2620",
+            }}>PR</div>
+            <div style={{ lineHeight: 1.15 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 600 }}>Priya · Your GRE</div>
+              <div style={{ fontSize: 9, opacity: 0.6, letterSpacing: 0.5 }}>Online · {timeStr} IST</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ============ HEADLINE ============ */}
+      <div style={{
+        position: "absolute", top: 96, left: 0, right: 0, textAlign: "center", zIndex: 5,
+      }}>
+        <div style={{
+          fontSize: 10.5, letterSpacing: 6, color: "#d9b27a",
+          textTransform: "uppercase", opacity: 0, animation: "fadeIn 0.8s ease 0.2s forwards",
+        }}>
+          {FACTS.loc}
+        </div>
+        <h1 style={{
+          fontFamily: "'Cormorant Garamond', serif", fontWeight: 400,
+          fontSize: 38, lineHeight: 1.05, margin: "10px 0 0", letterSpacing: -0.3,
+          whiteSpace: "nowrap",
+        }}>
+          <span style={{
+            display: "inline-block", opacity: 0,
+            animation: "fadeUp 0.9s cubic-bezier(0.4,0,0.2,1) 0.4s forwards",
+          }}>A residence, rooted&nbsp;<em style={{
+            fontStyle: "italic", color: "#d9b27a",
+          }}>where Bengaluru breathes.</em></span>
+        </h1>
+      </div>
+
+      {/* ============ BRANCH CLUSTER — sweeps corner to corner ============ */}
+      <div style={{
+        position: "absolute", top: 150, left: "50%", transform: "translateX(-50%)",
+        zIndex: 4,
+      }}>
+        <BranchCluster activeKey={activeKey} setActiveKey={setActiveKey} />
+      </div>
+
+      {/* ============ BIRDS — fly in, perch on a button 3s, fly out ============ */}
+      <Birds />
+
+      {/* ============ ACTIVE-BUTTON HINT ============ */}
+      <div style={{
+        position: "absolute", top: 608, left: 0, right: 0, textAlign: "center",
+        zIndex: 5, height: 18,
+      }}>
+        <span key={activeKey || "idle"} style={{
+          fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic",
+          fontSize: 16, color: "#d9b27a",
+          animation: "fadeIn 0.4s ease",
+        }}>
+          {active ? active.hint : "Touch any node along the branch to explore"}
+        </span>
+      </div>
+
+      {/* ============ FACTS SHOWCASE ============ */}
+      <div style={{
+        position: "absolute", top: 648, left: "50%", transform: "translateX(-50%)",
+        zIndex: 5,
+      }}>
+        <FactsShowcase />
+      </div>
+
+      {/* ============ BOTTOM CTAs ============ */}
+      <div style={{
+        position: "absolute", bottom: 30, left: 0, right: 0,
+        display: "flex", justifyContent: "center", gap: 14,
+        animation: "fadeUp 1s ease 3.0s backwards", zIndex: 6,
+      }}>
+        <button style={{
+          background: "transparent", color: "#f4ead8",
+          border: "1px solid rgba(217,178,122,0.45)",
+          padding: "13px 24px", borderRadius: 999, fontSize: 12.5, fontWeight: 500,
+          letterSpacing: 0.5, cursor: "pointer", whiteSpace: "nowrap",
+        }}>Download brochure</button>
+        <button style={{
+          background: "linear-gradient(135deg, #d9b27a, #b9874a)",
+          color: "#1a2620", border: "none",
+          padding: "13px 28px", borderRadius: 999, fontSize: 13, fontWeight: 700,
+          letterSpacing: 0.5, cursor: "pointer", whiteSpace: "nowrap",
+          boxShadow: "0 16px 36px rgba(217,178,122,0.32)",
+          display: "flex", alignItems: "center", gap: 8,
+        }}>
+          Begin the tour
+          <span style={{ display: "inline-block", animation: "nudge 1.6s ease-in-out infinite" }}>→</span>
+        </button>
+      </div>
+
+      {/* ============ FOOTER ============ */}
+      <div style={{
+        position: "absolute", bottom: 8, left: 32, right: 32,
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+        fontSize: 9.5, letterSpacing: 2, textTransform: "uppercase", opacity: 0.42, zIndex: 6,
+      }}>
+        <span>Living Tree by Kalyani Developers · est. {FACTS.estd}</span>
+        <span>{FACTS.airport}</span>
+        <span>Sales Pavilion · Gate A · {timeStr}</span>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("stage")).render(<LivingTreeExperience />);
+if (window.__ltScale) window.__ltScale();
+</script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>LivingTree · Sales Suite</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#1f3522"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="LivingTree Sales"/>
+<meta name="application-name" content="LivingTree Sales"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="app/styles.css"/>
+<style>
+.tablet-frame {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at 50% 30%, #2a3f29, #0d1810);
+}
+.tablet-bezel {
+  width: 2560px; height: 1600px;
+  flex-shrink: 0;
+  background: var(--parchment);
+  border-radius: 28px;
+  box-shadow: 0 0 0 14px #1a1f17, 0 0 0 16px #2a3a23, 0 80px 200px rgba(0,0,0,0.8);
+  position: relative;
+  overflow: hidden;
+}
+.tablet-bezel.bezel-tight {
+  border-radius: 0;
+  box-shadow: none;
+}
+.tablet-frame:has(.bezel-tight) { background: var(--parchment); }
+.transition-in  { animation: routeIn 280ms ease both; }
+.transition-out { opacity: 0; transition: opacity 220ms ease; }
+@keyframes routeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="app/data.jsx"></script>
+<script type="text/babel" src="app/leaf_bank.jsx"></script>
+<script type="text/babel" src="app/foliage_leaves.jsx"></script>
+<script type="text/babel" src="app/utils.jsx"></script>
+<script type="text/babel" src="app/fx.jsx"></script>
+<script type="text/babel" src="app/screens/_header.jsx"></script>
+<script type="text/babel" src="app/screens/splash.jsx"></script>
+<script type="text/babel" src="app/screens/home_v1.jsx"></script>
+<script type="text/babel" src="app/screens/home_v2.jsx"></script>
+<script type="text/babel" src="app/screens/home.jsx"></script>
+<script type="text/babel" src="app/screens/story.jsx"></script>
+<script type="text/babel" src="app/screens/north_bangalore.jsx"></script>
+<script type="text/babel" src="app/screens/location.jsx"></script>
+<script type="text/babel" src="app/screens/masterplan.jsx"></script>
+<script type="text/babel" src="app/screens/towers.jsx"></script>
+<script type="text/babel" src="app/screens/residences.jsx"></script>
+<script type="text/babel" src="app/screens/amenities.jsx"></script>
+<script type="text/babel" src="app/screens/gallery.jsx"></script>
+<script type="text/babel" src="app/screens/specifications.jsx"></script>
+<script type="text/babel" src="app/screens/tools.jsx"></script>
+<script type="text/babel" src="app/screens/booking.jsx"></script>
+<script type="text/babel" src="app/screens/saver.jsx"></script>
+<script type="text/babel" src="app/screens/gre.jsx"></script>
+<script type="text/babel" src="app/screens/dashboard.jsx"></script>
+
+<script type="text/babel">
+function App() {
+  const [route] = useRoute();
+  const { route: shown, phase } = useRouteTransition(route);
+  const { scale, tight } = useFitScale(2560, 1600);
+
+  let Screen = Splash;
+  if (shown.path === 'home')             Screen = Home;
+  else if (shown.path === 'story')       Screen = Story;
+  else if (shown.path === 'north')       Screen = NorthBangalore;
+  else if (shown.path === 'location')    Screen = LocationScreen;
+  else if (shown.path === 'masterplan')  Screen = MasterPlan;
+  else if (shown.path === 'towers')      Screen = Towers;
+  else if (shown.path === 'residences')  Screen = Residences;
+  else if (shown.path === 'amenities')   Screen = Amenities;
+  else if (shown.path === 'gallery')     Screen = Gallery;
+  else if (shown.path === 'specs')       Screen = Specifications;
+  else if (shown.path === 'tools')       Screen = Tools;
+  else if (shown.path === 'booking')     Screen = Booking;
+  else if (shown.path === 'saver')       Screen = Saver;
+  else if (shown.path === 'gre')         Screen = GRE;
+  else if (shown.path === 'dashboard')   Screen = Dashboard;
+
+  return (
+    <div className="tablet-frame">
+      <div className={"tablet-bezel" + (tight ? " bezel-tight" : "")} style={{transform:`scale(${scale})`, transformOrigin:'center'}}>
+        <div key={shown.path + (shown.params||[]).join('-')} className={phase==='in' ? 'transition-in' : 'transition-out'} style={{position:'absolute',inset:0}}>
+          <Screen/>
+        </div>
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

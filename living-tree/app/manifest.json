@@ -1,0 +1,16 @@
+{
+  "name": "LivingTree · Sales Suite",
+  "short_name": "LivingTree",
+  "description": "LivingTree by Kalyani Developers — Designed for Life. Tablet sales presenter.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1f3522",
+  "theme_color": "#1f3522",
+  "lang": "en",
+  "icons": [
+    { "src": "assets/brand/lt-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/brand/lt-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

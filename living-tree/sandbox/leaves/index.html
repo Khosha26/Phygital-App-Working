@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Living Tree · Falling Leaves Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; font-family: Inter, system-ui, sans-serif; overflow: hidden; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+
+  #wrap {
+    position: fixed; inset: 0; display: grid; place-items: center;
+    background: radial-gradient(ellipse at 50% 30%, #f7e9c7 0%, #e8c98a 55%, #b88848 100%);
+  }
+  #stage {
+    position: relative;
+    width: 1440px; height: 900px;
+    transform-origin: center center;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 60px 140px rgba(0,0,0,0.35);
+    background: linear-gradient(180deg, #f4dfa6 0%, #e8c47a 55%, #c98a40 100%);
+  }
+
+  /* Soft golden-hour sun */
+  .sun {
+    position: absolute; top: 90px; right: 180px;
+    width: 130px; height: 130px; border-radius: 50%;
+    background: radial-gradient(circle at 38% 35%, #fff8d6 0%, #ffd97a 50%, #f0a040 100%);
+    box-shadow: 0 0 80px 22px rgba(255, 200, 100, 0.5);
+    opacity: 0.95;
+  }
+
+  /* Tree center */
+  .tree-wrap { position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%); pointer-events: none; }
+  .tree-glow {
+    position: absolute; left: 50%; top: 50%;
+    width: 380px; height: 380px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(255,220,140,0.55) 0%, rgba(255,220,140,0) 65%);
+    filter: blur(8px);
+    animation: breathe 7s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(1);    opacity: 0.55; }
+    50%      { transform: translate(-50%, -50%) scale(1.08); opacity: 0.95; }
+  }
+
+  /* Constellation buttons */
+  .node {
+    position: absolute;
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic; font-size: 15px; font-weight: 500;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    user-select: none;
+    text-align: center;
+    background: rgba(255, 250, 230, 0.55);
+    color: rgba(80, 50, 20, 0.92);
+    border: 1px solid rgba(140, 90, 40, 0.4);
+    box-shadow: 0 4px 16px rgba(140, 80, 30, 0.18), inset 0 0 18px rgba(255, 240, 200, 0.4);
+    transition: all 0.4s ease;
+    z-index: 6;
+  }
+  .node:hover {
+    transform: scale(1.04);
+    box-shadow: 0 6px 24px rgba(140, 80, 30, 0.3), inset 0 0 22px rgba(255, 240, 200, 0.6);
+  }
+
+  /* Leaf */
+  .leaf {
+    position: absolute;
+    will-change: transform, opacity;
+    pointer-events: none;
+    /* CSS vars set per-leaf */
+    --rotS: 0deg;
+    --rotE: 360deg;
+    --sway: 30px;
+  }
+  /* Outer wrapper handles the slow fall + drift */
+  .leaf .fall {
+    animation: leafFall var(--fallDur, 14s) linear forwards;
+  }
+  /* Inner wrapper handles the side-to-side sway */
+  .leaf .sway {
+    animation: leafSway var(--swayDur, 2.6s) ease-in-out infinite;
+    transform-origin: center;
+  }
+  /* Innermost — the spin */
+  .leaf .spin {
+    animation: leafSpin var(--spinDur, 4.5s) linear infinite;
+    transform-origin: center;
+  }
+  @keyframes leafFall {
+    0%   { transform: translate(0, 0); opacity: 0; }
+    6%   { opacity: 1; }
+    94%  { opacity: 1; }
+    100% { transform: translate(var(--driftX), calc(900px + 100px)); opacity: 0; }
+  }
+  @keyframes leafSway {
+    0%, 100% { transform: translateX(calc(var(--sway) * -1)); }
+    50%      { transform: translateX(var(--sway)); }
+  }
+  @keyframes leafSpin {
+    0%   { transform: rotate(var(--rotS)); }
+    100% { transform: rotate(var(--rotE)); }
+  }
+
+  /* When a leaf catches on a button — pause animations */
+  .leaf.caught .fall { animation-play-state: paused; }
+  .leaf.caught .sway { animation: leafCatchBob 1.4s ease-in-out infinite; }
+  .leaf.caught .spin { animation: leafCatchTremble 2s ease-in-out infinite; }
+  @keyframes leafCatchBob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-2px); }
+  }
+  @keyframes leafCatchTremble {
+    0%, 100% { transform: rotate(var(--rotS)); }
+    50%      { transform: rotate(calc(var(--rotS) + 6deg)); }
+  }
+
+  /* Title overlay */
+  .title-wrap { position: absolute; left: 50%; bottom: 18%; transform: translateX(-50%); text-align: center; pointer-events: none; z-index: 5; }
+  .title {
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 300; font-style: italic;
+    font-size: 56px; letter-spacing: 0.02em; margin: 0;
+    color: #3a2410; text-shadow: 0 2px 8px rgba(255,240,200,0.6);
+  }
+  .subtitle {
+    font-family: "Cormorant Garamond", serif; font-style: italic;
+    font-size: 15px; letter-spacing: 0.32em; text-transform: uppercase;
+    margin-top: 6px; color: #6a4520; opacity: 0.75;
+  }
+
+  /* Label */
+  .label {
+    position: fixed; bottom: 20px; left: 24px; z-index: 100;
+    padding: 8px 16px; border-radius: 4px;
+    background: rgba(60,30,10,0.45); color: rgba(255,240,210,0.85);
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    backdrop-filter: blur(8px);
+  }
+  .controls {
+    position: fixed; top: 20px; right: 24px; z-index: 100;
+    display: flex; gap: 10px;
+  }
+  .ctl {
+    padding: 10px 18px; border-radius: 999px;
+    border: 1px solid rgba(140, 90, 40, 0.5);
+    background: rgba(255, 250, 230, 0.8);
+    color: #3a2410;
+    font-family: "Cormorant Garamond", serif; font-style: italic;
+    font-size: 14px; cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+  .ctl:hover { transform: translateY(-1px); }
+</style>
+</head>
+<body>
+  <div class="controls">
+    <button class="ctl" id="gustBtn">Wind Gust</button>
+    <button class="ctl" id="densityBtn">Density: Med</button>
+  </div>
+  <div class="label">Port 8096 · Falling Leaves Prototype</div>
+
+  <div id="wrap">
+    <div id="stage">
+      <div class="sun"></div>
+
+      <div class="tree-wrap">
+        <div class="tree-glow"></div>
+        <svg width="220" height="280" viewBox="0 0 220 280" style="position: relative; z-index: 2;">
+          <path d="M 110 280 L 108 200 Q 105 180 110 160 Q 115 140 110 100" stroke="#6a3f1d" stroke-width="6" fill="none" stroke-linecap="round" />
+          <path d="M 110 180 Q 90 170 75 155" stroke="#6a3f1d" stroke-width="3" fill="none" stroke-linecap="round" />
+          <path d="M 110 170 Q 130 158 145 142" stroke="#6a3f1d" stroke-width="3" fill="none" stroke-linecap="round" />
+          <path d="M 110 140 Q 95 125 85 115" stroke="#6a3f1d" stroke-width="2.5" fill="none" stroke-linecap="round" />
+          <path d="M 110 130 Q 128 118 138 108" stroke="#6a3f1d" stroke-width="2.5" fill="none" stroke-linecap="round" />
+          <ellipse cx="110" cy="90"  rx="70" ry="60" fill="rgba(180, 110, 50, 0.55)" />
+          <ellipse cx="78"  cy="105" rx="42" ry="38" fill="rgba(200, 130, 60, 0.55)" />
+          <ellipse cx="148" cy="100" rx="44" ry="40" fill="rgba(190, 100, 45, 0.55)" />
+          <ellipse cx="110" cy="65"  rx="48" ry="40" fill="rgba(220, 150, 70, 0.55)" />
+        </svg>
+      </div>
+
+      <!-- 6 constellation nodes -->
+      <div class="node" data-target="master" style="left: 220px; top: 220px;">Master<br/>Plan</div>
+      <div class="node" data-target="floor" style="left: 220px; top: 580px;">Floor<br/>Plans</div>
+      <div class="node" data-target="amenities" style="left: 1120px; top: 220px;">Amenities</div>
+      <div class="node" data-target="gallery" style="left: 1120px; top: 580px;">Gallery</div>
+      <div class="node" data-target="project" style="left: 480px; top: 130px;">Project</div>
+      <div class="node" data-target="location" style="left: 860px; top: 130px;">Location</div>
+
+      <div class="title-wrap">
+        <h1 class="title">Living Tree</h1>
+        <div class="subtitle">By Kalyani Developers</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ====== Stage scaling ======
+  (function() {
+    const W = 1440, H = 900;
+    function scale() {
+      const wrap = document.getElementById("wrap");
+      const stage = document.getElementById("stage");
+      const s = Math.min(wrap.clientWidth / W, wrap.clientHeight / H) * 0.96;
+      stage.style.transform = "scale(" + s + ")";
+    }
+    window.addEventListener("resize", scale);
+    document.addEventListener("DOMContentLoaded", scale);
+    window.addEventListener("load", scale);
+  })();
+
+  const STAGE = document.getElementById("stage");
+  const STAGE_W = 1440, STAGE_H = 900;
+
+  // Autumn palette (Living Tree's brand-adjacent earth tones)
+  const LEAF_COLORS = [
+    { fill: "#c4642a", stroke: "#7a3a14" }, // rust
+    { fill: "#d98a3a", stroke: "#8a4e1a" }, // amber
+    { fill: "#e6b450", stroke: "#946022" }, // honey
+    { fill: "#a85a28", stroke: "#5e2f10" }, // burnt sienna
+    { fill: "#b88c3c", stroke: "#6e4a18" }, // olive-bronze
+    { fill: "#d9b27a", stroke: "#8a6a3c" }, // pale gold (Living Tree accent)
+    { fill: "#8d4a1f", stroke: "#4d260e" }, // dark walnut
+    { fill: "#c98246", stroke: "#754018" }, // pumpkin
+  ];
+
+  // SVG leaf shape — varied: simple oval-with-vein leaf
+  function leafSVG(size, color) {
+    const w = size, h = size * 1.4;
+    return `<svg width="${w}" height="${h}" viewBox="0 0 40 56" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 20 2 C 8 10 4 26 6 40 C 8 50 14 54 20 54 C 26 54 32 50 34 40 C 36 26 32 10 20 2 Z"
+            fill="${color.fill}" stroke="${color.stroke}" stroke-width="1" />
+      <path d="M 20 4 L 20 52" stroke="${color.stroke}" stroke-width="0.8" opacity="0.55" />
+      <path d="M 20 18 L 14 22" stroke="${color.stroke}" stroke-width="0.6" opacity="0.45" />
+      <path d="M 20 18 L 26 22" stroke="${color.stroke}" stroke-width="0.6" opacity="0.45" />
+      <path d="M 20 28 L 12 34" stroke="${color.stroke}" stroke-width="0.6" opacity="0.45" />
+      <path d="M 20 28 L 28 34" stroke="${color.stroke}" stroke-width="0.6" opacity="0.45" />
+      <path d="M 20 40 L 14 44" stroke="${color.stroke}" stroke-width="0.6" opacity="0.45" />
+      <path d="M 20 40 L 26 44" stroke="${color.stroke}" stroke-width="0.6" opacity="0.45" />
+    </svg>`;
+  }
+
+  let leafId = 0;
+  let nextGust = 0;
+  let densityMode = "medium"; // sparse | medium | heavy
+  const densityMap = { sparse: 1100, medium: 600, heavy: 300 };
+
+  function spawnLeaf() {
+    const id = ++leafId;
+    const wrap = document.createElement("div");
+    wrap.className = "leaf";
+    wrap.dataset.id = id;
+
+    const size = 20 + Math.random() * 28; // 20–48px
+    const color = LEAF_COLORS[Math.floor(Math.random() * LEAF_COLORS.length)];
+    const startX = -40 + Math.random() * (STAGE_W + 80);
+    const startY = -60 - Math.random() * 200;
+    const driftX = (Math.random() - 0.3) * 380; // slight rightward bias
+    const fallDur = 11 + Math.random() * 10;    // 11–21s — slow, gentle
+    const sway = 18 + Math.random() * 28;       // 18–46px
+    const swayDur = 2.0 + Math.random() * 2.4;  // 2–4.4s
+    const spinDur = 3.5 + Math.random() * 6;    // 3.5–9.5s
+    const rotS = Math.random() * 360;
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    const rotE = rotS + (180 + Math.random() * 360) * dir;
+
+    wrap.style.left = startX + "px";
+    wrap.style.top = startY + "px";
+    wrap.style.setProperty("--fallDur", fallDur + "s");
+    wrap.style.setProperty("--driftX", driftX + "px");
+    wrap.style.setProperty("--sway", sway + "px");
+    wrap.style.setProperty("--swayDur", swayDur + "s");
+    wrap.style.setProperty("--spinDur", spinDur + "s");
+    wrap.style.setProperty("--rotS", rotS + "deg");
+    wrap.style.setProperty("--rotE", rotE + "deg");
+    // Small depth: far leaves slightly smaller + less opaque + blurred a touch
+    const depth = Math.random(); // 0 = far, 1 = near
+    const opacity = 0.55 + depth * 0.45;
+    const blur = (1 - depth) * 1.2; // 0–1.2px
+    wrap.style.opacity = opacity;
+    wrap.style.filter = `drop-shadow(0 4px 6px rgba(70,30,10,${0.18 * depth})) blur(${blur}px)`;
+
+    // Three nested wrappers: fall (translate) > sway (translateX) > spin (rotate) > leaf SVG
+    const fallEl = document.createElement("div");
+    fallEl.className = "fall";
+    const swayEl = document.createElement("div");
+    swayEl.className = "sway";
+    const spinEl = document.createElement("div");
+    spinEl.className = "spin";
+    spinEl.innerHTML = leafSVG(size, color);
+    swayEl.appendChild(spinEl);
+    fallEl.appendChild(swayEl);
+    wrap.appendChild(fallEl);
+    STAGE.appendChild(wrap);
+
+    // Catch-on-button chance: ~12%
+    if (Math.random() < 0.12) {
+      const nodes = document.querySelectorAll(".node");
+      const target = nodes[Math.floor(Math.random() * nodes.length)];
+      const nx = parseInt(target.style.left) + 48 + (Math.random() - 0.5) * 40;
+      const ny = parseInt(target.style.top) + (Math.random() - 0.5) * 30;
+      const catchAt = (0.45 + Math.random() * 0.35) * fallDur * 1000; // somewhere mid-fall
+      const restDur = 1500 + Math.random() * 2200;
+      setTimeout(() => {
+        if (!document.body.contains(wrap)) return;
+        wrap.classList.add("caught");
+        // Snap position to button
+        wrap.style.left = (nx - size/2) + "px";
+        wrap.style.top = (ny - size * 0.7) + "px";
+        setTimeout(() => {
+          wrap.classList.remove("caught");
+          // Resume falling from this new spot — give it a fresh fall animation
+          const remainingDur = 6 + Math.random() * 5;
+          const newDriftX = (Math.random() - 0.5) * 240;
+          wrap.style.setProperty("--fallDur", remainingDur + "s");
+          wrap.style.setProperty("--driftX", newDriftX + "px");
+          const fallEl2 = wrap.querySelector(".fall");
+          fallEl2.style.animation = "none";
+          // Force reflow
+          void fallEl2.offsetWidth;
+          fallEl2.style.animation = `leafFall ${remainingDur}s linear forwards`;
+          setTimeout(() => wrap.remove(), remainingDur * 1000 + 200);
+        }, restDur);
+      }, catchAt);
+    } else {
+      setTimeout(() => wrap.remove(), fallDur * 1000 + 200);
+    }
+  }
+
+  // ====== Steady spawn ======
+  let spawnTimer;
+  function startSpawn() {
+    clearInterval(spawnTimer);
+    spawnTimer = setInterval(spawnLeaf, densityMap[densityMode]);
+  }
+
+  // Seed a bunch immediately, staggered, so the screen has leaves on load
+  for (let i = 0; i < 20; i++) setTimeout(spawnLeaf, i * 280 + Math.random() * 250);
+  startSpawn();
+
+  // ====== Wind gust ======
+  const gustBtn = document.getElementById("gustBtn");
+  gustBtn.addEventListener("click", () => {
+    // Spawn a burst of fast-moving leaves with strong rightward drift
+    for (let i = 0; i < 14; i++) {
+      setTimeout(() => {
+        spawnLeaf();
+        // Apply gust modifier to the latest leaf
+        const leaves = document.querySelectorAll(".leaf");
+        const latest = leaves[leaves.length - 1];
+        if (latest) {
+          latest.style.setProperty("--driftX", (260 + Math.random() * 180) + "px");
+          latest.style.setProperty("--fallDur", (5 + Math.random() * 3) + "s");
+          latest.style.setProperty("--sway", "8px"); // less sway during gust (carried by wind)
+          const fallEl = latest.querySelector(".fall");
+          if (fallEl) {
+            fallEl.style.animation = "none";
+            void fallEl.offsetWidth;
+            fallEl.style.animation = `leafFall ${5 + Math.random()*3}s linear forwards`;
+          }
+        }
+      }, i * 60);
+    }
+  });
+
+  // ====== Density toggle ======
+  const densityBtn = document.getElementById("densityBtn");
+  const order = ["sparse", "medium", "heavy"];
+  const labels = { sparse: "Density: Low", medium: "Density: Med", heavy: "Density: High" };
+  densityBtn.addEventListener("click", () => {
+    const idx = order.indexOf(densityMode);
+    densityMode = order[(idx + 1) % order.length];
+    densityBtn.textContent = labels[densityMode];
+    startSpawn();
+  });
+</script>
+</body>
+</html>

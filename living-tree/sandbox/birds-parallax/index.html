@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Living Tree · Single Pelican · Real Wing Flap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin:0; padding:0; font-family: Inter, system-ui, sans-serif; overflow:hidden; -webkit-font-smoothing: antialiased; background:#000; }
+  * { box-sizing: border-box; }
+
+  #wrap { position: fixed; inset: 0; display: grid; place-items: center; background:#0a0608; }
+  #stage {
+    position: relative;
+    width: 1440px; height: 900px;
+    transform-origin: center center;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 60px 140px rgba(0,0,0,0.8);
+  }
+
+  /* Sky */
+  .sky {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 800px 400px at 75% 25%, rgba(255,180,90,0.55) 0%, rgba(255,180,90,0) 60%),
+      linear-gradient(180deg,
+        #1c2c5a 0%,
+        #2e4380 14%,
+        #6b6296 30%,
+        #d18a6e 52%,
+        #f0b06a 64%,
+        #f2c66e 74%,
+        #d68250 88%,
+        #5a2f30 100%);
+  }
+  .haze {
+    position: absolute; left:0; right:0; bottom:0;
+    height: 320px;
+    background: linear-gradient(180deg, rgba(245,180,120,0) 0%, rgba(245,180,120,0.25) 60%, rgba(180,90,80,0.45) 100%);
+    pointer-events: none;
+  }
+  .sun {
+    position: absolute; top: 200px; right: 280px;
+    width: 90px; height: 90px; border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, #fff8d6 0%, #ffd97a 40%, #ff9c4a 75%, rgba(255,140,80,0) 100%);
+    box-shadow: 0 0 90px 30px rgba(255,180,90,0.5), 0 0 200px 60px rgba(255,150,90,0.3);
+  }
+  .mountains-far {
+    position: absolute; left:0; right:0; bottom: 220px; height: 90px;
+    background: linear-gradient(180deg, rgba(60,40,55,0.55) 0%, rgba(60,40,55,0.7) 100%);
+    -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 90' preserveAspectRatio='none'><path d='M0,90 L0,55 L80,35 L160,50 L240,28 L320,40 L420,18 L520,38 L620,22 L720,42 L820,28 L920,48 L1040,30 L1160,45 L1260,25 L1360,40 L1440,30 L1440,90 Z' fill='black'/></svg>");
+    mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 90' preserveAspectRatio='none'><path d='M0,90 L0,55 L80,35 L160,50 L240,28 L320,40 L420,18 L520,38 L620,22 L720,42 L820,28 L920,48 L1040,30 L1160,45 L1260,25 L1360,40 L1440,30 L1440,90 Z' fill='black'/></svg>");
+    opacity: 0.65; filter: blur(0.6px);
+  }
+  .mountains-mid {
+    position: absolute; left:0; right:0; bottom: 200px; height: 120px;
+    background: linear-gradient(180deg, rgba(40,28,45,0.85) 0%, rgba(30,20,35,1) 100%);
+    -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 120' preserveAspectRatio='none'><path d='M0,120 L0,60 L100,30 L200,55 L320,18 L450,45 L580,15 L720,50 L860,20 L1000,45 L1130,18 L1280,40 L1440,22 L1440,120 Z' fill='black'/></svg>");
+    mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 120' preserveAspectRatio='none'><path d='M0,120 L0,60 L100,30 L200,55 L320,18 L450,45 L580,15 L720,50 L860,20 L1000,45 L1130,18 L1280,40 L1440,22 L1440,120 Z' fill='black'/></svg>");
+  }
+
+  /* Cloud */
+  .cloud { position: absolute; opacity: 0.85; pointer-events: none; }
+  .cloud-far  { filter: blur(2px); opacity: 0.45; }
+  .cloud-mid  { filter: blur(0.6px); opacity: 0.75; }
+
+  /* Tree + ground */
+  .tree-wrap { position: absolute; left: 50%; bottom: 60px; transform: translateX(-50%); pointer-events: none; z-index: 18; }
+  .tree-glow {
+    position: absolute; left: 50%; top: 50%;
+    width: 380px; height: 380px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(255,200,140,0.35) 0%, rgba(255,200,140,0) 65%);
+    filter: blur(8px);
+    animation: breathe 7s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(1);    opacity: 0.55; }
+    50%      { transform: translate(-50%, -50%) scale(1.08); opacity: 0.95; }
+  }
+  .ground {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 180px;
+    background: linear-gradient(180deg, rgba(60,30,30,0) 0%, rgba(45,22,22,0.55) 50%, rgba(25,12,12,0.85) 100%);
+    pointer-events: none;
+  }
+  .title-wrap { position: absolute; left: 50%; top: 16%; transform: translateX(-50%); text-align: center; pointer-events: none; z-index: 25; }
+  .title {
+    font-family: "Cormorant Garamond", serif; font-weight: 300; font-style: italic;
+    font-size: 64px; letter-spacing: 0.02em; margin: 0;
+    color: #fff5db;
+    text-shadow: 0 4px 24px rgba(255,150,90,0.45), 0 2px 6px rgba(0,0,0,0.5);
+  }
+  .subtitle {
+    font-family: "Cormorant Garamond", serif; font-style: italic;
+    font-size: 15px; letter-spacing: 0.32em; text-transform: uppercase;
+    margin-top: 8px; color: #ffe2b8; opacity: 0.85;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+  .vignette {
+    position: absolute; inset: 0; pointer-events: none; z-index: 30;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0) 50%, rgba(0,0,0,0.45) 100%);
+  }
+
+  /* ===== SINGLE PELICAN ===== */
+  /* Container moves horizontally across the sky */
+  .pelican {
+    position: absolute;
+    width: 320px;
+    height: 200px; /* aspect ~1.6:1 for pelican bbox 159x100 */
+    z-index: 15;
+    filter: drop-shadow(0 12px 18px rgba(40,20,15,0.45));
+    will-change: transform, left, top;
+  }
+
+  /* Body layer: shows the WHOLE pelican but clips OUT the wing region
+     so the wing area is transparent. The wing is then rendered separately
+     on top in the wing layer (which can rotate independently).
+
+     clip-path uses evenodd to cut a hole. Coordinates are in % of container.
+     Wing region (the upper-right wedge with the raised wing) is approximately:
+       leading edge at (32%, 65%) shoulder area
+       up to (38%, 18%) wing top-left
+       across to (98%, 6%) wing tip
+       back down to (96%, 70%) wing trailing edge near body
+       back to shoulder
+  */
+  .pelican .body,
+  .pelican .wing {
+    position: absolute; inset: 0;
+  }
+  /* COMPLEMENTARY POLYGONS — no holes, no overlap.
+     The cut follows the wing's natural lower edge through the bird:
+       - Top: vertical at x≈30% (just right of the head/neck)
+       - Diagonal down-and-right following the wing's underside
+       - Wraps under the wing tip on the right side
+     Body = head + neck + chest + lower body + legs (everything BELOW the cut)
+     Wing = upper-right wedge ONLY (the extended wing)
+  */
+  .pelican .body {
+    clip-path: polygon(
+      0%   0%,        /* top-left */
+      30%  0%,        /* top, just left of where wing root meets back */
+      30%  20%,
+      33%  45%,
+      38%  62%,       /* shoulder / wing-body junction */
+      55%  68%,       /* wing's underside trailing across the back */
+      78%  64%,
+      95%  56%,       /* wing trailing edge meets back */
+      100% 58%,
+      100% 100%,      /* bottom-right */
+      0%   100%       /* bottom-left */
+    );
+  }
+  .pelican .wing {
+    /* Complement of the body cut — the upper-right wedge */
+    clip-path: polygon(
+      30%  0%,
+      100% 0%,
+      100% 58%,
+      95%  56%,
+      78%  64%,
+      55%  68%,
+      38%  62%,
+      33%  45%,
+      30%  20%
+    );
+    /* Rotate around the shoulder (wing-body junction) */
+    transform-origin: 38% 62%;
+    animation: wingFlap 0.6s ease-in-out infinite;
+  }
+  /* Wing flap: from raised "up" rest pose, rotate forward and down through
+     the downstroke. ScaleY compress mid-stroke for foreshortening. */
+  @keyframes wingFlap {
+    0%   { transform: rotate(0deg)   scaleY(1);    }
+    45%  { transform: rotate(52deg)  scaleY(0.68); }
+    55%  { transform: rotate(52deg)  scaleY(0.68); }
+    100% { transform: rotate(0deg)   scaleY(1);    }
+  }
+  /* Subtle body bob keyed to the flap */
+  .pelican .body { animation: bodyBob 0.6s ease-in-out infinite; }
+  @keyframes bodyBob {
+    0%, 100% { transform: translateY(0);   }
+    50%      { transform: translateY(2.5px); }
+  }
+
+  /* The SVG inside each layer fills the container */
+  .pelican svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+  #birds-source { position: absolute; width: 0; height: 0; overflow: hidden; visibility: hidden; }
+
+  /* Controls */
+  .controls {
+    position: fixed; top: 18px; right: 22px; z-index: 100;
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;
+  }
+  .ctl {
+    padding: 10px 18px; border-radius: 999px;
+    border: 1px solid rgba(255,220,170,0.5);
+    background: rgba(20,12,8,0.55);
+    color: #ffe2b8;
+    font-family: "Cormorant Garamond", serif; font-style: italic;
+    font-size: 14px; cursor: pointer; backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+  .ctl:hover { transform: translateY(-1px); background: rgba(40,20,15,0.7); }
+  .ctl.active { background: rgba(255,180,90,0.25); border-color: rgba(255,220,170,0.9); }
+
+  .label {
+    position: fixed; bottom: 20px; left: 24px; z-index: 100;
+    padding: 8px 16px; border-radius: 4px;
+    background: rgba(20,12,8,0.55); color: rgba(255,230,200,0.85);
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    backdrop-filter: blur(8px);
+  }
+
+  /* Debug overlay */
+  .debug-clip { outline: 1px dashed rgba(0,255,170,0.7); }
+
+  /* Constellation buttons (kept for context) */
+  .node {
+    position: absolute;
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic; font-size: 15px; font-weight: 500;
+    cursor: pointer; user-select: none; text-align: center;
+    background: rgba(255, 240, 210, 0.18);
+    color: rgba(255, 240, 210, 0.92);
+    border: 1px solid rgba(255, 220, 170, 0.4);
+    box-shadow: inset 0 0 22px rgba(255,220,170,0.18), 0 0 26px rgba(255,180,120,0.18);
+    backdrop-filter: blur(4px);
+    z-index: 22;
+  }
+</style>
+</head>
+<body>
+  <div class="controls">
+    <button class="ctl" id="flapBtn">Flap: ON</button>
+    <button class="ctl" id="speedBtn">Speed: Normal</button>
+    <button class="ctl" id="debugBtn">Show Clip Regions</button>
+  </div>
+  <div class="label">Port 8104 · One Pelican · Real Wing Flap</div>
+
+  <div id="wrap">
+    <div id="stage">
+      <div class="sky"></div>
+      <div class="sun"></div>
+      <div class="haze"></div>
+      <div class="mountains-far"></div>
+      <div class="mountains-mid"></div>
+
+      <!-- A couple of stationary atmospheric clouds for depth -->
+      <div class="cloud cloud-far" style="left: 120px; top: 180px;">
+        <svg width="240" height="100" viewBox="0 0 340 140" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="80"  cy="92" rx="62" ry="36" fill="rgba(255,210,180,0.85)"/>
+          <ellipse cx="150" cy="72" rx="80" ry="46" fill="rgba(255,220,190,0.92)"/>
+          <ellipse cx="230" cy="86" rx="72" ry="40" fill="rgba(255,215,185,0.88)"/>
+          <ellipse cx="290" cy="100" rx="48" ry="30" fill="rgba(255,210,180,0.85)"/>
+        </svg>
+      </div>
+      <div class="cloud cloud-mid" style="right: 200px; top: 320px;">
+        <svg width="320" height="130" viewBox="0 0 340 140" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="80"  cy="92" rx="62" ry="36" fill="rgba(255,210,180,0.85)"/>
+          <ellipse cx="150" cy="72" rx="80" ry="46" fill="rgba(255,220,190,0.92)"/>
+          <ellipse cx="230" cy="86" rx="72" ry="40" fill="rgba(255,215,185,0.88)"/>
+          <ellipse cx="290" cy="100" rx="48" ry="30" fill="rgba(255,210,180,0.85)"/>
+        </svg>
+      </div>
+
+      <!-- Hidden SVG source -->
+      <div id="birds-source"></div>
+
+      <!-- The pelican -->
+      <div class="pelican" id="pelican">
+        <div class="body">
+          <svg viewBox="10 10 159 100" preserveAspectRatio="xMidYMid meet">
+            <use href="#bird-pelican"></use>
+          </svg>
+        </div>
+        <div class="wing">
+          <svg viewBox="10 10 159 100" preserveAspectRatio="xMidYMid meet">
+            <use href="#bird-pelican"></use>
+          </svg>
+        </div>
+      </div>
+
+      <div class="ground"></div>
+
+      <div class="tree-wrap">
+        <div class="tree-glow"></div>
+        <svg width="240" height="300" viewBox="0 0 220 280" style="position: relative; z-index: 2;">
+          <path d="M 110 280 L 108 200 Q 105 180 110 160 Q 115 140 110 100" stroke="#3a2410" stroke-width="6" fill="none" stroke-linecap="round" />
+          <path d="M 110 180 Q 90 170 75 155" stroke="#3a2410" stroke-width="3" fill="none" stroke-linecap="round" />
+          <path d="M 110 170 Q 130 158 145 142" stroke="#3a2410" stroke-width="3" fill="none" stroke-linecap="round" />
+          <path d="M 110 140 Q 95 125 85 115" stroke="#3a2410" stroke-width="2.5" fill="none" stroke-linecap="round" />
+          <path d="M 110 130 Q 128 118 138 108" stroke="#3a2410" stroke-width="2.5" fill="none" stroke-linecap="round" />
+          <ellipse cx="110" cy="90"  rx="70" ry="60" fill="rgba(35, 22, 18, 0.78)" />
+          <ellipse cx="78"  cy="105" rx="42" ry="38" fill="rgba(40, 25, 20, 0.82)" />
+          <ellipse cx="148" cy="100" rx="44" ry="40" fill="rgba(40, 25, 20, 0.82)" />
+          <ellipse cx="110" cy="65"  rx="48" ry="40" fill="rgba(45, 30, 22, 0.85)" />
+        </svg>
+      </div>
+
+      <div class="node" style="left: 220px; top: 220px;">Master<br/>Plan</div>
+      <div class="node" style="left: 220px; top: 580px;">Floor<br/>Plans</div>
+      <div class="node" style="left: 1120px; top: 220px;">Amenities</div>
+      <div class="node" style="left: 1120px; top: 580px;">Gallery</div>
+      <div class="node" style="left: 480px; top: 130px;">Project</div>
+      <div class="node" style="left: 860px; top: 130px;">Location</div>
+
+      <div class="title-wrap">
+        <h1 class="title">Living Tree</h1>
+        <div class="subtitle">By Kalyani Developers</div>
+      </div>
+
+      <div class="vignette"></div>
+    </div>
+  </div>
+
+<script>
+  // Stage scaling
+  (function() {
+    const W = 1440, H = 900;
+    function scale() {
+      const wrap = document.getElementById("wrap");
+      const stage = document.getElementById("stage");
+      const s = Math.min(wrap.clientWidth / W, wrap.clientHeight / H) * 0.96;
+      stage.style.transform = "scale(" + s + ")";
+    }
+    window.addEventListener("resize", scale);
+    document.addEventListener("DOMContentLoaded", scale);
+    window.addEventListener("load", scale);
+  })();
+
+  const STAGE_W = 1440, STAGE_H = 900;
+  const pelican = document.getElementById("pelican");
+
+  // Load source SVG so <use href="#bird-pelican"> works
+  fetch("birds.svg")
+    .then(r => r.text())
+    .then(svg => {
+      document.getElementById("birds-source").innerHTML = svg;
+      startFlight();
+    });
+
+  // ============== Flight ==============
+  // Pelican faces LEFT in the source. To fly right-to-left it can stay as is.
+  // To fly left-to-right we need to flip horizontally (scaleX(-1)).
+  // We'll do a continuous loop crossing the screen and looping back.
+
+  let speedMode = "normal";
+  const speedMap = { slow: 22, normal: 14, fast: 8 };
+
+  function startFlight() {
+    flyOnce("ltr");
+  }
+
+  function flyOnce(direction) {
+    // Reset position
+    const w = 320;
+    const goingLeft = direction === "rtl";
+    const startX = goingLeft ? STAGE_W + 40 : -w - 40;
+    const endX   = goingLeft ? -w - 40     : STAGE_W + 40;
+    const startY = 220 + Math.random() * 240;
+    const endY   = startY + (Math.random() - 0.5) * 160;
+
+    pelican.style.transition = "none";
+    pelican.style.left = startX + "px";
+    pelican.style.top = startY + "px";
+    pelican.style.setProperty("--facing", goingLeft ? 1 : -1);
+
+    // Bird's natural orientation is LEFT-facing. Flying-left = no flip. Flying-right = flip.
+    const facingTransform = goingLeft ? "" : " scaleX(-1)";
+
+    requestAnimationFrame(() => {
+      const dur = speedMap[speedMode];
+      pelican.style.transition = `left ${dur}s linear, top ${dur}s ease-in-out, transform ${dur}s ease`;
+      pelican.style.left = endX + "px";
+      pelican.style.top = endY + "px";
+      pelican.style.transform = facingTransform;
+    });
+
+    const dur = speedMap[speedMode];
+    setTimeout(() => {
+      // Alternate direction each loop for variety
+      flyOnce(direction === "ltr" ? "rtl" : "ltr");
+    }, dur * 1000 + 200);
+  }
+
+  // ============== Controls ==============
+  const flapBtn = document.getElementById("flapBtn");
+  flapBtn.addEventListener("click", () => {
+    const wing = document.querySelector(".pelican .wing");
+    const body = document.querySelector(".pelican .body");
+    const on = wing.style.animationPlayState !== "paused";
+    wing.style.animationPlayState = on ? "paused" : "running";
+    body.style.animationPlayState = on ? "paused" : "running";
+    flapBtn.textContent = "Flap: " + (on ? "OFF" : "ON");
+  });
+
+  const speedBtn = document.getElementById("speedBtn");
+  const order = ["slow", "normal", "fast"];
+  const labels = { slow: "Speed: Slow", normal: "Speed: Normal", fast: "Speed: Fast" };
+  speedBtn.addEventListener("click", () => {
+    const idx = order.indexOf(speedMode);
+    speedMode = order[(idx + 1) % order.length];
+    speedBtn.textContent = labels[speedMode];
+  });
+
+  // Debug — outline the clip regions
+  const debugBtn = document.getElementById("debugBtn");
+  let debugOn = false;
+  debugBtn.addEventListener("click", () => {
+    debugOn = !debugOn;
+    pelican.querySelector(".body").classList.toggle("debug-clip", debugOn);
+    pelican.querySelector(".wing").classList.toggle("debug-clip", debugOn);
+    debugBtn.classList.toggle("active", debugOn);
+  });
+</script>
+</body>
+</html>

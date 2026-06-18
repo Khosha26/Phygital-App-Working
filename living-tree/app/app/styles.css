@@ -1,0 +1,174 @@
+/* LivingTree · Sales Suite — global styles
+   Palette: deep forest green substrate, gold accent, parchment surfaces. */
+
+:root {
+  /* === LIGHT THEME — parchment substrate, forest-green accents ===== */
+  --parchment:   #f4edda;
+  --parchment-2: #ede5cc;
+  --parchment-3: #e2d8b8;
+  --ivory:       #fbf6ea;
+  --ink:         #1a1f17;
+  --graphite:    #2c3527;
+  --slate:       rgba(26,31,23,0.62);
+  --muted:       rgba(26,31,23,0.45);
+  --line:        rgba(26,31,23,0.12);
+  --line-soft:   rgba(26,31,23,0.05);
+
+  /* forest green family — primary brand */
+  --forest:        #2e4a2c;   /* dark hero green */
+  --forest-deep:   #1f3522;   /* deeper green for inverted callouts */
+  --forest-soft:   #4d6a44;
+  --forest-mid:    #6a8a5b;
+  --leaf-light:    #a8c293;
+  --leaf-pale:     #d8e3c8;
+
+  /* gold accent family */
+  --gold:        #c9a865;
+  --gold-deep:   #b08e45;
+  --gold-soft:   #e8d8a8;
+  --gold-glow:   rgba(201,168,101,0.42);
+
+  /* tile = dark forest as primary surface for nav tiles
+     (mirrors Universe's dark-beige tile) */
+  --tile:        #3a5536;
+  --tile-deep:   #243a23;
+  --tile-light:  #587350;
+  --on-tile:     #f5efd9;
+
+  /* Kalyani parent-brand red (from triangle logo) */
+  --kalyani-red:      #c8312f;
+  --kalyani-red-soft: rgba(200,49,47,0.12);
+  --kalyani-yellow:   #f3c52d;
+  --kalyani-blue:     #2a3a73;
+
+  /* status */
+  --available:      #4a8b52;
+  --available-soft: rgba(74,139,82,0.18);
+  --sold:           #b85547;
+  --sold-soft:      rgba(184,85,71,0.16);
+  --hold:           #c9a865;
+
+  /* inverted dark surface */
+  --night:    var(--forest-deep);
+  --night-2:  #2a4329;
+  --night-3:  #355538;
+
+  /* semantic aliases */
+  --page-bg:  var(--parchment);
+  --page-fg:  var(--ink);
+  --surface:  var(--ivory);
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--parchment);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  height: 100%;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  cursor: auto;
+}
+
+#root {
+  position: fixed;
+  inset: 0;
+  background: var(--parchment);
+}
+
+/* type rules */
+.serif {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-feature-settings: 'liga','dlig';
+}
+.display {
+  font-family: 'Cormorant Garamond', 'Cinzel', Georgia, serif;
+  font-feature-settings: 'liga';
+}
+.mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 0.04em;
+}
+.eyebrow {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 14px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--slate);
+  font-weight: 500;
+}
+.eyebrow.gold   { color: var(--gold-deep); }
+.eyebrow.forest { color: var(--forest); }
+.eyebrow.light  { color: rgba(245,239,217,0.6); }
+.eyebrow.red    { color: var(--kalyani-red); }
+
+em { font-style: italic; }
+
+/* tablet upscaled inputs */
+.tablet-bezel input,
+.tablet-bezel select,
+.tablet-bezel textarea {
+  font-size: 24px;
+  font-family: inherit;
+  padding: 22px 26px;
+  border-radius: 12px;
+  min-height: 76px;
+  border: 1px solid var(--line);
+  background: var(--ivory);
+  color: var(--ink);
+}
+.tablet-bezel input:focus,
+.tablet-bezel select:focus,
+.tablet-bezel textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+  background: var(--parchment-2);
+}
+.tablet-bezel textarea { min-height: 150px; padding: 22px 26px; }
+.tablet-bezel input[type="checkbox"],
+.tablet-bezel input[type="radio"] {
+  min-height: 0; padding: 0; width: 30px; height: 30px;
+}
+.tablet-bezel ::placeholder { font-size: 22px; opacity: 0.55; }
+.tablet-bezel button { min-height: 56px; font-family: inherit; }
+
+/* utility */
+.flex { display: flex; }
+.center { display: flex; align-items: center; justify-content: center; }
+.col { display: flex; flex-direction: column; }
+.gap-1 { gap: 4px; } .gap-2 { gap: 8px; } .gap-3 { gap: 12px; } .gap-4 { gap: 16px; }
+.gap-6 { gap: 24px; } .gap-8 { gap: 32px; } .gap-10 { gap: 40px; }
+
+button { font-family: inherit; cursor: pointer; }
+img { -webkit-user-drag: none; pointer-events: none; }
+
+/* scrollbars hidden but functional */
+.scroll {
+  overflow: auto;
+  scrollbar-width: none;
+}
+.scroll::-webkit-scrollbar { display: none; }
+
+/* horizontal marquee */
+@keyframes marqueeX {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: flex; gap: 90px; align-items: center;
+  width: max-content;
+  animation: marqueeX 40s linear infinite;
+}
+
+/* swipe / touch hint */
+.touch-pulse {
+  animation: touchPulse 2.4s ease-in-out infinite;
+}
+@keyframes touchPulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.08); }
+}

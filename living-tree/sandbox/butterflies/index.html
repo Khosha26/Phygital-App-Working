@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Living Tree · Butterflies Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; font-family: Inter, system-ui, sans-serif; overflow: hidden; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+
+  #wrap {
+    position: fixed; inset: 0; display: grid; place-items: center;
+    background: radial-gradient(ellipse at 50% 35%, #d9e8c8 0%, #aac28a 55%, #6a8855 100%);
+  }
+  #stage {
+    position: relative;
+    width: 1440px; height: 900px;
+    transform-origin: center center;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 60px 140px rgba(0,0,0,0.35);
+    background: linear-gradient(180deg, #e7f2d4 0%, #c3d9a3 55%, #8aa872 100%);
+  }
+
+  /* Tree center */
+  .tree-wrap { position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%); pointer-events: none; }
+  .tree-glow {
+    position: absolute; left: 50%; top: 50%;
+    width: 380px; height: 380px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 65%);
+    filter: blur(8px);
+    animation: breathe 7s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(1);    opacity: 0.55; }
+    50%      { transform: translate(-50%, -50%) scale(1.08); opacity: 0.95; }
+  }
+
+  /* Constellation buttons */
+  .node {
+    position: absolute;
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic; font-size: 15px; font-weight: 500;
+    cursor: pointer; user-select: none; text-align: center;
+    background: rgba(255, 255, 255, 0.5);
+    color: #2a4a30;
+    border: 1px solid rgba(60, 100, 60, 0.35);
+    box-shadow: 0 4px 16px rgba(50, 80, 40, 0.18), inset 0 0 18px rgba(255, 255, 255, 0.5);
+    transition: all 0.4s ease;
+    z-index: 6;
+  }
+  .node:hover {
+    transform: scale(1.04);
+    box-shadow: 0 6px 24px rgba(50, 80, 40, 0.3), inset 0 0 22px rgba(255, 255, 255, 0.7);
+  }
+
+  /* Butterfly */
+  .butterfly {
+    position: absolute;
+    will-change: transform, opacity;
+    pointer-events: none;
+    opacity: 0;
+  }
+  /* Wing flap: scale wing groups around their inner edge for a flap effect */
+  .wing-l, .wing-r {
+    transform-origin: 50% 50%;
+    animation: wingFlap var(--flapDur, 0.16s) ease-in-out infinite;
+  }
+  .wing-l { transform-origin: 100% 50%; }
+  .wing-r { transform-origin: 0% 50%; }
+  @keyframes wingFlap {
+    0%, 100% { transform: scaleX(1); }
+    50%      { transform: scaleX(0.18); }
+  }
+
+  /* Perched butterfly: slower fold-open-fold */
+  .butterfly.perch .wing-l,
+  .butterfly.perch .wing-r {
+    animation: wingPerch 2.4s ease-in-out infinite;
+  }
+  @keyframes wingPerch {
+    0%, 100% { transform: scaleX(1); }
+    50%      { transform: scaleX(0.55); }
+  }
+
+  /* Body bob while perched */
+  .butterfly.perch .body-wrap {
+    animation: bodyBob 1.4s ease-in-out infinite;
+  }
+  @keyframes bodyBob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-2px); }
+  }
+
+  /* Title */
+  .title-wrap { position: absolute; left: 50%; bottom: 18%; transform: translateX(-50%); text-align: center; pointer-events: none; z-index: 5; }
+  .title {
+    font-family: "Cormorant Garamond", serif; font-weight: 300; font-style: italic;
+    font-size: 56px; letter-spacing: 0.02em; margin: 0;
+    color: #1f3a25; text-shadow: 0 2px 8px rgba(255,255,255,0.45);
+  }
+  .subtitle {
+    font-family: "Cormorant Garamond", serif; font-style: italic;
+    font-size: 15px; letter-spacing: 0.32em; text-transform: uppercase;
+    margin-top: 6px; color: #3a5a3f; opacity: 0.75;
+  }
+
+  .label {
+    position: fixed; bottom: 20px; left: 24px; z-index: 100;
+    padding: 8px 16px; border-radius: 4px;
+    background: rgba(30,50,30,0.4); color: rgba(240,255,230,0.85);
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    backdrop-filter: blur(8px);
+  }
+</style>
+</head>
+<body>
+  <div class="label">Port 8100 · Butterflies Prototype</div>
+
+  <div id="wrap">
+    <div id="stage">
+      <div class="tree-wrap">
+        <div class="tree-glow"></div>
+        <svg width="220" height="280" viewBox="0 0 220 280" style="position: relative; z-index: 2;">
+          <path d="M 110 280 L 108 200 Q 105 180 110 160 Q 115 140 110 100" stroke="#5a3a1f" stroke-width="6" fill="none" stroke-linecap="round" />
+          <path d="M 110 180 Q 90 170 75 155" stroke="#5a3a1f" stroke-width="3" fill="none" stroke-linecap="round" />
+          <path d="M 110 170 Q 130 158 145 142" stroke="#5a3a1f" stroke-width="3" fill="none" stroke-linecap="round" />
+          <path d="M 110 140 Q 95 125 85 115" stroke="#5a3a1f" stroke-width="2.5" fill="none" stroke-linecap="round" />
+          <path d="M 110 130 Q 128 118 138 108" stroke="#5a3a1f" stroke-width="2.5" fill="none" stroke-linecap="round" />
+          <ellipse cx="110" cy="90"  rx="70" ry="60" fill="rgba(70, 130, 60, 0.55)" />
+          <ellipse cx="78"  cy="105" rx="42" ry="38" fill="rgba(80, 140, 65, 0.55)" />
+          <ellipse cx="148" cy="100" rx="44" ry="40" fill="rgba(75, 135, 60, 0.55)" />
+          <ellipse cx="110" cy="65"  rx="48" ry="40" fill="rgba(95, 155, 75, 0.55)" />
+        </svg>
+      </div>
+
+      <div class="node" style="left: 220px; top: 220px;">Master<br/>Plan</div>
+      <div class="node" style="left: 220px; top: 580px;">Floor<br/>Plans</div>
+      <div class="node" style="left: 1120px; top: 220px;">Amenities</div>
+      <div class="node" style="left: 1120px; top: 580px;">Gallery</div>
+      <div class="node" style="left: 480px; top: 130px;">Project</div>
+      <div class="node" style="left: 860px; top: 130px;">Location</div>
+
+      <div class="title-wrap">
+        <h1 class="title">Living Tree</h1>
+        <div class="subtitle">By Kalyani Developers</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  (function() {
+    const W = 1440, H = 900;
+    function scale() {
+      const wrap = document.getElementById("wrap");
+      const stage = document.getElementById("stage");
+      const s = Math.min(wrap.clientWidth / W, wrap.clientHeight / H) * 0.96;
+      stage.style.transform = "scale(" + s + ")";
+    }
+    window.addEventListener("resize", scale);
+    document.addEventListener("DOMContentLoaded", scale);
+    window.addEventListener("load", scale);
+  })();
+
+  const STAGE = document.getElementById("stage");
+  const STAGE_W = 1440, STAGE_H = 900;
+
+  // Butterfly species — each is a wing-pattern preset
+  const SPECIES = [
+    {
+      // Monarch — classic orange/black
+      body: "#1a1a1a",
+      wingTop: "#d97520", wingBot: "#b85a14",
+      pattern: "#1a1a1a", dots: "#fff5d6"
+    },
+    {
+      // Blue morpho — iridescent blue
+      body: "#1a1a1a",
+      wingTop: "#5e8fd9", wingBot: "#2b4a8a",
+      pattern: "#1a1a1a", dots: "#e6f0ff"
+    },
+    {
+      // Swallowtail — yellow + black
+      body: "#1a1a1a",
+      wingTop: "#f0c84a", wingBot: "#c89a20",
+      pattern: "#1a1a1a", dots: "#fff5d6"
+    },
+    {
+      // Painted lady — muted brown/cream (matches Living Tree palette)
+      body: "#3a2410",
+      wingTop: "#c89060", wingBot: "#a06440",
+      pattern: "#3a2410", dots: "#fff0d6"
+    },
+    {
+      // Mountain blue — pale blue, soft
+      body: "#1a1a1a",
+      wingTop: "#a8c4e0", wingBot: "#7090b8",
+      pattern: "#2a3a5a", dots: "#fff"
+    },
+  ];
+
+  function butterflySVG(size, species, id) {
+    const w = size, h = size * 0.85;
+    const gradTop = `bf-grad-top-${id}`;
+    const gradBot = `bf-grad-bot-${id}`;
+    return `<svg width="${w}" height="${h}" viewBox="0 0 80 68" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="${gradTop}" cx="0.5" cy="0.5" r="0.7">
+          <stop offset="0%" stop-color="${species.wingTop}" stop-opacity="1" />
+          <stop offset="100%" stop-color="${species.wingBot}" stop-opacity="1" />
+        </radialGradient>
+      </defs>
+
+      <!-- Left wing pair -->
+      <g class="wing-l">
+        <path d="M 40 32 Q 18 8 6 18 Q -2 30 8 38 Q 20 44 40 38 Z"
+              fill="url(#${gradTop})" stroke="${species.pattern}" stroke-width="0.8" />
+        <path d="M 40 38 Q 22 50 12 56 Q 8 62 18 60 Q 32 56 40 46 Z"
+              fill="url(#${gradTop})" stroke="${species.pattern}" stroke-width="0.8" opacity="0.92" />
+        <!-- spots -->
+        <circle cx="18" cy="26" r="2.4" fill="${species.dots}" opacity="0.85" />
+        <circle cx="24" cy="34" r="1.6" fill="${species.dots}" opacity="0.7" />
+        <circle cx="22" cy="50" r="1.6" fill="${species.dots}" opacity="0.7" />
+        <!-- vein -->
+        <path d="M 40 32 L 14 22" stroke="${species.pattern}" stroke-width="0.5" opacity="0.5" />
+        <path d="M 40 38 L 18 52" stroke="${species.pattern}" stroke-width="0.5" opacity="0.5" />
+      </g>
+
+      <!-- Right wing pair (mirror) -->
+      <g class="wing-r">
+        <path d="M 40 32 Q 62 8 74 18 Q 82 30 72 38 Q 60 44 40 38 Z"
+              fill="url(#${gradTop})" stroke="${species.pattern}" stroke-width="0.8" />
+        <path d="M 40 38 Q 58 50 68 56 Q 72 62 62 60 Q 48 56 40 46 Z"
+              fill="url(#${gradTop})" stroke="${species.pattern}" stroke-width="0.8" opacity="0.92" />
+        <circle cx="62" cy="26" r="2.4" fill="${species.dots}" opacity="0.85" />
+        <circle cx="56" cy="34" r="1.6" fill="${species.dots}" opacity="0.7" />
+        <circle cx="58" cy="50" r="1.6" fill="${species.dots}" opacity="0.7" />
+        <path d="M 40 32 L 66 22" stroke="${species.pattern}" stroke-width="0.5" opacity="0.5" />
+        <path d="M 40 38 L 62 52" stroke="${species.pattern}" stroke-width="0.5" opacity="0.5" />
+      </g>
+
+      <!-- Body -->
+      <g class="body-wrap">
+        <ellipse cx="40" cy="34" rx="2.2" ry="14" fill="${species.body}" />
+        <circle cx="40" cy="22" r="2.6" fill="${species.body}" />
+        <!-- antennae -->
+        <path d="M 40 21 Q 36 14 32 10" stroke="${species.body}" stroke-width="0.7" fill="none" stroke-linecap="round" />
+        <path d="M 40 21 Q 44 14 48 10" stroke="${species.body}" stroke-width="0.7" fill="none" stroke-linecap="round" />
+        <circle cx="32" cy="10" r="0.8" fill="${species.body}" />
+        <circle cx="48" cy="10" r="0.8" fill="${species.body}" />
+      </g>
+    </svg>`;
+  }
+
+  let bId = 0;
+  // Track active butterflies (cap at 3-4)
+  let active = 0;
+
+  function spawnButterfly() {
+    if (active >= 4) return;
+    active++;
+
+    const id = ++bId;
+    const el = document.createElement("div");
+    el.className = "butterfly";
+    el.dataset.id = id;
+
+    const species = SPECIES[Math.floor(Math.random() * SPECIES.length)];
+    const size = 48 + Math.random() * 26; // 48–74px
+    const flapDur = 0.12 + Math.random() * 0.08; // 0.12–0.20s — fast flutter
+    el.style.setProperty("--flapDur", flapDur + "s");
+    el.style.width = size + "px";
+
+    // Entry: random edge
+    const fromLeft = Math.random() > 0.5;
+    const startX = fromLeft ? -size - 20 : STAGE_W + 20;
+    const startY = 100 + Math.random() * (STAGE_H - 300);
+    el.style.left = startX + "px";
+    el.style.top = startY + "px";
+    el.style.opacity = 0;
+
+    // Pick target node — prefer Gallery / Amenities (they're meant to feel "alive")
+    const nodes = Array.from(document.querySelectorAll(".node"));
+    const target = nodes[Math.floor(Math.random() * nodes.length)];
+    const nx = parseInt(target.style.left) + 48 - size/2 + (Math.random() - 0.5) * 18;
+    const ny = parseInt(target.style.top) - size * 0.5;
+
+    el.innerHTML = butterflySVG(size, species, id);
+    STAGE.appendChild(el);
+
+    // SINE-WAVE PATH: animate through multiple waypoints with eases
+    const totalDur = 6.5 + Math.random() * 2.5; // 6.5–9s to reach
+    const wpCount = 6;
+    const waypoints = [];
+    for (let i = 1; i <= wpCount; i++) {
+      const t = i / wpCount;
+      const baseX = startX + (nx - startX) * t;
+      const baseY = startY + (ny - startY) * t;
+      // Sine wave perpendicular to travel direction, amplitude shrinks near target
+      const phase = Math.PI * 2 * (i / wpCount) * (1.5 + Math.random() * 0.6);
+      const amp = (1 - t) * 60 + 20;
+      const offY = Math.sin(phase) * amp;
+      const offX = Math.cos(phase) * amp * 0.4;
+      waypoints.push({ x: baseX + offX, y: baseY + offY });
+    }
+
+    // Animate via successive transitions
+    el.style.transition = `opacity 0.6s ease`;
+    requestAnimationFrame(() => { el.style.opacity = 0.95; });
+
+    const segDur = totalDur / wpCount;
+    waypoints.forEach((wp, i) => {
+      setTimeout(() => {
+        el.style.transition = `left ${segDur}s cubic-bezier(0.45,0.05,0.55,0.95), top ${segDur}s cubic-bezier(0.45,0.05,0.55,0.95), opacity 0.6s ease`;
+        el.style.left = wp.x + "px";
+        el.style.top = wp.y + "px";
+        // banking: tilt the wing slightly based on travel direction relative to previous waypoint
+        const prev = i === 0 ? { x: startX, y: startY } : waypoints[i-1];
+        const dx = wp.x - prev.x;
+        // Face direction with scaleX
+        el.style.transform = dx > 0 ? "scaleX(1)" : "scaleX(-1)";
+      }, i * segDur * 1000);
+    });
+
+    // Perch
+    const perchAt = totalDur * 1000 + 100;
+    const perchDur = 3500 + Math.random() * 2500; // 3.5–6s
+    setTimeout(() => {
+      el.classList.add("perch");
+    }, perchAt);
+
+    // Fly out via the opposite edge
+    setTimeout(() => {
+      el.classList.remove("perch");
+      const exitX = fromLeft ? STAGE_W + 80 : -120;
+      const exitY = 100 + Math.random() * (STAGE_H - 300);
+      // similar wavy exit
+      const exitDur = 5 + Math.random() * 2;
+      const wp2 = [];
+      for (let i = 1; i <= 5; i++) {
+        const t = i / 5;
+        const baseX = nx + (exitX - nx) * t;
+        const baseY = ny + (exitY - ny) * t;
+        const phase = Math.PI * 2 * (i / 5) * 1.4;
+        const amp = t * 60 + 18; // amplitude grows as it flies out
+        wp2.push({ x: baseX + Math.cos(phase) * amp * 0.4, y: baseY + Math.sin(phase) * amp });
+      }
+      const segDur2 = exitDur / 5;
+      wp2.forEach((wp, i) => {
+        setTimeout(() => {
+          el.style.transition = `left ${segDur2}s cubic-bezier(0.45,0.05,0.55,0.95), top ${segDur2}s cubic-bezier(0.45,0.05,0.55,0.95), opacity 0.8s ease`;
+          el.style.left = wp.x + "px";
+          el.style.top = wp.y + "px";
+          if (i === wp2.length - 1) el.style.opacity = 0;
+        }, i * segDur2 * 1000);
+      });
+      setTimeout(() => { el.remove(); active = Math.max(0, active - 1); }, exitDur * 1000 + 300);
+    }, perchAt + perchDur);
+  }
+
+  // Seed first one quickly, then steady cadence
+  setTimeout(spawnButterfly, 600);
+  setTimeout(spawnButterfly, 2200);
+  setInterval(() => {
+    if (Math.random() < 0.85) spawnButterfly();
+  }, 3800);
+</script>
+</body>
+</html>

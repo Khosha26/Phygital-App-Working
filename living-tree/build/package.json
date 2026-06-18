@@ -1,0 +1,11 @@
+{
+  "name": "livingtree-build",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Offline JSX->JS bundler for the Living Tree sales-suite (removes runtime Babel for fast tablet load).",
+  "type": "commonjs",
+  "dependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/preset-react": "^7.29.7"
+  }
+}

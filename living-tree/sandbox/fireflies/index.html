@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Living Tree · Fireflies / Night Mode Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; font-family: Inter, system-ui, sans-serif; overflow: hidden; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+
+  /* ===== STAGE ===== */
+  #wrap { position: fixed; inset: 0; display: grid; place-items: center; transition: background 1.6s ease; }
+  body.night #wrap { background: radial-gradient(ellipse at center, #0a1424 0%, #04070d 80%); }
+  body.day   #wrap { background: radial-gradient(ellipse at center, #cfe2cf 0%, #93b594 80%); }
+
+  #stage {
+    position: relative;
+    width: 1440px; height: 900px;
+    transform-origin: center center;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 60px 140px rgba(0,0,0,0.6);
+    transition: background 1.6s ease;
+  }
+  body.night #stage { background: linear-gradient(180deg, #050a14 0%, #0a1424 55%, #122236 100%); }
+  body.day   #stage { background: linear-gradient(180deg, #d2e6d2 0%, #bcd4bd 55%, #9bb89c 100%); }
+
+  /* Stars (only at night) */
+  .star { position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%; opacity: 0; animation: twinkle 3.5s ease-in-out infinite; pointer-events: none; transition: opacity 1.2s ease; }
+  body.day .star { opacity: 0 !important; animation: none; }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.15; transform: scale(0.8); }
+    50%      { opacity: 0.9; transform: scale(1.2); }
+  }
+
+  /* Moon */
+  .moon {
+    position: absolute; top: 90px; right: 140px;
+    width: 100px; height: 100px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #f7f0d6 0%, #e6dcb0 60%, #c8bb88 100%);
+    box-shadow: 0 0 60px 12px rgba(247,240,214,0.25), inset -10px -8px 24px rgba(0,0,0,0.18);
+    opacity: 0.92;
+    transition: opacity 1.6s ease, transform 1.6s ease;
+  }
+  body.day .moon { opacity: 0; transform: translateY(-30px); }
+
+  /* Sun (day only) */
+  .sun {
+    position: absolute; top: 90px; right: 140px;
+    width: 110px; height: 110px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #fff5c4 0%, #ffd97a 55%, #f0b04a 100%);
+    box-shadow: 0 0 80px 20px rgba(255,217,122,0.55);
+    opacity: 0;
+    transition: opacity 1.6s ease, transform 1.6s ease;
+    transform: translateY(-30px);
+  }
+  body.day .sun { opacity: 0.95; transform: translateY(0); }
+
+  /* Tree (centerpiece) */
+  .tree-wrap { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+  .tree-glow {
+    position: absolute; left: 50%; top: 50%;
+    width: 380px; height: 380px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(217,178,122,0.20) 0%, rgba(217,178,122,0) 65%);
+    filter: blur(8px);
+    animation: breathe 6s ease-in-out infinite;
+    transition: background 1.6s ease;
+  }
+  body.day .tree-glow { background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 65%); }
+  @keyframes breathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(1);    opacity: 0.55; }
+    50%      { transform: translate(-50%, -50%) scale(1.08); opacity: 0.95; }
+  }
+
+  /* Constellation buttons */
+  .node {
+    position: absolute;
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic; font-size: 15px; font-weight: 500;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.5s ease;
+    text-align: center;
+  }
+  body.night .node {
+    background: radial-gradient(circle, rgba(217,178,122,0.10) 0%, rgba(217,178,122,0.02) 100%);
+    color: rgba(232, 214, 178, 0.85);
+    border: 1px solid rgba(217,178,122,0.22);
+    box-shadow: inset 0 0 24px rgba(217,178,122,0.06), 0 0 22px rgba(217,178,122,0.10);
+  }
+  body.day .node {
+    background: rgba(255,255,255,0.4);
+    color: rgba(20, 40, 25, 0.9);
+    border: 1px solid rgba(40, 70, 45, 0.25);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  }
+  body.night .node:hover {
+    box-shadow: inset 0 0 24px rgba(217,178,122,0.12), 0 0 36px rgba(217,178,122,0.30);
+    transform: scale(1.04);
+  }
+
+  /* Firefly */
+  .firefly {
+    position: absolute;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff6c2 0%, #ffd27a 35%, rgba(255, 200, 100, 0) 70%);
+    box-shadow:
+      0 0 8px 2px rgba(255,210,122,0.85),
+      0 0 18px 6px rgba(255,190,90,0.45),
+      0 0 36px 14px rgba(255,170,60,0.20);
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+  .firefly::after {
+    content: "";
+    position: absolute; inset: 2px;
+    border-radius: 50%;
+    background: #fffbe5;
+    filter: blur(0.5px);
+  }
+
+  /* Per-firefly path uses CSS variables, then a single animation references them */
+  @keyframes flyPath {
+    0%   { transform: translate(var(--x0), var(--y0)) scale(0.6); opacity: 0; }
+    8%   { transform: translate(var(--x1), var(--y1)) scale(1);   opacity: 0.95; }
+    28%  { transform: translate(var(--x2), var(--y2)) scale(0.95); opacity: 1; }
+    50%  { transform: translate(var(--x3), var(--y3)) scale(1.05); opacity: 1; }
+    72%  { transform: translate(var(--x4), var(--y4)) scale(0.95); opacity: 1; }
+    92%  { transform: translate(var(--x5), var(--y5)) scale(0.9);  opacity: 0.85; }
+    100% { transform: translate(var(--xExit), var(--yExit)) scale(0.55); opacity: 0; }
+  }
+
+  /* The pulse is layered via a child element so it can run at a different tempo than the path */
+  .firefly .pulse {
+    position: absolute; inset: -8px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,210,122,0.55) 0%, rgba(255,210,122,0) 70%);
+    animation: pulseGlow var(--pulseDur, 1.2s) ease-in-out infinite;
+  }
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 0.25; transform: scale(0.85); }
+    50%      { opacity: 1;    transform: scale(1.35); }
+  }
+
+  body.day .firefly { opacity: 0 !important; }
+
+  /* Bird (day only) */
+  .bird {
+    position: absolute;
+    pointer-events: none;
+    transition: left 5s ease-in-out, top 5s ease-in-out, opacity 0.6s ease;
+    opacity: 0;
+  }
+  body.day .bird.visible { opacity: 0.95; }
+
+  /* Toggle */
+  .toggle {
+    position: fixed;
+    top: 20px; right: 24px;
+    z-index: 100;
+    padding: 12px 22px;
+    border-radius: 999px;
+    border: 1px solid rgba(217,178,122,0.5);
+    background: rgba(15,25,40,0.7);
+    color: #f0e2c4;
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-size: 15px;
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.4s ease;
+  }
+  body.day .toggle {
+    background: rgba(255,255,255,0.7);
+    color: #2a4a30;
+    border-color: rgba(40,70,45,0.4);
+  }
+  .toggle:hover { transform: translateY(-1px); }
+
+  .label {
+    position: fixed;
+    bottom: 20px; left: 24px;
+    z-index: 100;
+    padding: 8px 16px;
+    border-radius: 4px;
+    background: rgba(0,0,0,0.4);
+    color: rgba(255,255,255,0.7);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    backdrop-filter: blur(8px);
+  }
+
+  /* Center title */
+  .title-wrap { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; z-index: 5; }
+  .title {
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 300; font-style: italic;
+    font-size: 56px;
+    letter-spacing: 0.02em;
+    margin: 0;
+    transition: color 1.6s ease;
+  }
+  body.night .title { color: #e8d6b2; text-shadow: 0 0 30px rgba(232,214,178,0.4); }
+  body.day   .title { color: #1f3a25; text-shadow: 0 2px 4px rgba(255,255,255,0.5); }
+  .subtitle {
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-size: 16px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-top: 6px;
+    opacity: 0.6;
+    transition: color 1.6s ease;
+  }
+  body.night .subtitle { color: #d9b27a; }
+  body.day   .subtitle { color: #2a4a30; }
+
+</style>
+</head>
+<body class="night">
+  <button class="toggle" id="toggle">Switch to Day</button>
+  <div class="label">Port 8094 · Fireflies + Night Mode Prototype</div>
+
+  <div id="wrap">
+    <div id="stage">
+      <!-- stars added by JS -->
+      <div class="moon"></div>
+      <div class="sun"></div>
+
+      <!-- Tree center -->
+      <div class="tree-wrap">
+        <div class="tree-glow"></div>
+        <svg width="220" height="280" viewBox="0 0 220 280" style="position: relative; z-index: 2;">
+          <!-- Trunk -->
+          <path d="M 110 280 L 108 200 Q 105 180 110 160 Q 115 140 110 100" stroke="#8b6a3f" stroke-width="6" fill="none" stroke-linecap="round" />
+          <!-- Branches -->
+          <path d="M 110 180 Q 90 170 75 155" stroke="#8b6a3f" stroke-width="3" fill="none" stroke-linecap="round" />
+          <path d="M 110 170 Q 130 158 145 142" stroke="#8b6a3f" stroke-width="3" fill="none" stroke-linecap="round" />
+          <path d="M 110 140 Q 95 125 85 115" stroke="#8b6a3f" stroke-width="2.5" fill="none" stroke-linecap="round" />
+          <path d="M 110 130 Q 128 118 138 108" stroke="#8b6a3f" stroke-width="2.5" fill="none" stroke-linecap="round" />
+          <!-- Canopy -->
+          <ellipse cx="110" cy="90" rx="70" ry="60" fill="rgba(70,110,75,0.42)" />
+          <ellipse cx="78"  cy="105" rx="42" ry="38" fill="rgba(80,120,82,0.45)" />
+          <ellipse cx="148" cy="100" rx="44" ry="40" fill="rgba(80,120,82,0.45)" />
+          <ellipse cx="110" cy="65"  rx="48" ry="40" fill="rgba(95,135,98,0.50)" />
+        </svg>
+      </div>
+
+      <!-- Title overlay (above tree) -->
+      <div class="title-wrap" style="top: 78%;">
+        <h1 class="title">Living Tree</h1>
+        <div class="subtitle">By Kalyani Developers</div>
+      </div>
+
+      <!-- 6 constellation nodes around tree -->
+      <div class="node" style="left: 220px; top: 220px;">Master<br/>Plan</div>
+      <div class="node" style="left: 220px; top: 580px;">Floor<br/>Plans</div>
+      <div class="node" style="left: 1120px; top: 220px;">Amenities</div>
+      <div class="node" style="left: 1120px; top: 580px;">Gallery</div>
+      <div class="node" style="left: 480px; top: 130px;">Project</div>
+      <div class="node" style="left: 860px; top: 130px;">Location</div>
+
+      <!-- fireflies + bird inserted by JS -->
+    </div>
+  </div>
+
+<script>
+  // ====== Stage scaling ======
+  (function() {
+    const W = 1440, H = 900;
+    function scale() {
+      const wrap = document.getElementById("wrap");
+      const stage = document.getElementById("stage");
+      const s = Math.min(wrap.clientWidth / W, wrap.clientHeight / H) * 0.96;
+      stage.style.transform = "scale(" + s + ")";
+    }
+    window.addEventListener("resize", scale);
+    document.addEventListener("DOMContentLoaded", scale);
+    window.addEventListener("load", scale);
+  })();
+
+  const STAGE = document.getElementById("stage");
+  const STAGE_W = 1440, STAGE_H = 900;
+
+  // ====== Stars ======
+  (function makeStars() {
+    for (let i = 0; i < 90; i++) {
+      const s = document.createElement("div");
+      s.className = "star";
+      s.style.left = Math.random() * STAGE_W + "px";
+      s.style.top = Math.random() * (STAGE_H * 0.65) + "px";
+      s.style.animationDelay = (Math.random() * 3) + "s";
+      s.style.opacity = (0.3 + Math.random() * 0.7).toFixed(2);
+      // some stars bigger
+      if (Math.random() < 0.18) {
+        s.style.width = "3px"; s.style.height = "3px";
+      }
+      STAGE.appendChild(s);
+    }
+  })();
+
+  // ====== Anchor points fireflies wander toward ======
+  // Tree center + each constellation button
+  const ANCHORS = [
+    { x: 720, y: 450, weight: 3.0 },   // tree (heaviest)
+    { x: 268, y: 268 },                // master plan
+    { x: 268, y: 628 },                // floor plans
+    { x: 1168, y: 268 },               // amenities
+    { x: 1168, y: 628 },               // gallery
+    { x: 528, y: 178 },                // project
+    { x: 908, y: 178 },                // location
+  ];
+
+  function weightedAnchor() {
+    const total = ANCHORS.reduce((s, a) => s + (a.weight || 1), 0);
+    let r = Math.random() * total;
+    for (const a of ANCHORS) {
+      r -= (a.weight || 1);
+      if (r <= 0) return a;
+    }
+    return ANCHORS[0];
+  }
+
+  // ====== Spawn a firefly ======
+  let fireflyId = 0;
+  function spawnFirefly() {
+    if (!document.body.classList.contains("night")) return; // pause in day mode
+    const el = document.createElement("div");
+    el.className = "firefly";
+    const id = ++fireflyId;
+    el.dataset.id = id;
+
+    // Random size
+    const size = 6 + Math.random() * 7;
+    el.style.width = size + "px";
+    el.style.height = size + "px";
+
+    // Entry edge
+    const edge = Math.floor(Math.random() * 4); // 0=left,1=right,2=top,3=bottom
+    let x0, y0, xExit, yExit;
+    if (edge === 0)      { x0 = -30; y0 = 100 + Math.random() * 700; }
+    else if (edge === 1) { x0 = STAGE_W + 30; y0 = 100 + Math.random() * 700; }
+    else if (edge === 2) { x0 = 100 + Math.random() * 1240; y0 = -30; }
+    else                 { x0 = 100 + Math.random() * 1240; y0 = STAGE_H + 30; }
+
+    // Exit a different edge so it crosses the stage
+    const exitEdge = (edge + 2 + Math.floor(Math.random() * 2)) % 4;
+    if (exitEdge === 0)      { xExit = -30; yExit = 100 + Math.random() * 700; }
+    else if (exitEdge === 1) { xExit = STAGE_W + 30; yExit = 100 + Math.random() * 700; }
+    else if (exitEdge === 2) { xExit = 100 + Math.random() * 1240; yExit = -30; }
+    else                     { xExit = 100 + Math.random() * 1240; yExit = STAGE_H + 30; }
+
+    // Pick 1-2 anchors to wander toward — most fireflies visit the tree
+    const a1 = weightedAnchor();
+    const a2 = Math.random() < 0.55 ? weightedAnchor() : a1;
+
+    // 6 waypoints with jitter around anchors
+    const jitter = (r) => (Math.random() - 0.5) * r;
+    const p1 = { x: x0 + (a1.x - x0) * 0.35 + jitter(80), y: y0 + (a1.y - y0) * 0.35 + jitter(80) };
+    const p2 = { x: a1.x + jitter(70), y: a1.y + jitter(60) };
+    const p3 = { x: a1.x + jitter(50), y: a1.y + jitter(50) }; // hover near anchor
+    const p4 = { x: a2.x + jitter(70), y: a2.y + jitter(60) };
+    const p5 = { x: a2.x + (xExit - a2.x) * 0.45 + jitter(80), y: a2.y + (yExit - a2.y) * 0.45 + jitter(80) };
+
+    el.style.setProperty("--x0", x0 + "px"); el.style.setProperty("--y0", y0 + "px");
+    el.style.setProperty("--x1", p1.x + "px"); el.style.setProperty("--y1", p1.y + "px");
+    el.style.setProperty("--x2", p2.x + "px"); el.style.setProperty("--y2", p2.y + "px");
+    el.style.setProperty("--x3", p3.x + "px"); el.style.setProperty("--y3", p3.y + "px");
+    el.style.setProperty("--x4", p4.x + "px"); el.style.setProperty("--y4", p4.y + "px");
+    el.style.setProperty("--x5", p5.x + "px"); el.style.setProperty("--y5", p5.y + "px");
+    el.style.setProperty("--xExit", xExit + "px"); el.style.setProperty("--yExit", yExit + "px");
+
+    // Per-firefly path duration & pulse tempo
+    const pathDur = 18 + Math.random() * 14; // 18–32s — slow, dreamy
+    const pulseDur = 0.9 + Math.random() * 1.4; // 0.9–2.3s
+    el.style.animation = `flyPath ${pathDur}s ease-in-out forwards`;
+    el.style.setProperty("--pulseDur", pulseDur + "s");
+
+    // Pulse layer
+    const pulse = document.createElement("div");
+    pulse.className = "pulse";
+    el.appendChild(pulse);
+
+    STAGE.appendChild(el);
+
+    // Remove when path animation ends
+    setTimeout(() => { el.remove(); }, pathDur * 1000 + 200);
+  }
+
+  // Initial swarm + steady spawn
+  function startFireflies() {
+    // Seed a swarm
+    for (let i = 0; i < 12; i++) {
+      setTimeout(spawnFirefly, i * 350 + Math.random() * 400);
+    }
+    // Steady spawn
+    return setInterval(() => {
+      if (!document.body.classList.contains("night")) return;
+      // Keep firefly population around 10-18
+      const current = document.querySelectorAll(".firefly").length;
+      if (current < 14) spawnFirefly();
+      if (current < 8) spawnFirefly(); // catch-up
+    }, 900);
+  }
+  const fireflyTimer = startFireflies();
+
+  // ====== Bird (day mode) ======
+  function spawnBird() {
+    if (!document.body.classList.contains("day")) return;
+    const bird = document.createElement("img");
+    bird.src = "assets/bird.gif";
+    bird.className = "bird";
+    const fromLeft = Math.random() > 0.5;
+    const size = 60 + Math.random() * 25;
+    bird.style.width = size + "px";
+    bird.style.height = "auto";
+    bird.style.transform = fromLeft ? "scaleX(1)" : "scaleX(-1)";
+    const startX = fromLeft ? -100 : STAGE_W + 100;
+    const startY = 120 + Math.random() * 400;
+    bird.style.left = startX + "px";
+    bird.style.top = startY + "px";
+
+    // pick a button to perch on
+    const nodes = document.querySelectorAll(".node");
+    const target = nodes[Math.floor(Math.random() * nodes.length)];
+    const nx = parseInt(target.style.left) + 48 - size/2;
+    const ny = parseInt(target.style.top) - size * 0.7;
+
+    STAGE.appendChild(bird);
+    requestAnimationFrame(() => {
+      bird.classList.add("visible");
+      requestAnimationFrame(() => {
+        bird.style.left = nx + "px";
+        bird.style.top = ny + "px";
+      });
+    });
+
+    setTimeout(() => {
+      const exitX = fromLeft ? STAGE_W + 120 : -120;
+      bird.style.left = exitX + "px";
+      bird.style.top = (ny + (Math.random() - 0.5) * 100) + "px";
+    }, 5500);
+
+    setTimeout(() => { bird.remove(); }, 11500);
+  }
+  setInterval(spawnBird, 4500);
+
+  // ====== Toggle ======
+  const btn = document.getElementById("toggle");
+  btn.addEventListener("click", () => {
+    if (document.body.classList.contains("night")) {
+      document.body.classList.remove("night");
+      document.body.classList.add("day");
+      btn.textContent = "Switch to Night";
+      // Clear remaining fireflies after fade
+      setTimeout(() => {
+        document.querySelectorAll(".firefly").forEach(f => f.remove());
+      }, 1700);
+      setTimeout(spawnBird, 800);
+    } else {
+      document.body.classList.remove("day");
+      document.body.classList.add("night");
+      btn.textContent = "Switch to Day";
+      // Re-seed fireflies
+      for (let i = 0; i < 12; i++) setTimeout(spawnFirefly, i * 300);
+    }
+  });
+
+  // Auto-time-aware suggestion (commented out — uncomment if you want auto-switch by clock)
+  // const hr = new Date().getHours();
+  // if (hr >= 6 && hr < 18) { document.body.className = "day"; btn.textContent = "Switch to Night"; }
+</script>
+</body>
+</html>
