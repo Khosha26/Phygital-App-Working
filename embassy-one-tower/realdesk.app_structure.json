@@ -1,0 +1,184 @@
+{
+  "screens": [
+    {
+      "key": "amenities",
+      "title": "The Grounds \u00b7 Amenities",
+      "file": "screens/amenities.html"
+    },
+    {
+      "key": "gallery",
+      "title": "The Gallery \u00b7 Embassy ONE",
+      "file": "screens/gallery.html"
+    },
+    {
+      "key": "grounds",
+      "title": "The Grounds \u00b7 Master Plan",
+      "file": "screens/masterplan.html"
+    },
+    {
+      "key": "lanterns",
+      "title": "The Grounds \u00b7 The Lanterns",
+      "file": "screens/lanterns.html"
+    },
+    {
+      "key": "overview",
+      "title": "The Place \u00b7 Overview",
+      "file": "screens/overview.html"
+    },
+    {
+      "key": "place",
+      "title": "The Place \u00b7 Location",
+      "file": "screens/place-location.html"
+    },
+    {
+      "key": "residences",
+      "title": "The Residences \u00b7 Floor Plans",
+      "file": "screens/floorplans.html"
+    },
+    {
+      "key": "service",
+      "title": "The Service \u00b7 Embassy ONE",
+      "file": "screens/service.html"
+    },
+    {
+      "key": "tower",
+      "title": "The Tower \u00b7 Embassy ONE",
+      "file": "screens/tower.html"
+    }
+  ],
+  "buttons": [
+    {
+      "label": "Overview",
+      "target": "overview"
+    },
+    {
+      "label": "Gallery",
+      "target": "gallery"
+    },
+    {
+      "label": "The Place",
+      "target": "place"
+    },
+    {
+      "label": "The Grounds",
+      "target": "grounds"
+    },
+    {
+      "label": "The Tower",
+      "target": "tower"
+    },
+    {
+      "label": "The Residences",
+      "target": "residences"
+    },
+    {
+      "label": "The Service",
+      "target": "service"
+    },
+    {
+      "label": "Explore the Lanterns \u2014 a symphony of seasons",
+      "target": "lanterns"
+    }
+  ],
+  "assets": [
+    "assets/belt.webp",
+    "assets/bg-inner.webp",
+    "assets/clouds/cloud02.webp",
+    "assets/clouds/cloud22.webp",
+    "assets/clouds/cloud44.webp",
+    "assets/clouds/cloud54.webp",
+    "assets/clouds/cloud65.webp",
+    "assets/embassy-one-logo.svg",
+    "assets/floorplans/hi/2br-duplex.webp",
+    "assets/floorplans/hi/3br-study-media.webp",
+    "assets/floorplans/hi/3br-study.webp",
+    "assets/floorplans/hi/3br.webp",
+    "assets/floorplans/hi/4br-recessed.webp",
+    "assets/floorplans/hi/4br-study.webp",
+    "assets/floorplans/hi/4br.webp",
+    "assets/floorplans/hi/5br-penthouse-lower.webp",
+    "assets/floorplans/hi/5br-penthouse-upper.webp",
+    "assets/home/btn-gallery.webp",
+    "assets/home/btn-grounds.webp",
+    "assets/home/btn-overview.webp",
+    "assets/home/btn-place.webp",
+    "assets/home/btn-residences.webp",
+    "assets/home/btn-service.webp",
+    "assets/home/btn-tower.webp",
+    "assets/home/lantern-bar.webp",
+    "assets/lanterns/3d/autumn.glb",
+    "assets/lanterns/3d/center.glb",
+    "assets/lanterns/3d/spring.glb",
+    "assets/lanterns/3d/summer.glb",
+    "assets/lanterns/3d/winter.glb",
+    "assets/leaf-cluster.webp",
+    "assets/leaf-motif.webp",
+    "assets/masterplan/views/master-fs.webp",
+    "assets/masterplan/views/planting.webp",
+    "assets/masterplan/views/trees.webp",
+    "assets/masterplan/views/zoning.webp",
+    "assets/one-coin.webp",
+    "assets/plate-2560.webp",
+    "assets/plate-parchment.webp",
+    "assets/renders/amenities/lawn.webp",
+    "assets/renders/amenities/muga.webp",
+    "assets/renders/amenities/pets.webp",
+    "assets/renders/amenities/yoga.webp",
+    "assets/renders/exterior/ext-1.webp",
+    "assets/renders/exterior/ext-2.webp",
+    "assets/renders/exterior/ext-3.webp",
+    "assets/renders/exterior/overview-dev.webp",
+    "assets/renders/exterior/tower-aerial.webp",
+    "assets/renders/exterior/tower-hero.webp",
+    "assets/renders/exterior/tower-scene.webp",
+    "assets/renders/lanterns/autumn.webp",
+    "assets/renders/lanterns/center.webp",
+    "assets/renders/lanterns/lobby.webp",
+    "assets/renders/lanterns/spring.webp",
+    "assets/renders/lanterns/summer.webp",
+    "assets/renders/lanterns/twin.webp",
+    "icons/apple-touch-icon.png",
+    "icons/favicon.png",
+    "icons/icon-192.png",
+    "icons/icon-512.png",
+    "icons/maskable-192.png",
+    "icons/maskable-512.png"
+  ],
+  "meta": {
+    "total_screens": 9,
+    "has_3d": true,
+    "3d_elements": [
+      "lanterns/3d/autumn",
+      "lanterns/3d/center",
+      "lanterns/3d/spring",
+      "lanterns/3d/summer",
+      "lanterns/3d/winter"
+    ],
+    "animation_level": "high",
+    "keyframes": 173,
+    "asset_counts": {
+      "webp": 50,
+      "svg": 1,
+      "glb": 5,
+      "png": 6
+    },
+    "tech": {
+      "pwa": true,
+      "offline": true,
+      "engine_3d": "three.js",
+      "anim_libs": [
+        "css",
+        "motion"
+      ]
+    }
+  },
+  "captures": [
+    "app_open",
+    "page_view",
+    "button",
+    "asset_call",
+    "screen_time",
+    "session_end",
+    "session_summary(EOI)"
+  ]
+}

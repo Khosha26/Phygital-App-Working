@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Embassy ONE — Sales Suite Screen Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500&family=Tangerine:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bone:#F4EEE2; --paper:#FBF8F1; --ink:#2B2A26; --muted:#6E685B; --faint:#948d7d;
+    --brass:#B08D57; --brass2:#8A6E45; --sage:#9DA585; --twilight:#1C2730; --line:#DAD0BC;
+    --c-narr:#B08D57; --c-explore:#9DA585; --c-res:#8A6E45; --c-int:#B9AE99;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  @page{ size:1600px 1180px; margin:0; }
+  html,body{background:var(--bone);}
+  body{
+    width:1600px; min-height:1180px; font-family:"Jost",sans-serif; color:var(--ink);
+    padding:46px 54px 34px; position:relative;
+    background:radial-gradient(120% 80% at 82% -10%, rgba(176,141,87,.07), transparent 60%), linear-gradient(180deg,#F6F1E6,#EFE7D6);
+  }
+  .frame{position:absolute; inset:20px; border:1px solid var(--brass); opacity:.45; pointer-events:none}
+  .leaf{position:absolute; bottom:22px; right:30px; width:250px; opacity:.09}
+  header{display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid var(--line); padding-bottom:15px; margin-bottom:18px}
+  .word{font-family:"Cormorant Garamond",serif; font-weight:600; font-size:37px; letter-spacing:.34em; line-height:1}
+  .sub{font-family:"Jost"; font-weight:300; font-size:11px; letter-spacing:.32em; color:var(--muted); margin-top:8px}
+  .doctitle{text-align:right}
+  .doctitle .t{font-family:"Cormorant Garamond",serif; font-style:italic; font-size:21px; color:var(--brass2)}
+  .doctitle .m{font-size:10px; letter-spacing:.26em; color:var(--muted); margin-top:5px}
+  /* home */
+  .home{background:linear-gradient(110deg,#243038,#2f3e44); color:var(--paper); border-radius:4px; padding:15px 24px; margin-bottom:9px; position:relative; overflow:hidden; border:1px solid var(--brass2); display:flex; align-items:center; gap:26px}
+  .home::after{content:""; position:absolute; right:-30px; top:-40px; width:170px;height:170px;border-radius:50%; background:radial-gradient(circle, rgba(214,180,120,.5), rgba(214,180,120,0) 70%)}
+  .home .blk{flex:0 0 auto}
+  .home .k{font-size:9.5px; letter-spacing:.32em; color:#cdbf9e}
+  .home h2{font-family:"Cormorant Garamond",serif; font-weight:500; font-size:23px; letter-spacing:.04em; margin:2px 0}
+  .home p{font-weight:300; font-size:12px; color:#e7ddc8; line-height:1.5; border-left:1px solid rgba(214,180,120,.4); padding-left:22px}
+  .home b{color:#e9c98a; font-weight:500; letter-spacing:.06em}
+  /* legend */
+  .legend{display:flex; gap:22px; align-items:center; font-size:10px; letter-spacing:.16em; color:var(--muted); margin:11px 2px 9px; text-transform:uppercase}
+  .legend span{display:inline-flex; align-items:center; gap:7px}
+  .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
+  /* grid */
+  .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:11px}
+  .card{background:var(--paper); border:1px solid var(--line); border-top:2.5px solid var(--brass); border-radius:3px; padding:12px 13px 13px; display:flex; flex-direction:column; min-height:182px}
+  .card .top{display:flex; justify-content:space-between; align-items:baseline}
+  .key{font-family:"Jost"; font-size:9.5px; letter-spacing:.2em; color:var(--faint); text-transform:uppercase}
+  .cat{font-size:8px; letter-spacing:.14em; text-transform:uppercase; padding:2px 6px; border-radius:9px; color:#fff; font-weight:500}
+  .card h3{font-family:"Cormorant Garamond",serif; font-weight:600; font-size:19px; letter-spacing:.04em; margin:2px 0 1px}
+  .maps{font-size:10.5px; color:var(--brass2); font-weight:500; letter-spacing:.02em; margin-bottom:8px}
+  .maps em{color:var(--faint); font-style:normal; font-weight:300}
+  .purpose{font-size:11.5px; font-weight:300; color:var(--ink); line-height:1.42; margin-bottom:7px}
+  .content{font-size:10.6px; font-weight:300; color:var(--muted); line-height:1.4; margin-top:auto}
+  .adapt{margin-top:8px; font-size:9.6px; line-height:1.35; color:#8a5a3a; background:#F3E7D5; border:1px solid #E3CBA8; border-radius:3px; padding:5px 7px}
+  .adapt b{color:#7a4a2a; letter-spacing:.04em}
+  footer{display:flex; justify-content:space-between; align-items:center; margin-top:14px; border-top:1px solid var(--line); padding-top:10px; font-size:10px; letter-spacing:.05em; color:var(--muted)}
+  footer b{color:var(--brass2); font-weight:500; letter-spacing:.16em}
+</style>
+</head>
+<body>
+  <div class="frame"></div>
+  <svg class="leaf" viewBox="0 0 200 320"><g fill="none" stroke="#9DA585" stroke-width="1">
+    <path d="M100 315 C100 200 60 90 30 10 M100 315 C100 200 140 90 170 10 M100 315 L100 20 M100 250 C70 210 50 150 40 80 M100 250 C130 210 150 150 160 80 M100 190 C80 165 68 130 60 95 M100 190 C120 165 132 130 140 95"/>
+  </g></svg>
+
+  <header>
+    <div>
+      <div class="word">EMBASSY ONE</div>
+      <div class="sub">THE RESIDENCES · BENGALURU &nbsp;·&nbsp; SALES SUITE — SCREEN ARCHITECTURE (KHOSHA SALES-STUDIO SCAFFOLD)</div>
+    </div>
+    <div class="doctitle">
+      <div class="t">the residences</div>
+      <div class="m">11-SCREEN CATALOG · SCREENSHELL PATTERN · PWA · TAB / KIOSK / iPAD</div>
+    </div>
+  </header>
+
+  <div class="home">
+    <div class="blk">
+      <div class="k">HOME CONSTELLATION · THE HUB</div>
+      <h2>“The Living Threshold”</h2>
+    </div>
+    <p>Our standard <b>home-constellation</b> pattern, dressed as a living twilight scene. Each screen is a <b>node</b> the buyer taps to enter (free spatial explore); every inner screen uses the shared <b>ScreenShell</b> (eyebrow + serif title + back). <b>DAY ↔ DUSK</b> ambient toggle. Five “lantern” nav nodes lead to the worlds below.</p>
+  </div>
+
+  <div class="legend">
+    <span><i class="dot" style="background:var(--c-narr)"></i>Narrative / Sell</span>
+    <span><i class="dot" style="background:var(--c-explore)"></i>Explore</span>
+    <span><i class="dot" style="background:var(--c-res)"></i>Residences / Convert</span>
+    <span><i class="dot" style="background:var(--c-int)"></i>Integration (placeholder)</span>
+    <span style="margin-left:auto; color:var(--brass2)">▸ amber notes = brand-guardrail adaptation vs. standard scaffold</span>
+  </div>
+
+  <div class="grid">
+    <!-- 1 -->
+    <div class="card" style="border-top-color:var(--c-narr)">
+      <div class="top"><span class="key">01 · projectover</span><span class="cat" style="background:var(--c-narr)">Narrative</span></div>
+      <h3>Project Overview</h3>
+      <div class="maps">↳ <em>brief:</em> The Idea · A Vertical Manor</div>
+      <div class="purpose">The cinematic “what is this place.” The manifesto, not a spec sheet.</div>
+      <div class="content">8-acre Embassy ONE ecosystem · Four Seasons adjacency · 60 residences, 2/floor · six-pillar USP cards (Rarity · Provenance · Living Standard · Scale · Integration · Service).</div>
+    </div>
+    <!-- 2 -->
+    <div class="card" style="border-top-color:var(--c-narr)">
+      <div class="top"><span class="key">02 · location</span><span class="cat" style="background:var(--c-narr)">Narrative</span></div>
+      <h3>Location</h3>
+      <div class="maps">↳ <em>brief:</em> The Place</div>
+      <div class="purpose">Why this address — the confluence, told with restraint.</div>
+      <div class="content">Sadashivanagar · Dollars Colony · Jayanagar. Anchors: Golf Course, Hebbal Lake, WTC, Four Seasons.</div>
+      <div class="adapt"><b>▸ Adapt:</b> elegant line-art geography, not a cluttered distance chart. Emotion over connectivity stats.</div>
+    </div>
+    <!-- 3 -->
+    <div class="card" style="border-top-color:var(--c-explore)">
+      <div class="top"><span class="key">03 · masterplan</span><span class="cat" style="background:var(--c-explore)">Explore</span></div>
+      <h3>Master Plan</h3>
+      <div class="maps">↳ <em>brief:</em> The Grounds · Five Lanterns ★</div>
+      <div class="purpose">The hero interactive — the 2-acre garden as an experience.</div>
+      <div class="content">Top-down garden plan · five lantern/season hotspots (Winter·Spring·Summer·Monsoon·Autumn) · day↔dusk crossfade · side panel per node.</div>
+    </div>
+    <!-- 4 -->
+    <div class="card" style="border-top-color:var(--c-explore)">
+      <div class="top"><span class="key">04 · amenities</span><span class="cat" style="background:var(--c-explore)">Explore</span></div>
+      <h3>Amenities</h3>
+      <div class="maps">↳ <em>brief:</em> The Amenities & Sanctuary</div>
+      <div class="purpose">The lifestyle sell — “everything within reach, nothing on display.”</div>
+      <div class="content">Pool pavilion · padel · half-court · yoga/meditation deck · banquet · Miyawaki forest · herb & pet gardens.</div>
+    </div>
+    <!-- 5 -->
+    <div class="card" style="border-top-color:var(--c-explore)">
+      <div class="top"><span class="key">05 · gallery</span><span class="cat" style="background:var(--c-explore)">Explore</span></div>
+      <h3>Gallery</h3>
+      <div class="maps">↳ <em>brief:</em> The Visual World</div>
+      <div class="purpose">Visual immersion across the project.</div>
+      <div class="content">Categories: Exteriors · Landscape lanterns (day/night) · Interiors (ID concept) · Lifestyle. Render + lightbox.</div>
+    </div>
+    <!-- 6 -->
+    <div class="card" style="border-top-color:var(--c-res)">
+      <div class="top"><span class="key">06 · floorplan</span><span class="cat" style="background:var(--c-res)">Residences</span></div>
+      <h3>Floor Plans</h3>
+      <div class="maps">↳ <em>brief:</em> The Residences — Plans</div>
+      <div class="purpose">Per-configuration plan exploration.</div>
+      <div class="content">Selector: 2BR duplex · 3BR · 3BR+study/+media · 4BR(+study) · 4BR recessed · 5BR penthouse duplex. Sizes 4,149–15,124 sqft, orientation.</div>
+    </div>
+    <!-- 7 -->
+    <div class="card" style="border-top-color:var(--c-res)">
+      <div class="top"><span class="key">07 · inventory</span><span class="cat" style="background:var(--c-res)">Residences</span></div>
+      <h3>The Collection <span style="font-size:10px;color:var(--faint)">(inventory)</span></h3>
+      <div class="maps">↳ <em>brief:</em> The Residences — by floor</div>
+      <div class="purpose">Orientation through the 60 homes — explore by floor & configuration.</div>
+      <div class="content">60 residences · 2 per floor · the floor stack · view / orientation per home.</div>
+      <div class="adapt"><b>▸ Adapt:</b> NO price, NO “sold/limited” pills, NO urgency. Orientation, not a checkout. (Status visible to RM only, if at all.)</div>
+    </div>
+    <!-- 8 -->
+    <div class="card" style="border-top-color:var(--c-res)">
+      <div class="top"><span class="key">08 · booking</span><span class="cat" style="background:var(--c-res)">Convert</span></div>
+      <h3>The Invitation <span style="font-size:10px;color:var(--faint)">(booking)</span></h3>
+      <div class="maps">↳ <em>brief:</em> The Close — “Arrive.”</div>
+      <div class="purpose">The closer, reframed as a private invitation.</div>
+      <div class="content">“Viewings are private and by appointment.” Quiet Expression-of-Interest capture · relationship-lead contact.</div>
+      <div class="adapt"><b>▸ Adapt:</b> NO price breakdown, NO payment milestones, NO urgency. A refined EOI — an invitation, not a transaction.</div>
+    </div>
+    <!-- 9 -->
+    <div class="card" style="border-top-color:var(--c-narr)">
+      <div class="top"><span class="key">09 · service ✦ new</span><span class="cat" style="background:var(--c-narr)">Narrative</span></div>
+      <h3>The Service</h3>
+      <div class="maps">↳ <em>brief:</em> The Embassy Standard</div>
+      <div class="purpose">Custom screen — service as product (the brand’s key differentiator).</div>
+      <div class="content">Embassy’s proprietary hospitality & lifestyle arm — anticipatory, unseen. “A home that takes care of itself.”</div>
+      <div class="adapt"><b>▸ New:</b> beyond the standard 11 — Embassy ONE-specific.</div>
+    </div>
+    <!-- 10 -->
+    <div class="card" style="border-top-color:var(--c-int)">
+      <div class="top"><span class="key">10 · emailsender</span><span class="cat" style="background:var(--c-int)">Integration</span></div>
+      <h3>Email Sender</h3>
+      <div class="maps">↳ <em>brief:</em> The Leave-Behind</div>
+      <div class="purpose">Send the curated brochure to a prospect from the device.</div>
+      <div class="content">Pre-filled composer + attachments (e-brochure / floor-plan booklet PDF). Backend webhook or stub.</div>
+    </div>
+    <!-- 11 -->
+    <div class="card" style="border-top-color:var(--c-int)">
+      <div class="top"><span class="key">11 · gre</span><span class="cat" style="background:var(--c-int)">Integration</span></div>
+      <h3>GRE App</h3>
+      <div class="maps">↳ Guest Relations</div>
+      <div class="purpose">Placeholder for Embassy’s guest-management system.</div>
+      <div class="content">Teaser modal + “external app, integrable into Sales Suite” badge. Minimal by design.</div>
+    </div>
+    <!-- 12 -->
+    <div class="card" style="border-top-color:var(--c-int)">
+      <div class="top"><span class="key">12 · minicrm</span><span class="cat" style="background:var(--c-int)">Integration</span></div>
+      <h3>Mini CRM</h3>
+      <div class="maps">↳ Leads & Pipeline</div>
+      <div class="purpose">Placeholder for integrated lead management.</div>
+      <div class="content">Faux dashboard + “integrable” badge. Swap for real embed if Embassy has a CRM.</div>
+    </div>
+  </div>
+
+  <footer>
+    <div>STANDARD SCAFFOLD — &nbsp; home constellation · ScreenShell (eyebrow + serif title + back) · PWA offline-first · responsive 16:9 kiosk / 16:10 Tab S7 / 4:3 iPad · touch-first ≥44px</div>
+    <div><b>KHOSHA</b> &nbsp;·&nbsp; Embassy ONE Sales Suite &nbsp;·&nbsp; Screen Architecture v2</div>
+  </footer>
+</body>
+</html>
