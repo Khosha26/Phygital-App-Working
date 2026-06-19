@@ -38,7 +38,7 @@ const SEED = [
     category: "Sales Suite",
     logo: "./assets/logos/embassy.png",
     app_url: "",
-    live_url: "https://embassy-citadel.netlify.app/intro.html",
+    live_url: "https://magenta-twilight-6d2628.netlify.app/",
     sort_order: 3,
   },
   {

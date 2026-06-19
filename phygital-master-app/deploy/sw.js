@@ -5,8 +5,9 @@
        UI after an edit.)
      • Images / fonts / other static → cache-first for instant, offline loads.
    Bump CACHE when you ship new assets to force a clean refresh. */
-const CACHE = "phygital-kiosk-v13";
+const CACHE = "phygital-kiosk-v15";
 const SHELL = [
+  "./assets/rda.js",
   "./",
   "./index.html",
   "./styles.css",

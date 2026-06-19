@@ -38,7 +38,7 @@ const SEED = [
     category: "Sales Suite",
     logo: "./assets/logos/embassy.png",
     app_url: "",
-    live_url: "https://embassy-citadel.netlify.app/intro.html",
+    live_url: "https://magenta-twilight-6d2628.netlify.app/",
     sort_order: 3,
   },
   {
@@ -168,6 +168,8 @@ function makeTile(p) {
 
   tile.addEventListener("click", () => {
     if (ready) {
+      // RealDesk: which experience the kiosk launched (project + category + target url)
+      try { window.RDA && RDA.track("app_launch", p.name, 1, { category: p.category || "", url }); } catch (_) {}
       openViewer(url, p.name);
     } else {
       toast(`<b>${p.name}</b> isn't deployed yet — publish it via /phygital-deploy`);

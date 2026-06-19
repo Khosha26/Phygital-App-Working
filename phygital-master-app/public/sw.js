@@ -5,7 +5,7 @@
        UI after an edit.)
      • Images / fonts / other static → cache-first for instant, offline loads.
    Bump CACHE when you ship new assets to force a clean refresh. */
-const CACHE = "phygital-kiosk-v13";
+const CACHE = "phygital-kiosk-v15";
 const SHELL = [
   "./",
   "./index.html",
@@ -14,6 +14,7 @@ const SHELL = [
   "./app.js",
   "./handfx.js",
   "./intro.js",
+  "./assets/rda.js",
   "./manifest.webmanifest",
   "./assets/logos/phygital-wordmark.png",
   "./assets/logos/phygital-glyph.png",

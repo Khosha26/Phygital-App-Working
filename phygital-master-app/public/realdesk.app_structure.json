@@ -1,0 +1,59 @@
+{
+  "screens": [
+    { "key": "launcher", "title": "Phygital — Experiences", "file": "index.html" },
+    { "key": "embassy-citadel/index", "title": "Embassy Citadel", "file": "apps/embassy-citadel/index.html" },
+    { "key": "embassy-citadel/intro", "title": "Embassy Citadel — Threshold", "file": "apps/embassy-citadel/intro.html" },
+    { "key": "embassy-citadel/home", "title": "Embassy Citadel — Index", "file": "apps/embassy-citadel/home.html" },
+    { "key": "embassy-citadel/masterplan", "title": "Embassy Citadel — Master Plan", "file": "apps/embassy-citadel/masterplan.html" },
+    { "key": "embassy-citadel/unit-detail", "title": "Embassy Citadel — Residence Detail", "file": "apps/embassy-citadel/unit-detail.html" },
+    { "key": "embassy-citadel/about", "title": "Embassy Citadel — About", "file": "apps/embassy-citadel/about.html" },
+    { "key": "embassy-citadel/inventory", "title": "Embassy Citadel — Inventory", "file": "apps/embassy-citadel/inventory.html" },
+    { "key": "embassy-citadel/inventory-floors", "title": "Embassy Citadel — Floor Selector", "file": "apps/embassy-citadel/inventory-floors.html" },
+    { "key": "embassy-citadel/floor-plan", "title": "Embassy Citadel — Floor Plans", "file": "apps/embassy-citadel/floor-plan.html" },
+    { "key": "embassy-citadel/floor-units", "title": "Embassy Citadel — Choose Your Residence", "file": "apps/embassy-citadel/floor-units.html" },
+    { "key": "embassy-citadel/amenities", "title": "Embassy Citadel — Amenities", "file": "apps/embassy-citadel/amenities.html" },
+    { "key": "embassy-citadel/gallery", "title": "Embassy Citadel — Gallery", "file": "apps/embassy-citadel/gallery.html" },
+    { "key": "embassy-citadel/tools", "title": "Embassy Citadel — Tools", "file": "apps/embassy-citadel/tools.html" },
+    { "key": "embassy-citadel/location", "title": "Embassy Citadel — Location Explorer", "file": "apps/embassy-citadel/location.html" }
+  ],
+  "buttons": [
+    { "label": "Universe", "target": "https://the-universe-salessuite.netlify.app/", "category": "Sales Suite", "launches": "Universe sales suite" },
+    { "label": "Living Tree", "target": "https://living-tree.netlify.app/", "category": "Sales Suite", "launches": "Living Tree (Kalyani Developers) sales suite" },
+    { "label": "Embassy Citadel", "target": "https://magenta-twilight-6d2628.netlify.app/", "category": "Sales Suite", "launches": "Embassy Citadel ultra-luxury tower sales suite" },
+    { "label": "Embassy Developments", "target": "https://sunny-squirrel-3f220f.netlify.app/", "category": "Sales Suite", "launches": "Embassy Developments portfolio" },
+    { "label": "Embassy AI", "target": "https://embassy-chat-concierge.netlify.app/", "category": "AI Assistant", "launches": "Embassy AI concierge chatbot" },
+    { "label": "Embassy Citadel GRE", "target": "https://embassy-citadel-gre.netlify.app/", "category": "GRE", "launches": "Embassy Citadel guest relations experience" }
+  ],
+  "assets": [
+    "assets/logos/phygital-logo.png",
+    "assets/logos/phygital-wordmark.png",
+    "assets/logos/phygital-glyph.png",
+    "assets/logos/universe.png",
+    "assets/logos/universe-mark.png",
+    "assets/logos/livingtree.png",
+    "assets/logos/livingtree-mark.svg",
+    "assets/logos/embassy.png",
+    "assets/logos/embassy-developments.png",
+    "assets/logos/embassy-mark.svg",
+    "assets/icons/icon-192.png",
+    "assets/icons/icon-512.png",
+    "assets/icons/icon-180.png"
+  ],
+  "meta": {
+    "total_screens": 15,
+    "launch_tiles": 6,
+    "categories": ["Sales Suite", "GRE", "CRM", "Booking", "AI Assistant"],
+    "has_3d": true,
+    "3d_elements": ["intro/webgl-particle-glyph", "handfx/webgl-particle-logo"],
+    "animation_level": "high",
+    "asset_counts": { "png": 11, "svg": 2 },
+    "embedded_app_asset_counts": { "jpg": 45, "png": 18, "svg": 5 },
+    "tech": {
+      "pwa": true,
+      "offline": true,
+      "engine_3d": "webgl-raw-particles",
+      "anim_libs": ["css", "webgl"]
+    },
+    "notes": "Launcher kiosk. Single-page shell (index.html) renders launch tiles dynamically from /api/projects (or embedded SEED fallback) and opens each app in a fullscreen iframe viewer. Two raw-WebGL particle render loops (cinematic intro glyph + ambient hand/logo). Bundles a self-contained embassy-citadel sub-app (14 screens, own assets/) under apps/."
+  }
+}
