@@ -4,11 +4,15 @@
     { "key": "phone",     "title": "Phone",              "file": "index.html#step-1" },
     { "key": "otp",       "title": "OTP Verification",   "file": "index.html#step-2" },
     { "key": "identity",  "title": "Name & Email",       "file": "index.html#step-3" },
-    { "key": "typology",  "title": "Typology",           "file": "index.html#step-4" },
-    { "key": "budget",    "title": "Budget",             "file": "index.html#step-5" },
-    { "key": "purpose",   "title": "Purpose & Timeline", "file": "index.html#step-6" },
-    { "key": "family",    "title": "Family & Must-haves","file": "index.html#step-7" },
-    { "key": "done",      "title": "Done · Token Issued","file": "index.html#step-8" }
+    { "key": "profile",   "title": "Occupation & Company","file": "index.html#step-4" },
+    { "key": "typology",  "title": "Typology + Carpet Area","file": "index.html#step-5" },
+    { "key": "leadcat",   "title": "Residential or Commercial","file": "index.html#step-6" },
+    { "key": "budget",    "title": "Budget",             "file": "index.html#step-7" },
+    { "key": "purpose",   "title": "Purpose & Timeline", "file": "index.html#step-8" },
+    { "key": "family",    "title": "Family & Must-haves","file": "index.html#step-9" },
+    { "key": "contact",   "title": "Address & Contact",   "file": "index.html#step-10" },
+    { "key": "source",    "title": "Source & Sub-Source", "file": "index.html#step-11" },
+    { "key": "done",      "title": "Done · Token Issued","file": "index.html#step-12" }
   ],
   "buttons": [
     { "label": "BEGIN",            "target": "phone" },
@@ -32,7 +36,12 @@
     "icons/favicon-32.png"
   ],
   "custom_events": [
-    { "type": "step_view", "note": "fired on every in-page step change (single-page flow)" },
-    { "type": "checkin",   "note": "fired when a visitor completes onboarding and a desk token is issued; value = token" }
+    { "type": "step_view",    "note": "fired on every in-page step change (single-page flow)" },
+    { "type": "cp_open",      "note": "channel-partner selector opened" },
+    { "type": "cp_select",    "note": "an existing channel partner was tagged to the walk-in" },
+    { "type": "cp_add",       "note": "a new channel partner was registered via Venus Partner Program" },
+    { "type": "cp_clear",     "note": "walk-in proceeded with no channel partner" },
+    { "type": "details_done", "note": "walk-in CRM qualification step completed (lead category, area, occupation, source…)" },
+    { "type": "checkin",      "note": "fired when a visitor completes onboarding and a desk token is issued; value = token; meta carries full lead profile" }
   ]
 }
