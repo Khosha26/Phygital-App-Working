@@ -443,7 +443,7 @@ input{font-family:inherit;color:inherit;background:none;border:none;outline:none
   transition:transform .2s var(--press),background .25s,border-color .25s,box-shadow .25s;
   position:relative;overflow:hidden;text-align:center;
 }
-.card .label{font-family:'Cinzel',serif;font-weight:500;font-size:clamp(1.35rem, 3.17vmin, 2.88rem);letter-spacing:.05em;color:var(--cream);line-height:1.05;position:relative;z-index:2;transition:color .3s var(--ease-out)}
+.card .label{font-family:'Cinzel',serif;font-weight:500;font-size:clamp(1.05rem, 2.0vmin, 1.55rem);letter-spacing:.05em;color:var(--cream);line-height:1.1;position:relative;z-index:2;transition:color .3s var(--ease-out)}
 .card .meta{font-family:'JetBrains Mono',monospace;font-size:clamp(9px, 0.792vmin, 10.8px);letter-spacing:.26em;color:var(--slate);text-transform:uppercase;position:relative;z-index:2}
 /* sheen: a diagonal light band that sweeps once when the card is chosen */
 .card::after{
@@ -460,7 +460,7 @@ input{font-family:inherit;color:inherit;background:none;border:none;outline:none
 }
 .card.selected .label{color:var(--gold)}
 .card.small{min-height:clamp(54px, 8.64vmin, 115px)}
-.card.small .label{font-size:clamp(1.1rem, 2.3vmin, 1.87rem)}
+/* .card.small .label inherits the unified .card .label size for cross-screen consistency */
 
 /* ============================================================
    STEP 5 — Budget slider
@@ -510,6 +510,28 @@ input{font-family:inherit;color:inherit;background:none;border:none;outline:none
 }
 /* timeline has 5 items — let them flow into a tidy grid */
 #timelineRow{grid-template-columns:repeat(auto-fit, minmax(min(100%, 180px), 1fr))}
+
+/* "How did you find us" — centered 5-then-4 layout (9 options) */
+#nxSourceRow{display:flex;flex-wrap:wrap;justify-content:center;align-content:center;
+  margin-left:auto;margin-right:auto;gap:clamp(10px,1.3vmin,18px)}
+#nxSourceRow > .card{flex:0 1 calc((100% - 4*clamp(10px,1.3vmin,18px))/5);
+  min-width:clamp(118px,15vmin,172px);max-width:240px}
+@media (max-width:620px){
+  #nxSourceRow > .card{flex-basis:calc((100% - 2*clamp(10px,1.3vmin,18px))/3)}
+}
+#nxSourceRow > .card:nth-child(6){animation-delay:.34s}
+#nxSourceRow > .card:nth-child(7){animation-delay:.40s}
+#nxSourceRow > .card:nth-child(8){animation-delay:.46s}
+#nxSourceRow > .card:nth-child(9){animation-delay:.52s}
+
+/* Source tagging (hierarchical) — Source row + dynamic Sub-source row, centered */
+.src-block{width:100%;max-width:min(94vw,1000px);margin:var(--gap-md) auto 0}
+.src-block__label{font-family:'JetBrains Mono',monospace;font-size:clamp(9px,0.95vmin,11.5px);letter-spacing:.34em;text-transform:uppercase;color:var(--gold);text-align:center;margin-bottom:var(--gap-sm)}
+#srcSourceRow,#srcSubRow{display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(10px,1.3vmin,18px);margin-left:auto;margin-right:auto}
+#srcSourceRow > .card,#srcSubRow > .card{flex:0 1 clamp(120px,15vmin,182px);min-height:clamp(44px,6vmin,76px)}
+/* labels inherit the unified .card .label size */
+.src-biz{margin-top:var(--gap-md);font-family:'JetBrains Mono',monospace;font-size:clamp(9px,0.92vmin,11px);letter-spacing:.22em;text-transform:uppercase;color:var(--slate);text-align:center}
+.src-biz b{color:var(--gold-light);font-weight:500}
 
 /* ============================================================
    STEP 7 — Family + Must-haves
@@ -1366,6 +1388,11 @@ body.show-intro .begin-stream{opacity:1;transition-delay:1.5s}
   border-color: transparent; background: transparent; box-shadow: none; outline: none;
 }
 .field-ico .bigInput:focus-visible { outline: none; }
+/* inline +91 prefix — starts at the same x as the other fields' text, number follows with a small gap */
+.field-ico__cc { flex: 0 0 auto; align-self: center; font-family: 'Cormorant Garamond', serif; font-weight: 400;
+  font-size: clamp(1.15rem, 2.3vmin, 2.16rem); letter-spacing: .04em; color: var(--slate);
+  padding-left: clamp(12px, 1.15vw, 16px); }
+.field-ico__cc + .bigInput { padding-left: clamp(6px, .6vw, 9px); }
 .step[data-step="3"] .field-stack { max-width: min(92vw, 1100px); }
 .step[data-step="3"] .field-stack > .field-ico { width: 100%; }
 
@@ -1801,7 +1828,7 @@ body.show-intro .begin-stream{opacity:1;transition-delay:1.5s}
         <div class="lbl"><b>the UNIVERSE</b><span class="sfx">&nbsp;&middot;&nbsp;Reception</span></div>
       </div>
       <div class="stepmeta">
-        <div class="num">STEP <b id="stepNum">01</b> / 13</div>
+        <div class="num">STEP <b id="stepNum">01</b> / <span id="stepTotal">13</span></div>
         <button class="pill" id="exitBtn">Exit</button>
       </div>
     </header>
@@ -1934,24 +1961,6 @@ body.show-intro .begin-stream{opacity:1;transition-delay:1.5s}
                inputmode="email"
                spellcheck="false"/>
       </label>
-
-      <!-- Channel Partner (optional) — tag an existing partner or register a new one -->
-      <button type="button" class="cp-trigger" id="cpTrigger" aria-haspopup="dialog" aria-controls="cpSheet">
-        <span class="cp-trigger__icon" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="7" cy="7" r="2.6" stroke="#c9a96e" stroke-width="1.4"/>
-            <circle cx="13.8" cy="7.6" r="2.1" stroke="#c9a96e" stroke-width="1.4"/>
-            <path d="M2.2 16c0-2.5 2.1-4.3 4.8-4.3 1.6 0 3 .65 3.9 1.7M12 11.9c2.4-.1 4 1.6 4 4.1" stroke="#c9a96e" stroke-width="1.4" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <span class="cp-trigger__body">
-          <span class="cp-trigger__title" id="cpTriggerTitle">Tag a Channel Partner</span>
-          <span class="cp-trigger__sub" id="cpTriggerSub">Optional &mdash; were you referred by a partner?</span>
-        </span>
-        <span class="cp-trigger__chev" id="cpTriggerChev" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 4l4 4-4 4" stroke="#c9a96e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
-      </button>
 
     </div>
     <div class="cta-wrap">
@@ -2439,30 +2448,152 @@ body.show-intro .begin-stream{opacity:1;transition-delay:1.5s}
   </div>
 </section>
 
-      <!-- 11: How you found us (source + sub-source) -->
+      <!-- 11: How you found us (source + sub-source) — now the first qualifying step -->
       <section class="step" data-step="11">
   <div class="inner">
-    <div class="eyebrow">One last thing</div>
-    <h1 class="h1 smaller">How you <span class="it">found</span> us</h1>
+    <div class="eyebrow">Let&rsquo;s begin</div>
+    <h1 class="h1 smaller">How did you <span class="it">find</span> us?</h1>
     <p class="sub" id="nxSourceSub">It helps us know what&rsquo;s working &mdash; and who to thank.</p>
 
     <div class="opts" id="nxSourceRow" style="max-width:min(94vw,1000px);margin-top:var(--gap-md)">
+      <!-- top row: 5 -->
       <button class="card small" data-val="Walk-in"><div class="label">Walk-in</div></button>
       <button class="card small" data-val="Channel Partner"><div class="label">Channel Partner</div></button>
-      <button class="card small" data-val="Digital Ad"><div class="label">Digital Ad</div></button>
       <button class="card small" data-val="Referral"><div class="label">Referral</div></button>
+      <button class="card small" data-val="Digital Ad"><div class="label">Digital Ad</div></button>
+      <button class="card small" data-val="Social Media"><div class="label">Social Media</div></button>
+      <!-- bottom row: 4 -->
       <button class="card small" data-val="Hoarding"><div class="label">Hoarding</div></button>
       <button class="card small" data-val="Newspaper"><div class="label">Newspaper</div></button>
       <button class="card small" data-val="Event"><div class="label">Event</div></button>
       <button class="card small" data-val="Other"><div class="label">Other</div></button>
     </div>
 
-    <div class="field-stack" style="max-width:min(82vw,560px)">
-      <input class="bigInput" id="nxSubSource" placeholder="A little more — channel, name or campaign" maxlength="80" autocomplete="off"/>
+    <div class="field-stack" id="nxSubSourceWrap" style="max-width:min(82vw,560px)">
+      <input class="bigInput" id="nxSubSource" placeholder="A little more — channel, name or campaign (optional)" maxlength="80" autocomplete="off"/>
     </div>
 
     <div class="cta-wrap">
       <button class="cta" id="nxSourceNext" disabled>Continue <span class="arr">&rarr;</span></button>
+    </div>
+  </div>
+</section>
+
+      <!-- 13: Channel Partner (conditional — only when "Channel Partner" chosen on the source step) -->
+      <section class="step" data-step="13">
+  <div class="inner">
+    <div class="eyebrow">Channel Partner</div>
+    <h1 class="h1 smaller">Who <span class="it">referred</span> you?</h1>
+    <p class="sub">Tag the partner who brought you to the UNIVERSE &mdash; search the directory, or add a new one.</p>
+
+    <div class="cp-pick">
+      <button type="button" class="cp-trigger" id="cpTrigger" aria-haspopup="dialog" aria-controls="cpSheet">
+        <span class="cp-trigger__icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="7" cy="7" r="2.6" stroke="#c9a96e" stroke-width="1.4"/>
+            <circle cx="13.8" cy="7.6" r="2.1" stroke="#c9a96e" stroke-width="1.4"/>
+            <path d="M2.2 16c0-2.5 2.1-4.3 4.8-4.3 1.6 0 3 .65 3.9 1.7M12 11.9c2.4-.1 4 1.6 4 4.1" stroke="#c9a96e" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="cp-trigger__body">
+          <span class="cp-trigger__title" id="cpTriggerTitle">Tag a Channel Partner</span>
+          <span class="cp-trigger__sub" id="cpTriggerSub">Search existing &mdash; or register a new partner</span>
+        </span>
+        <span class="cp-trigger__chev" id="cpTriggerChev" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 4l4 4-4 4" stroke="#c9a96e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </button>
+
+      <!-- selected partner details: name + phone -->
+      <div class="cp-picked" id="cpPicked" hidden>
+        <span class="cp-picked__avatar" id="cpPickedAv">?</span>
+        <span class="cp-picked__body">
+          <span class="cp-picked__name" id="cpPickedName"></span>
+          <span class="cp-picked__firm" id="cpPickedFirm"></span>
+        </span>
+        <span class="cp-picked__phone" id="cpPickedPhone"></span>
+      </div>
+    </div>
+
+    <div class="cta-wrap">
+      <button class="cta" id="cpPickNext" disabled>Continue <span class="arr">&rarr;</span></button>
+    </div>
+  </div>
+</section>
+
+      <!-- 14: Customer details — name + phone number + email (collected on entry) -->
+      <section class="step" data-step="14">
+  <div class="inner">
+    <div class="eyebrow">A warm welcome</div>
+    <h1 class="h1 smaller">Let&rsquo;s get <span class="it">acquainted</span></h1>
+    <p class="sub">A few details, kept private and always secure, so every moment of your visit feels made for you.</p>
+
+    <div class="field-stack" style="max-width:min(92vw,720px)">
+      <label class="field-ico" aria-label="Full name field">
+        <span class="field-ico__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="9" cy="5.5" r="3" stroke="#c9a96e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2.5 15.5c0-3.314 2.91-6 6.5-6s6.5 2.686 6.5 6" stroke="#c9a96e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <input class="bigInput" id="custName" maxlength="40" placeholder="Full name" aria-label="Full name" autocomplete="name" spellcheck="false"/>
+      </label>
+
+      <label class="field-ico" aria-label="Phone number field">
+        <span class="field-ico__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6.4 2.6H3.9c-.75 0-1.36.64-1.28 1.39.62 5.86 5.07 10.31 10.93 10.93.75.08 1.39-.53 1.39-1.28v-2.5c0-.62-.45-1.15-1.06-1.26l-1.86-.34c-.5-.09-1.01.1-1.32.5l-.62.8C8.7 10.78 7.4 9.48 6.46 7.93l.8-.62c.4-.31.59-.82.5-1.32l-.34-1.86C7.31 3.05 6.78 2.6 6.4 2.6Z" stroke="#c9a96e" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="field-ico__cc" aria-hidden="true">+91</span>
+        <input class="bigInput" id="custPhone" inputmode="numeric" maxlength="10" placeholder="Phone number" aria-label="Phone number"/>
+      </label>
+
+      <label class="field-ico" aria-label="Email address field">
+        <span class="field-ico__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="4" width="14" height="10" rx="2" stroke="#c9a96e" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M2 6.5l6.28 4.2a1.5 1.5 0 001.44 0L16 6.5" stroke="#c9a96e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <input class="bigInput" id="custEmail" type="email" maxlength="60" placeholder="email@example.com" aria-label="Email address" autocomplete="email" inputmode="email" spellcheck="false"/>
+      </label>
+    </div>
+    <div class="nx-optional">Email is optional &middot; your details are kept in confidence</div>
+
+    <div class="cta-wrap">
+      <button class="cta" id="custNext" disabled>Continue <span class="arr">&rarr;</span></button>
+    </div>
+  </div>
+</section>
+
+      <!-- 15: Source tagging — Source → Sub-source (Business Type derived, reporting only) -->
+      <section class="step" data-step="15">
+  <div class="inner">
+    <div class="eyebrow">Source tagging</div>
+    <h1 class="h1 smaller">How did this lead <span class="it">reach</span> us?</h1>
+    <p class="sub">Choose the source, then the sub-source.</p>
+
+    <div class="src-block">
+      <div class="src-block__label">Source</div>
+      <div class="opts" id="srcSourceRow">
+        <button class="card small" data-val="Direct"><div class="label">Direct</div></button>
+        <button class="card small" data-val="Digital"><div class="label">Digital</div></button>
+        <button class="card small" data-val="Offline"><div class="label">Offline</div></button>
+        <button class="card small" data-val="Reference"><div class="label">Reference</div></button>
+        <button class="card small" data-val="CP"><div class="label">CP</div></button>
+      </div>
+    </div>
+
+    <div class="src-block" id="srcSubWrap" hidden>
+      <div class="src-block__label">Sub-source</div>
+      <div class="opts" id="srcSubRow"></div>
+    </div>
+
+    <div class="src-biz" id="srcBiz" hidden>Business type (reporting) &middot; <b id="srcBizVal"></b></div>
+
+    <div class="cta-wrap">
+      <button class="cta" id="srcNext" disabled>Continue <span class="arr">&rarr;</span></button>
     </div>
   </div>
 </section>
@@ -2570,6 +2701,25 @@ body.show-intro .begin-stream{opacity:1;transition-delay:1.5s}
 .cp-trigger__sub{font-family:'JetBrains Mono',monospace;font-size:clamp(8px,.92vmin,11px);letter-spacing:.12em;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cp-trigger__chev{flex:0 0 auto;opacity:.75;transition:transform .3s}
 .cp-trigger.is-set .cp-trigger__chev svg path{stroke:var(--gold-light)}
+
+/* CP pick screen — centered trigger + selected-partner (name + phone) panel */
+.cp-pick{width:100%;max-width:min(92vw,720px);margin:var(--gap-md) auto 0;display:flex;flex-direction:column;gap:clamp(.7rem,1.5vmin,1.1rem)}
+.cp-picked{display:flex;align-items:center;gap:clamp(.8rem,1.6vmin,1.25rem);
+  padding:clamp(.8rem,1.7vmin,1.25rem) clamp(.95rem,1.9vmin,1.45rem);
+  border:1px solid var(--gold);border-radius:var(--radius);background:rgba(201,169,110,.08);
+  transform-origin:center;animation:cpPickedIn .26s var(--ease-out) backwards}
+@keyframes cpPickedIn{from{opacity:0;transform:scale(.97) translateY(6px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.cp-picked__avatar{flex:0 0 auto;width:clamp(40px,4.6vmin,58px);height:clamp(40px,4.6vmin,58px);display:grid;place-items:center;
+  border:1px solid var(--gold);border-radius:50%;background:rgba(10,10,10,.45);
+  font-family:'JetBrains Mono',monospace;font-size:clamp(.85rem,1.5vmin,1.15rem);letter-spacing:.06em;color:var(--gold-light)}
+.cp-picked__body{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px}
+.cp-picked__name{font-family:'Cinzel',serif;font-weight:500;font-size:clamp(1.15rem,2.2vmin,1.8rem);letter-spacing:.03em;color:var(--gold-light);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-picked__firm{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:300;font-size:clamp(.95rem,1.7vmin,1.35rem);color:var(--slate);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-picked__phone{flex:0 0 auto;font-family:'JetBrains Mono',monospace;font-size:clamp(.8rem,1.4vmin,1.05rem);letter-spacing:.08em;color:var(--cream);white-space:nowrap}
+@media (max-width:560px){
+  .cp-picked{flex-wrap:wrap}
+  .cp-picked__phone{flex:1 0 100%;padding-left:calc(clamp(40px,4.6vmin,58px) + clamp(.8rem,1.6vmin,1.25rem));margin-top:-2px}
+}
 
 /* Sheet shell */
 .cp-sheet{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;
@@ -2808,7 +2958,7 @@ let recState = {
     // walk-in CRM qualification (step 8)
     leadCategory:null, area:null, address:'',
     occupation:null, company:'', industry:'', designation:'',
-    phone2:'', dob:'', source:null, subSource:''
+    phone2:'', dob:'', source:null, subSource:'', businessType:null
   }
 };
 const TOTAL_STEPS = 13; // 0..12
@@ -2828,6 +2978,7 @@ const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
 const stepsEls = $$('.step');
 const railFill = $('#railFill');
 const stepNum  = $('#stepNum');
+const stepTotal= $('#stepTotal');
 const backBtn  = $('#backBtn');
 const exitBtn  = $('#exitBtn');
 
@@ -2859,27 +3010,42 @@ prefersReduced.addEventListener?.('change',()=>{ if(recState.step===0) playIntro
 /* ============================================================
    Step navigation
    ============================================================ */
+/* Traversal order (by data-step, independent of DOM order):
+   welcome(0) · CUSTOMER DETAILS(14: name+number+email) · SOURCE TAGGING(15: source→sub-source)
+   · profile(4) · typology(5) · res/com(6) · budget(7) · purpose(8) · family(9) · contact(10) · done(12).
+   Superseded front screens (phone 1, otp 2, identity 3, old source 11, CP 13) remain in the DOM but
+   are out of the active order — restore by re-adding their numbers here. */
+const ORDER = [0,14,15,4,5,6,7,8,9,10,12];
+function activeOrder(){ return ORDER.slice(); }
+
 function go(n){
   if(n<0) n=0;
-  if(n>TOTAL_STEPS-1) n=TOTAL_STEPS-1;
   recState.step=n;
   stepsEls.forEach(el=>{
     const on = (+el.dataset.step===n);
     el.classList.toggle('active', on);
     if(on) el.scrollTop = 0;
   });
-  // progress
-  railFill.style.width = (n/(TOTAL_STEPS-1)*100)+'%';
-  stepNum.textContent = String(n+1).padStart(2,'0');
-  // back btn visible from 1..11 (hide on welcome 0 and done 12)
-  backBtn.classList.toggle('show', n>=1 && n<=11);
+  // progress — position within the active order (CP screen only counts when chosen)
+  const ao = activeOrder(); const pos = ao.indexOf(n); const total = ao.length;
+  if(pos>=0){
+    railFill.style.width = (pos/(total-1)*100)+'%';
+    stepNum.textContent = String(pos+1).padStart(2,'0');
+    if(stepTotal) stepTotal.textContent = String(total).padStart(2,'0');
+  }
+  // back btn visible on every interactive step (hide on welcome 0 and done 12)
+  backBtn.classList.toggle('show', n!==0 && n!==12);
   // intro deco (eclipse, rails, timeline, footer) only on the welcome screen
   document.body.classList.toggle('show-intro', n===0);
-  document.body.classList.toggle('show-form', n>=1 && n<=12);
-  // per-step entry hooks — order: 4 profile · 5 typology+area · 6 res/com · 7 budget · 8 purpose+timeline · 9 family · 10 contact · 11 source · 12 done
+  document.body.classList.toggle('show-form', n>=1);
+  // per-step entry hooks
   if(n===0){ playIntro(); }
   else if(step0El){ step0El.classList.remove('intro-play','intro-done','intro-static'); clearTimeout(introDoneT); }
+  if(n===14 && window.intakeEnter) window.intakeEnter('details');
+  if(n===15 && window.intakeEnter) window.intakeEnter('source');
   if(n===2) renderOTP();
+  if(n===11 && window.nxEnter) window.nxEnter('source');
+  if(n===13 && window.cpScreenEnter) window.cpScreenEnter();
   if(n===4 && window.nxEnter) window.nxEnter('profile');
   if(n===5 && window.nxEnter) window.nxEnter('typology');
   if(n===6 && window.nxEnter) window.nxEnter('leadcat');
@@ -2887,16 +3053,16 @@ function go(n){
   if(n===8 && window.nxEnter) window.nxEnter('purpose');
   if(n===9){ renderFamily(); renderPills(); }
   if(n===10 && window.nxEnter) window.nxEnter('contact');
-  if(n===11 && window.nxEnter) window.nxEnter('source');
   if(n===12) renderDone();
   // focus the input so the (on-screen) keyboard rises to the field
   if(n===1) setTimeout(()=>{ const el=$('#phoneInput'); if(el){ el.focus(); el.scrollIntoView({block:'center'}); } }, 360);
   if(n===3) setTimeout(()=>{ const el=$('#nameInput'); if(el){ el.focus(); el.scrollIntoView({block:'center'}); } }, 360);
+  if(n===14) setTimeout(()=>{ const el=$('#custName'); if(el){ el.focus(); el.scrollIntoView({block:'center'}); } }, 360);
   // RealDesk: in-page flow — report each step as a view (single page-load otherwise)
-  try{ if(window.RDA) RDA.track('step_view', ['welcome','phone','otp','identity','profile','typology','leadcat','budget','purpose','family','contact','source','done'][n]||('step-'+n), n); }catch(e){}
+  try{ if(window.RDA) RDA.track('step_view', ['welcome','phone','otp','identity','profile','typology','leadcat','budget','purpose','family','contact','source','done','cp','details','source-tag'][n]||('step-'+n), n); }catch(e){}
 }
-function next(){ go(recState.step+1); }
-function back(){ go(recState.step-1); }
+function next(){ const ao=activeOrder(); const i=ao.indexOf(recState.step); go(i<0 ? recState.step+1 : ao[Math.min(i+1, ao.length-1)]); }
+function back(){ const ao=activeOrder(); const i=ao.indexOf(recState.step); go(i<0 ? recState.step-1 : ao[Math.max(i-1, 0)]); }
 
 document.addEventListener('click',(e)=>{
   const t=e.target.closest('[data-action="next"]');
@@ -2910,7 +3076,7 @@ exitBtn.addEventListener('click',()=>{ if(confirm('Exit reception?')) reset(); }
   const tl=document.getElementById('timeline');
   if(!tl) return;
   let html='';
-  for(let i=0;i<TOTAL_STEPS;i++){
+  for(let i=0;i<ORDER.length;i++){
     if(i>0) html+='<span class="tl-bar"></span>';
     html+=`<span class="tl-item${i===0?' on':''}"><span class="tl-dot"></span><span class="tl-num">${String(i+1).padStart(2,'0')}</span></span>`;
   }
@@ -3159,8 +3325,9 @@ $$('#typologyRow .card').forEach(c=>{
    ============================================================ */
 const slider=$('#budgetSlider'), budgetNum=$('#budgetNum');
 function fmtCr(v){
-  const cr = v/10000000;
-  return cr.toFixed(2)+' Cr';
+  // below 1 Cr → show in Lakh; at/above 1 Cr → show in Cr
+  if(v < 10000000) return Math.round(v/100000) + ' Lakh';
+  return (v/10000000).toFixed(2) + ' Cr';
 }
 // Maps any slider value to the walk-in form's budget bands (60L → above 3 Cr).
 function budgetBand(v){
@@ -3308,13 +3475,14 @@ function reset(){
   recState = {
     step:0,
     data:{ phone:'', otp:'', name:'', email:'', typology:null, budget:30000000, budgetBand:'2 – 3 Cr', intent:null, timeline:null, family:3, mustHaves:[], cp:null,
-      leadCategory:null, area:null, address:'', occupation:null, company:'', industry:'', designation:'', phone2:'', dob:'', source:null, subSource:'' }
+      leadCategory:null, area:null, address:'', occupation:null, company:'', industry:'', designation:'', phone2:'', dob:'', source:null, subSource:'', businessType:null }
   };
   // clear UI
   phoneInput.value=''; phoneNext.disabled=true;
   nameInput.value=''; emailInput.value=''; nameNext.disabled=true;
   if(window.cpClear) window.cpClear();
   if(window.nxReset) window.nxReset();
+  if(window.intakeReset) window.intakeReset();
   $$('#typologyRow .card, #intentRow .card, #timelineRow .card').forEach(c=>c.classList.remove('selected'));
   $$('#pillsRow .pill-opt').forEach(p=>{ p.classList.remove('selected'); p.setAttribute('aria-pressed','false'); });
   recState.data.mustHaves=[];
@@ -3331,8 +3499,13 @@ function reset(){
     space(){ const d=recState.data; const b=$('#nxSpaceNext'); if(b) b.disabled=!(d.leadCategory && d.area); },
     work(){ const d=recState.data; const b=$('#nxWorkNext'); if(b) b.disabled=!(d.occupation && d.company.trim().length>=2 && d.industry.trim().length>=2); },
     reach(){ const d=recState.data; const b=$('#nxReachNext'); if(b) b.disabled=d.address.trim().length<2; },
-    source(){ const d=recState.data; const b=$('#nxSourceNext'); if(b) b.disabled=!(d.source && d.subSource.trim().length>=2); }
+    source(){ const d=recState.data; const b=$('#nxSourceNext'); if(!b) return;
+      // any source selected enables Continue — the free-text detail is optional
+      b.disabled = !d.source; }
   };
+
+  // hide the free-text "specify" field when Channel Partner is chosen (captured on the CP screen)
+  function toggleSubSource(){ const w=$('#nxSubSourceWrap'); if(w) w.hidden = (recState.data.source==='Channel Partner'); }
 
   function reflectCards(rowId,val){ $$('#'+rowId+' .card').forEach(c=>c.classList.toggle('selected', c.dataset.val===val)); }
 
@@ -3351,7 +3524,11 @@ function reset(){
   // carpet area lives on the typology screen → feeds gateTypology()
   cardGroup('nxAreaRow','area',         gateTypology);
   cardGroup('nxOccRow','occupation',    gate.work);
-  cardGroup('nxSourceRow','source',     ()=>{ gate.source(); refreshSourceHint(); });
+  cardGroup('nxSourceRow','source',     ()=>{
+    // switching away from Channel Partner drops any tagged partner so the lead isn't mis-attributed
+    if(recState.data.source!=='Channel Partner' && window.cpClear) window.cpClear();
+    toggleSubSource(); gate.source(); refreshSourceHint();
+  });
 
   function bindInput(id, key, g, transform){
     const el=$('#'+id); if(!el) return;
@@ -3367,7 +3544,7 @@ function reset(){
 
   function refreshSourceHint(){
     const sub=$('#nxSourceSub'); if(!sub) return; const d=recState.data;
-    if(d.cp && d.source==='Channel Partner'){ sub.innerHTML='Referred by <b>'+(d.cp.firm||d.cp.name)+'</b> &mdash; confirm or change below.'; }
+    if(d.source==='Channel Partner'){ sub.innerHTML='Perfect &mdash; you can tag the partner who referred you on the next screen.'; }
     else { sub.innerHTML='It helps us know what&rsquo;s working &mdash; and who to thank.'; }
   }
 
@@ -3390,13 +3567,13 @@ function reset(){
     else if(name==='profile'){ reflectCards('nxOccRow',d.occupation); $('#nxCompany').value=d.company; $('#nxIndustry').value=d.industry; $('#nxDesignation').value=d.designation; gate.work(); }
     else if(name==='contact'){ $('#nxAddress').value=d.address; $('#nxPhone2').value=d.phone2; $('#nxDob').value=d.dob; gate.reach();
       setTimeout(()=>{ const el=$('#nxAddress'); if(el && recState.step===10){ el.focus(); el.scrollIntoView({block:'center'}); } }, 360); }
-    else if(name==='source'){ if(!d.source && d.cp){ d.source='Channel Partner'; d.subSource=d.subSource||d.cp.firm||d.cp.name; }
-      reflectCards('nxSourceRow',d.source); $('#nxSubSource').value=d.subSource; refreshSourceHint(); gate.source(); }
+    else if(name==='source'){ reflectCards('nxSourceRow',d.source); $('#nxSubSource').value=d.subSource; toggleSubSource(); refreshSourceHint(); gate.source(); }
   };
   window.nxReset=function(){
     ['nxCompany','nxIndustry','nxDesignation','nxAddress','nxPhone2','nxDob','nxSubSource'].forEach(id=>{ const el=$('#'+id); if(el) el.value=''; });
     ['nxLeadRow','nxAreaRow','nxOccRow','nxSourceRow'].forEach(r=>$$('#'+r+' .card').forEach(c=>c.classList.remove('selected')));
-    ['typoNext','nxWorkNext','nxReachNext','nxSourceNext','mergeNext'].forEach(id=>{ const el=document.getElementById(id); if(el) el.disabled=true; });
+    ['typoNext','nxWorkNext','nxReachNext','nxSourceNext','mergeNext','cpPickNext'].forEach(id=>{ const el=document.getElementById(id); if(el) el.disabled=true; });
+    const w=$('#nxSubSourceWrap'); if(w) w.hidden=false;
     refreshSourceHint();
   };
 })();
@@ -3466,13 +3643,26 @@ function reset(){
     const c = recState.data.cp;
     if(c){
       trigger.classList.add('is-set');
-      titleEl.textContent = c.name;
-      subEl.textContent = (c.firm||'Channel Partner')+'  ·  tap to change';
+      titleEl.textContent = 'Change partner';
+      subEl.textContent = 'Tap to choose a different one';
     } else {
       trigger.classList.remove('is-set');
       titleEl.textContent = 'Tag a Channel Partner';
-      subEl.innerHTML = 'Optional — were you referred by a partner?';
+      subEl.innerHTML = 'Search existing — or register a new partner';
     }
+  }
+
+  // CP screen: reflect the tagged partner's name + phone, gate Continue
+  function paintCpScreen(){
+    const picked=$('#cpPicked'); const nb=$('#cpPickNext'); if(!picked||!nb) return;
+    const c=recState.data.cp;
+    if(c){
+      $('#cpPickedAv').textContent   = initials(c.name);
+      $('#cpPickedName').textContent = c.name;
+      $('#cpPickedFirm').textContent = c.firm||'';
+      $('#cpPickedPhone').textContent= c.phone ? '+91 '+fmtPhone(c.phone) : '';
+      picked.hidden=false; nb.disabled=false;
+    } else { picked.hidden=true; nb.disabled=true; }
   }
 
   function showSelect(){ paneForm.hidden=true; paneSelect.hidden=false; }
@@ -3496,13 +3686,13 @@ function reset(){
 
   function selectCp(c){
     recState.data.cp = c; window.recState = recState;
-    paintTrigger();
+    paintTrigger(); paintCpScreen();
     try{ if(window.RDA) RDA.track('cp_select', c.id, 1, { firm:c.firm }); }catch(e){}
     closeSheet();
   }
   function clearCp(silent){
     recState.data.cp = null; window.recState = recState;
-    paintTrigger();
+    paintTrigger(); paintCpScreen();
     if(!silent){ try{ if(window.RDA) RDA.track('cp_clear','walk-in',0); }catch(e){} closeSheet(); }
   }
 
@@ -3548,9 +3738,87 @@ function reset(){
   $$('[data-cp-close]').forEach(el=>el.addEventListener('click',closeSheet));
   document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && sheet.classList.contains('open')){ if(!paneForm.hidden){ showSelect(); } else { closeSheet(); } } });
 
+  // CP screen Continue → advance the flow
+  const pickNext=$('#cpPickNext');
+  if(pickNext) pickNext.addEventListener('click',()=>{ if(!pickNext.disabled) next(); });
+
   // expose for reset() + integration
   window.cpClear = ()=>clearCp(true);
-  paintTrigger();
+  // called by go() on entering the CP screen: paint state, and auto-open the picker if nothing tagged yet
+  window.cpScreenEnter = function(){ paintCpScreen(); if(!recState.data.cp) setTimeout(openSheet, 260); };
+  paintTrigger(); paintCpScreen();
+})();
+
+/* ============================================================
+   Intake — Customer details (name+number+email) + hierarchical Source tagging
+   (Source → Sub-source; Business Type derived for reporting). From the client's
+   "Sources and Sub-sources Tagging" sheet.
+   ============================================================ */
+(function intakeModule(){
+  const SOURCE_TREE = {
+    'Direct':    { business:'Direct Business', subs:['Walk-in'] },
+    'Digital':   { business:'Direct Business', subs:['Facebook','Google Ads','Website','IVR'] },
+    'Offline':   { business:'Direct Business', subs:['Hoardings','Newspaper/Flyers','Theatre/Radio'] },
+    'Reference': { business:'Direct Business', subs:['Walk-in'] },
+    'CP':        { business:'CP Business',     subs:['Walk-in','CP App'] }
+  };
+
+  /* ---- Customer details ---- */
+  function gateDetails(){ const d=recState.data; const b=$('#custNext'); if(!b) return;
+    b.disabled = !(d.name.trim().length>=2 && d.phone.length===10); }   // email optional
+  function bindD(id, key, transform, g){ const el=$('#'+id); if(!el) return;
+    el.addEventListener('input',()=>{ let v=el.value; if(transform){ v=transform(v); el.value=v; } recState.data[key]=v; g(); }); }
+  bindD('custName','name', null, gateDetails);
+  bindD('custPhone','phone', v=>v.replace(/\D/g,'').slice(0,10), gateDetails);
+  bindD('custEmail','email', null, gateDetails);
+  const cn=$('#custNext'); if(cn) cn.addEventListener('click',()=>{ if(!cn.disabled) next(); });
+
+  /* ---- Source tagging (hierarchical) ---- */
+  function reflect(rowId,val){ $$('#'+rowId+' .card').forEach(c=>c.classList.toggle('selected', c.dataset.val===val)); }
+  function gateSrc(){ const b=$('#srcNext'); if(!b) return; b.disabled = !(recState.data.source && recState.data.subSource); }
+
+  function renderSubs(){
+    const d=recState.data; const node=SOURCE_TREE[d.source];
+    const wrap=$('#srcSubWrap'), row=$('#srcSubRow'), biz=$('#srcBiz'), bizVal=$('#srcBizVal');
+    if(!node){ wrap.hidden=true; biz.hidden=true; return; }
+    d.businessType=node.business; bizVal.textContent=node.business; biz.hidden=false;
+    row.innerHTML='';
+    node.subs.forEach(s=>{
+      const b=document.createElement('button'); b.type='button'; b.className='card small'; b.dataset.val=s;
+      b.innerHTML='<div class="label">'+s+'</div>';
+      if(s===d.subSource) b.classList.add('selected');
+      b.addEventListener('click',()=>{ recState.data.subSource=s; reflect('srcSubRow',s); gateSrc(); });
+      row.appendChild(b);
+    });
+    wrap.hidden=false;
+    if(node.subs.length===1){ d.subSource=node.subs[0]; reflect('srcSubRow',node.subs[0]); }   // lone sub-source auto-selects
+    gateSrc();
+  }
+
+  $$('#srcSourceRow .card').forEach(c=>{
+    c.addEventListener('click',()=>{
+      const v=c.dataset.val; recState.data.source=v;
+      if(recState.data.subSource && !SOURCE_TREE[v].subs.includes(recState.data.subSource)) recState.data.subSource='';
+      reflect('srcSourceRow',v); renderSubs();
+    });
+  });
+  const sn=$('#srcNext'); if(sn) sn.addEventListener('click',()=>{ if(sn.disabled) return;
+    try{ if(window.RDA) RDA.track('source_tag', recState.data.source+' / '+recState.data.subSource, 1, { business:recState.data.businessType }); }catch(e){}
+    next(); });
+
+  /* ---- entry hooks (called by go()) ---- */
+  window.intakeEnter=function(name){
+    const d=recState.data;
+    if(name==='details'){ $('#custName').value=d.name; $('#custPhone').value=d.phone; $('#custEmail').value=d.email; gateDetails(); }
+    else if(name==='source'){ reflect('srcSourceRow',d.source); if(d.source){ renderSubs(); } else { $('#srcSubWrap').hidden=true; $('#srcBiz').hidden=true; } gateSrc(); }
+  };
+  window.intakeReset=function(){
+    ['custName','custPhone','custEmail'].forEach(id=>{ const el=$('#'+id); if(el) el.value=''; });
+    $$('#srcSourceRow .card').forEach(c=>c.classList.remove('selected'));
+    const row=$('#srcSubRow'); if(row) row.innerHTML='';
+    const w=$('#srcSubWrap'); if(w) w.hidden=true; const b=$('#srcBiz'); if(b) b.hidden=true;
+    ['custNext','srcNext'].forEach(id=>{ const el=document.getElementById(id); if(el) el.disabled=true; });
+  };
 })();
 
 /* ============================================================

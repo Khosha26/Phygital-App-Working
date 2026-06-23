@@ -108,32 +108,69 @@
     if(t){ var parts=t.split(/[·|–-]/); return parts[parts.length-1].trim() || t; }
     return (location.pathname.split('/').pop()||'index').replace(/\.html?$/,'') || 'index';
   }
+  // ── session journey (shared across same-origin frames) → powers EOI + per-screen metrics ──
+  function journey(){ var j; try{ j=JSON.parse(localStorage.getItem('rda_jrn')||'null'); }catch(e){}
+    var sid=session().id; if(!j || j.sid!==sid){ j={ sid:sid, screens:{}, buttons:{} }; } return j; }
+  function jSave(j){ try{ localStorage.setItem('rda_jrn', JSON.stringify(j)); }catch(e){} }
+  function jVisit(n){ var j=journey(); (j.screens[n]=j.screens[n]||{visits:0,active_ms:0}).visits++; jSave(j); }
+  function jTime(n,ms){ var j=journey(); (j.screens[n]=j.screens[n]||{visits:0,active_ms:0}).active_ms+=ms; jSave(j); }
+  function jBtn(l){ var j=journey(); j.buttons[l]=(j.buttons[l]||0)+1; jSave(j); }
+  function btnLabel(t){
+    var b=t.closest && t.closest('button,[data-screen],.card,.minibtn,.lantern-btn,.back,.vbtn,.arrow,[role="button"],a[href],[data-rda-btn]');
+    if(!b) return null;
+    return (b.getAttribute('data-rda-btn')||b.getAttribute('data-screen')||b.getAttribute('aria-label')
+      ||(b.textContent||'').replace(/\s+/g,' ').trim().slice(0,40)||(b.className||'').split(' ')[0]||'button');
+  }
+
   function start(){
     var s=session(true);
     if(s.fresh) track('app_open', pageName());
-    track('page_view', pageName());
-    try{
-      var seen={};
-      var po=new PerformanceObserver(function(list){
-        list.getEntries().forEach(function(e){
-          if(!e.name || seen[e.name]) return;
-          if(/^(img|css|script|link|fetch|xmlhttprequest|other|video|audio)$/.test(e.initiatorType||'')){
-            seen[e.name]=1;
-            track('asset_call', assetName(e.name), Math.round(e.duration||0), { url:e.name, kind:e.initiatorType });
-          }
-        });
-      });
-      po.observe({ type:'resource', buffered:true });
-    }catch(e){}
+    track('page_view', pageName()); jVisit(pageName());
+
+    // asset_call (auto, hierarchical names)
+    try{ var seen={}; new PerformanceObserver(function(list){ list.getEntries().forEach(function(e){
+      if(!e.name||seen[e.name]) return;
+      if(/^(img|css|script|link|fetch|xmlhttprequest|other|video|audio)$/.test(e.initiatorType||'')){
+        seen[e.name]=1; track('asset_call', assetName(e.name), Math.round(e.duration||0), { kind:e.initiatorType }); } }); })
+      .observe({ type:'resource', buffered:true }); }catch(e){}
+
+    // button usage (any pressable element) → 'button' events + journey tally
+    document.addEventListener('click', function(ev){ var l=btnLabel(ev.target); if(l){ track('button', l, 1, { screen:pageName() }); jBtn(l); } }, true);
+
+    // active (visible) time on this screen
+    var activeMs=0, since=Date.now();
+    function flushActive(){ if(document.visibilityState==='visible'){ activeMs += Date.now()-since; } since=Date.now(); }
+    document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden'){ flushActive(); sync(); } else { since=Date.now(); } });
+
     setInterval(sync, 60000);
     window.addEventListener('online', sync);
-    document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden') sync(); });
     window.addEventListener('pagehide', function(){
-      var s2=session(true); track('session_end', pageName(), Date.now()-Date.parse(s2.started_at), { session_id:s2.id }); sync();
+      flushActive();
+      var name=pageName();
+      track('screen_time', name, activeMs, {}); jTime(name, activeMs);            // time spent on THIS screen
+      if(window.top===window.self){                                              // the app shell (not an iframed screen)
+        var s2=session(true);
+        track('session_end', name, Date.now()-Date.parse(s2.started_at), { session_id:s2.id });  // app close
+        summarize();
+      }
+      sync();
     });
     sync();
   }
-  // public API for custom events: RDA.track('booking','3BR',1,{...}) · RDA.label('SP Road kiosk 1')
+
+  // Expression-of-Interest + session rollup — emitted once by the shell at session end.
+  // mode: "focused" (one screen dominates dwell) vs "exploring" (attention spread). interest = top-dwell screen.
+  function summarize(){
+    var j=journey(), sc=j.screens, bt=j.buttons, total=0, top=null, topMs=-1, visited=0;
+    for(var k in sc){ visited++; total+=sc[k].active_ms; if(sc[k].active_ms>topMs){ topMs=sc[k].active_ms; top=k; } }
+    var topBtn=null, topC=-1, clicks=0; for(var b in bt){ clicks+=bt[b]; if(bt[b]>topC){ topC=bt[b]; topBtn=b; } }
+    var mode=(top && total>0 && (topMs/total)>0.55) ? 'focused' : 'exploring';
+    track('session_summary', top, total, { mode:mode, interest:top, screens_visited:visited,
+      total_clicks:clicks, top_button:topBtn, screens:sc, buttons:bt });
+    try{ localStorage.removeItem('rda_jrn'); }catch(e){}
+  }
+
+  // public API — custom intent events: RDA.track('booking','3BR',1,{...}) · RDA.label('SP Road kiosk 1')
   window.RDA={ track:track, sync:sync, label:function(l){ LABEL=l; try{localStorage.setItem('rda_label',l);}catch(e){} } };
   if(document.readyState!=='loading') start(); else document.addEventListener('DOMContentLoaded', start);
 })();

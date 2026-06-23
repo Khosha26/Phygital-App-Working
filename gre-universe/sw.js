@@ -1,5 +1,5 @@
 /* GRE · the UNIVERSE — service worker */
-const CACHE_VERSION = 'gre-v8';
+const CACHE_VERSION = 'gre-v17';
 const PRECACHE = [
   './',
   './index.html',
