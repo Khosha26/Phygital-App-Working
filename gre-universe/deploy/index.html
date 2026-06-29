@@ -1987,26 +1987,6 @@ body.show-intro .begin-stream{opacity:1;transition-delay:1.5s}
     <p class="sub">Choose your layout &mdash; then the space that suits your life.</p>
     <div class="cards-row" id="typologyRow">
 
-      <!-- 3 BHK -->
-      <button class="card t-card" data-val="3 BHK">
-        <span class="t-card__check" aria-hidden="true">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <polyline points="2,6 5,9.5 10,3" stroke="#c9a96e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </span>
-        <span class="t-card__icon" aria-hidden="true">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="4" y="8" width="14" height="11" rx="1" stroke="#c9a96e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <rect x="22" y="8" width="14" height="11" rx="1" stroke="#c9a96e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <rect x="4" y="23" width="32" height="9" rx="1" stroke="#c9a96e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <line x1="13" y1="23" x2="13" y2="32" stroke="#c9a96e" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="22" y1="19" x2="22" y2="23" stroke="#c9a96e" stroke-width="1" stroke-linecap="round" stroke-opacity="0.55"/>
-          </svg>
-        </span>
-        <div class="label">3 BHK</div>
-        <div class="meta">Compact &middot; Spacious living</div>
-      </button>
-
       <!-- 4 BHK -->
       <button class="card t-card" data-val="4 BHK">
         <span class="t-card__check" aria-hidden="true">
@@ -2060,11 +2040,10 @@ body.show-intro .begin-stream{opacity:1;transition-delay:1.5s}
     <div class="group" style="margin-top:var(--gap-lg)">
       <h3>&hellip;and how much <b>space</b> do you have in mind?</h3>
       <div class="opts" id="nxAreaRow" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));max-width:min(92vw,820px)">
-        <button class="card small" data-val="500–1000 sq.ft."><div class="label">500&ndash;1000</div><div class="meta">sq.ft.</div></button>
-        <button class="card small" data-val="1000–1500 sq.ft."><div class="label">1000&ndash;1500</div><div class="meta">sq.ft.</div></button>
-        <button class="card small" data-val="1500–2000 sq.ft."><div class="label">1500&ndash;2000</div><div class="meta">sq.ft.</div></button>
-        <button class="card small" data-val="2000–3000 sq.ft."><div class="label">2000&ndash;3000</div><div class="meta">sq.ft.</div></button>
-        <button class="card small" data-val="Above 2000 sq.ft."><div class="label">Above&nbsp;2000</div><div class="meta">sq.ft.</div></button>
+        <button class="card small" data-val="1450–1650 sq.ft."><div class="label">1450&ndash;1650</div><div class="meta">sq.ft.</div></button>
+        <button class="card small" data-val="1650–1900 sq.ft."><div class="label">1650&ndash;1900</div><div class="meta">sq.ft.</div></button>
+        <button class="card small" data-val="1900–2250 sq.ft."><div class="label">1900&ndash;2250</div><div class="meta">sq.ft.</div></button>
+        <button class="card small" data-val="Penthouse · 2700–4150 sq.ft."><div class="label">Penthouse</div><div class="meta">2700&ndash;4150 sq.ft.</div></button>
       </div>
     </div>
 
@@ -3688,6 +3667,7 @@ function reset(){
     recState.data.cp = c; window.recState = recState;
     paintTrigger(); paintCpScreen();
     try{ if(window.RDA) RDA.track('cp_select', c.id, 1, { firm:c.firm }); }catch(e){}
+    try{ if(window.intakeOnCpTagged) window.intakeOnCpTagged(); }catch(e){}  // re-gate Source step
     closeSheet();
   }
   function clearCp(silent){
@@ -3744,6 +3724,11 @@ function reset(){
 
   // expose for reset() + integration
   window.cpClear = ()=>clearCp(true);
+  // Source-tagging step opens the sheet directly to a pane:
+  //   CP → "Walk-in"  = a NEW partner → registration form
+  //   CP → "CP App"   = already registered → searchable select list
+  window.cpOpenForm   = function(){ openSheet(); showForm(); setTimeout(()=>{ try{ f.firm.focus(); }catch(e){} },120); };
+  window.cpOpenSelect = function(){ openSheet(); };  // openSheet defaults to the select pane
   // called by go() on entering the CP screen: paint state, and auto-open the picker if nothing tagged yet
   window.cpScreenEnter = function(){ paintCpScreen(); if(!recState.data.cp) setTimeout(openSheet, 260); };
   paintTrigger(); paintCpScreen();
@@ -3775,7 +3760,19 @@ function reset(){
 
   /* ---- Source tagging (hierarchical) ---- */
   function reflect(rowId,val){ $$('#'+rowId+' .card').forEach(c=>c.classList.toggle('selected', c.dataset.val===val)); }
-  function gateSrc(){ const b=$('#srcNext'); if(!b) return; b.disabled = !(recState.data.source && recState.data.subSource); }
+  function gateSrc(){ const b=$('#srcNext'); const d=recState.data;
+    let ok = !!(d.source && d.subSource);
+    if(d.source==='CP') ok = ok && !!(d.cp && d.cp.id);   // CP requires a tagged partner
+    if(b) b.disabled = !ok;
+  }
+
+  // CP sub-source routing: Walk-in → onboard new partner; CP App → select registered.
+  function openCpFor(sub){
+    if(sub==='Walk-in'){ window.cpOpenForm && window.cpOpenForm(); }
+    else if(sub==='CP App'){ window.cpOpenSelect && window.cpOpenSelect(); }
+  }
+  // called by cpModule once a partner is selected/registered
+  window.intakeOnCpTagged = function(){ gateSrc(); };
 
   function renderSubs(){
     const d=recState.data; const node=SOURCE_TREE[d.source];
@@ -3787,7 +3784,11 @@ function reset(){
       const b=document.createElement('button'); b.type='button'; b.className='card small'; b.dataset.val=s;
       b.innerHTML='<div class="label">'+s+'</div>';
       if(s===d.subSource) b.classList.add('selected');
-      b.addEventListener('click',()=>{ recState.data.subSource=s; reflect('srcSubRow',s); gateSrc(); });
+      b.addEventListener('click',()=>{
+        recState.data.subSource=s; reflect('srcSubRow',s);
+        if(recState.data.source==='CP') openCpFor(s);   // open onboard / select sheet
+        gateSrc();
+      });
       row.appendChild(b);
     });
     wrap.hidden=false;
@@ -3799,6 +3800,7 @@ function reset(){
     c.addEventListener('click',()=>{
       const v=c.dataset.val; recState.data.source=v;
       if(recState.data.subSource && !SOURCE_TREE[v].subs.includes(recState.data.subSource)) recState.data.subSource='';
+      if(v!=='CP' && window.cpClear) window.cpClear();   // drop any tagged partner when leaving CP
       reflect('srcSourceRow',v); renderSubs();
     });
   });
@@ -3817,6 +3819,7 @@ function reset(){
     $$('#srcSourceRow .card').forEach(c=>c.classList.remove('selected'));
     const row=$('#srcSubRow'); if(row) row.innerHTML='';
     const w=$('#srcSubWrap'); if(w) w.hidden=true; const b=$('#srcBiz'); if(b) b.hidden=true;
+    if(window.cpClear) window.cpClear();
     ['custNext','srcNext'].forEach(id=>{ const el=document.getElementById(id); if(el) el.disabled=true; });
   };
 })();

@@ -14,16 +14,17 @@
     { "key": "done",      "title": "Done · Token Issued","file": "index.html#step-12" }
   ],
   "buttons": [
-    { "label": "BEGIN",            "target": "phone" },
-    { "label": "Continue (phone)", "target": "otp" },
-    { "label": "OTP keypad",       "target": "identity" },
-    { "label": "Continue (name)",  "target": "typology" },
-    { "label": "Select typology",  "target": "budget" },
-    { "label": "Continue (budget)","target": "purpose" },
-    { "label": "Purpose / timeline chips", "target": "family" },
-    { "label": "Must-have pills",  "target": "done" },
-    { "label": "New check-in (reset)", "target": "welcome" },
-    { "label": "Exit reception",   "target": "welcome" }
+    { "label": "Begin",                 "target": "details" },
+    { "label": "Continue (details)",    "target": "source-tag" },
+    { "label": "Source → Sub-source",   "target": "profile" },
+    { "label": "Continue (profile)",    "target": "typology" },
+    { "label": "Typology + carpet area","target": "leadcat" },
+    { "label": "Residential / Commercial","target": "budget" },
+    { "label": "Continue (budget)",     "target": "purpose" },
+    { "label": "Purpose / timeline",    "target": "family" },
+    { "label": "Family + must-haves",   "target": "done" },
+    { "label": "New check-in (reset)",  "target": "welcome" },
+    { "label": "Exit reception",        "target": "welcome" }
   ],
   "assets": [
     "assets/logo-mark.png",
@@ -35,12 +36,19 @@
     "icons/favicon-32.png"
   ],
   "custom_events": [
-    { "type": "step_view",    "note": "fired on every in-page step change (single-page flow)" },
-    { "type": "cp_open",      "note": "channel-partner selector opened" },
-    { "type": "cp_select",    "note": "an existing channel partner was tagged to the walk-in" },
-    { "type": "cp_add",       "note": "a new channel partner was registered via Venus Partner Program" },
-    { "type": "cp_clear",     "note": "walk-in proceeded with no channel partner" },
-    { "type": "details_done", "note": "walk-in CRM qualification step completed (lead category, area, occupation, source…)" },
-    { "type": "checkin",      "note": "fired when a visitor completes onboarding and a desk token is issued; value = token; meta carries full lead profile" }
-  ]
+    { "type": "step_view",   "note": "fired on every in-page step change (single-page flow); value = step key" },
+    { "type": "source_tag",  "note": "source tagging completed; value = 'Source / Sub-source'; meta.business = Direct/CP Business" },
+    { "type": "checkin",     "note": "visitor completed onboarding and a desk token was issued; value = token; meta carries full lead profile (typology, budget, business type, source/sub-source, occupation, etc.)" },
+    { "type": "cp_select",   "note": "legacy — channel-partner tagged (CP screen currently out of the active flow)" },
+    { "type": "cp_add",      "note": "legacy — new channel partner registered (CP screen currently out of the active flow)" },
+    { "type": "details_done","note": "legacy — old qualification source step (out of the active flow)" }
+  ],
+  "meta": {
+    "total_screens": 11,
+    "has_3d": false,
+    "3d_elements": [],
+    "animation_level": "high",
+    "asset_counts": { "png": 7 },
+    "tech": { "pwa": true, "offline": true, "engine_3d": null, "anim_libs": ["css"] }
+  }
 }
