@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Highland Mayfields — The Estate</title>
+
+<!-- ============================================================
+     HIGHLAND MAYFIELDS · HOME — "The Lotus" (v0.6)
+     Nav redesigned to the client's blooming-lotus mandala (image ref):
+       · centre  = THE VILLAS ornate quatrefoil (winged-lion crest)
+       · 7 PETALS = dark-glass ogee tiles (crisp SVG, gold hairline, lattice,
+                    gold icon + tracked-caps title + italic sub) at N/NE/E/SE
+                    /SW/W/NW; bottom slot held by the centre's lower lobe.
+       · ENTRANCE = petals BLOOM OUT FROM THE CENTRE (staggered, expoOut).
+     Brand BIRDS: 4 gold line-art songbirds glide in the backdrop (animatable
+     SVG, wing-flap + flight paths) — a quiet brand motif behind the content.
+     All vector (no raster slices). Tokens from the brand pack (kd Law 2).
+     Runs standalone AND inside the intro iframe (parent posts 'hm:enter').
+     ============================================================ -->
+<link rel="stylesheet" href="styles/brand.css">
+
+<style>
+/* ==================================================================
+   1 · STAGE
+================================================================== */
+.stage-col{ position:absolute; inset:0; z-index:3; display:flex; flex-direction:column;
+  padding: clamp(.8rem,2vh,1.8rem) var(--pad-stage) clamp(.65rem,1.5vh,1.2rem); pointer-events:none; }
+.stage-col > *{ pointer-events:auto; }
+
+/* ==================================================================
+   2 · BACKDROP
+================================================================== */
+.backdrop{ position:absolute; inset:0; z-index:0; overflow:hidden;
+  background:radial-gradient(130% 120% at 50% 40%,
+    color-mix(in srgb, var(--hm-espresso) 86%, #2c211d) 0%, var(--hm-espresso) 46%, var(--hm-espresso-2) 100%); }
+.lattice{ position:absolute; inset:-2%; z-index:0; pointer-events:none;
+  background-image:var(--hm-lattice); background-size:clamp(78px,9vw,128px); opacity:.07; mix-blend-mode:screen;
+  -webkit-mask-image:radial-gradient(120% 110% at 50% 44%, black 12%, transparent 86%);
+          mask-image:radial-gradient(120% 110% at 50% 44%, black 12%, transparent 86%); }
+.verts{ position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.4;
+  background-image:linear-gradient(90deg, var(--hairline-soft) 1px, transparent 1px); background-size:25% 100%;
+  -webkit-mask-image:linear-gradient(to bottom, transparent, black 16%, black 74%, transparent 96%);
+          mask-image:linear-gradient(to bottom, transparent, black 16%, black 74%, transparent 96%); }
+.lineart{ position:absolute; left:-3%; right:-3%; bottom:0; z-index:0; height:min(44vh,440px);
+  pointer-events:none; opacity:.38; color:var(--hm-copper-text);
+  -webkit-mask-image:linear-gradient(to top, black 30%, transparent 100%);
+          mask-image:linear-gradient(to top, black 30%, transparent 100%);
+  will-change:transform; transition:transform .4s var(--ease-soft); }
+.lineart svg{ position:absolute; inset:0; width:100%; height:100%; }
+.glow{ position:absolute; left:50%; top:50%; z-index:0; width:min(56vw,680px); height:min(56vw,680px);
+  transform:translate(-50%,-50%); pointer-events:none; opacity:0;
+  background:radial-gradient(circle at 50% 50%,
+     color-mix(in srgb, var(--hm-gold) 22%, transparent) 0%,
+     color-mix(in srgb, var(--hm-gold) 7%, transparent) 34%, transparent 66%);
+  transition:opacity 1.9s var(--ease-soft); }
+.glow.on{ opacity:1; }
+.grain{ position:absolute; inset:0; z-index:2; pointer-events:none; opacity:.045; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size:200px 200px; }
+
+/* ---- BRAND BIRDS (gold line-art, gliding) ---- */
+.birds{ position:absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden;
+  opacity:0; transition:opacity 2.4s var(--ease-soft); }
+.birds.on{ opacity:1; }
+.bird-wrap{ position:absolute; left:0; top:0; will-change:transform;
+  transform:translate3d(0,0,0) scale(var(--scale,1)); }
+.bird{ display:block; width:240px; height:auto;
+  filter:drop-shadow(0 6px 22px rgba(120,90,40,.10)); }
+.bird .vane, .bird .covert, .bird .fill{ stroke:url(#goldStroke); stroke-width:1.15; fill:url(#goldFill);
+  stroke-linejoin:round; stroke-linecap:round; vector-effect:non-scaling-stroke; }
+.bird .covert{ stroke-width:1; }
+.bird .memb{ fill:url(#goldFill); stroke:none; }
+.bird .quill{ stroke:var(--hm-gold-bright); stroke-width:.55; fill:none; opacity:.7; stroke-linecap:round; vector-effect:non-scaling-stroke; }
+.bird .hair{ stroke:var(--hm-gold-bright); stroke-width:.6; fill:none; opacity:.55; stroke-linecap:round; vector-effect:non-scaling-stroke; }
+.bird .beak{ fill:#7e6336; stroke:#7e6336; stroke-width:.6; stroke-linejoin:round; }
+.bird .eye{ fill:#3a2c14; } .bird .eyehi{ fill:#f3ead7; }
+.bird .legs path{ stroke:var(--hm-gold); stroke-width:1; fill:none; stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke; }
+@keyframes flapR{ 0%{ transform:rotate(-18deg) scaleY(.93);} 7%{ transform:rotate(-15deg) scaleY(1);} 42%{ transform:rotate(14deg) scaleY(1.03);} 100%{ transform:rotate(-18deg) scaleY(.93);} }
+@keyframes flapL{ 0%{ transform:rotate(18deg) scaleY(.93);} 7%{ transform:rotate(15deg) scaleY(1);} 42%{ transform:rotate(-14deg) scaleY(1.03);} 100%{ transform:rotate(18deg) scaleY(.93);} }
+@keyframes tipR{ 0%{transform:rotate(-7deg);} 42%{transform:rotate(6deg);} 100%{transform:rotate(-7deg);} }
+@keyframes tipL{ 0%{transform:rotate(7deg);} 42%{transform:rotate(-6deg);} 100%{transform:rotate(7deg);} }
+@keyframes b-bob{ 0%{transform:translateY(0);} 42%{transform:translateY(3.2px);} 100%{transform:translateY(0);} }
+@keyframes b-tail{ 0%{transform:rotate(-2deg);} 50%{transform:rotate(2.4deg);} 100%{transform:rotate(-2deg);} }
+.bird .wing-r{ animation:flapR var(--flap,2s) cubic-bezier(.45,.02,.5,1) infinite; }
+.bird .wing-l{ animation:flapL var(--flap,2s) cubic-bezier(.45,.02,.5,1) infinite; }
+.bird .wing-r .wtip{ animation:tipR var(--flap,2s) cubic-bezier(.4,0,.5,1) infinite; animation-delay:.08s; }
+.bird .wing-l .wtip{ animation:tipL var(--flap,2s) cubic-bezier(.4,0,.5,1) infinite; animation-delay:.08s; }
+.bird .bob{ animation:b-bob var(--flap,2s) ease-in-out infinite; }
+.bird .tail{ animation:b-tail var(--flap,2s) ease-in-out infinite; }
+@keyframes gA{ 0%{transform:translate(-18vw,16vh) rotate(-3deg) scale(var(--scale));} 25%{transform:translate(22vw,8vh) rotate(2deg) scale(var(--scale));} 50%{transform:translate(58vw,20vh) rotate(-2deg) scale(var(--scale));} 75%{transform:translate(92vw,9vh) rotate(3deg) scale(var(--scale));} 100%{transform:translate(122vw,18vh) rotate(-2deg) scale(var(--scale));} }
+@keyframes gB{ 0%{transform:translate(122vw,30vh) rotate(3deg) scale(var(--scale));} 30%{transform:translate(74vw,20vh) rotate(-3deg) scale(var(--scale));} 60%{transform:translate(34vw,34vh) rotate(2deg) scale(var(--scale));} 100%{transform:translate(-22vw,24vh) rotate(-2deg) scale(var(--scale));} }
+@keyframes gC{ 0%{transform:translate(-16vw,12vh) rotate(2deg) scale(var(--scale));} 50%{transform:translate(52vw,26vh) rotate(-2deg) scale(var(--scale));} 100%{transform:translate(120vw,10vh) rotate(2deg) scale(var(--scale));} }
+@keyframes gD{ 0%{transform:translate(-14vw,40vh) rotate(-2deg) scale(var(--scale));} 40%{transform:translate(40vw,24vh) rotate(3deg) scale(var(--scale));} 100%{transform:translate(120vw,38vh) rotate(-2deg) scale(var(--scale));} }
+.bird-wrap.gA{ animation:gA var(--dur,26s) linear infinite; }
+.bird-wrap.gB{ animation:gB var(--dur,30s) linear infinite; }
+.bird-wrap.gC{ animation:gC var(--dur,34s) linear infinite; }
+.bird-wrap.gD{ animation:gD var(--dur,22s) linear infinite; }
+
+/* ==================================================================
+   3 · TOP BAR
+================================================================== */
+.topbar{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:1rem; width:100%; }
+.topbar .loc{ justify-self:start; opacity:0; } .topbar .brand{ justify-self:center; opacity:0; }
+.topbar .tools{ justify-self:end; display:flex; align-items:center; gap:clamp(.4rem,1vw,.9rem); opacity:0; }
+.loc-line{ display:flex; align-items:center; gap:.7em; }
+.loc-line .tick{ width:24px; height:1px; background:var(--accent); opacity:.6; }
+.lockup{ height:clamp(30px,4vh,48px); width:auto; display:block;
+  filter:drop-shadow(0 2px 12px color-mix(in srgb, var(--hm-espresso-2) 70%, transparent)); }
+.lockup-fallback{ display:none; font-family:var(--font-display); font-weight:700;
+  font-size:clamp(1rem,2vw,1.5rem); color:var(--ink); letter-spacing:.16em; text-transform:uppercase; white-space:nowrap; }
+.tool-btn{ min-height:44px; display:inline-flex; align-items:center; gap:.6em; padding:.6em 1em;
+  background:transparent; border:0; cursor:pointer; color:var(--ink-dim); font-family:var(--font-label); font-weight:300;
+  font-size:var(--t-micro); letter-spacing:var(--track-wide); text-transform:uppercase;
+  -webkit-tap-highlight-color:transparent; transition:color .35s var(--ease-soft); }
+.tool-btn .gi{ width:15px; height:15px; }
+.tool-btn .gi *{ fill:none; stroke:var(--accent); stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
+@media (hover:hover){ .tool-btn:hover{ color:var(--ink); } }
+.divider{ width:1px; height:20px; background:var(--hairline); opacity:.7; }
+.enquire{ min-height:44px; padding:.75em 1.4em; font-size:var(--t-micro); letter-spacing:var(--track-wide); }
+
+/* ==================================================================
+   4 · HERO
+================================================================== */
+.hero{ text-align:center; margin-top:clamp(.3rem,1vh,.9rem); opacity:0; }
+.hero .ticks{ margin:0 auto clamp(.4rem,1vh,.8rem); }
+.hero .kicker{ display:block; }
+.hero .tagline{ margin:.45em 0 0; font-family:var(--font-body); font-style:italic; font-weight:300;
+  font-size:var(--t-sub); color:var(--ink); letter-spacing:.015em; }
+
+/* ==================================================================
+   5 · CROWN — the lotus mandala
+================================================================== */
+.crown-wrap{ flex:1 1 auto; min-height:0; width:100%; position:relative; }
+.crown{ position:absolute; inset:0; }
+.svg-defs{ position:absolute; width:0; height:0; overflow:hidden; }
+
+.fit{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(var(--fit,1));
+  transform-origin:center center; }
+#mandala{ position:relative; width:1280px; height:960px; }
+@keyframes mandala-breathe{ 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.006);} }
+#mandala.bloomed{ animation:mandala-breathe 7.5s ease-in-out infinite; }
+
+/* lotus pieces — the actual sliced PNGs from the brand reference (used as-is) */
+.petal{ position:absolute; background:none; border:0; padding:0; margin:0; cursor:pointer;
+  transform:translate(0,0) scale(1); transform-origin:50% 50%; backface-visibility:hidden;
+  will-change:transform,opacity; -webkit-tap-highlight-color:transparent; }
+.petal-img{ display:block; width:100%; height:100%; pointer-events:none; -webkit-user-drag:none; user-select:none;
+  transition:transform .5s cubic-bezier(.2,.9,.25,1), filter .45s var(--ease-soft);
+  filter:drop-shadow(0 12px 20px rgba(0,0,0,.55)); }
+.petal.center{ z-index:6; }
+@media (hover:hover){
+  .petal:hover{ z-index:8; }
+  .petal:hover .petal-img{ transform:translateY(-10px) scale(1.04);
+    filter:drop-shadow(0 20px 30px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(172,140,85,.5)); }
+}
+.petal:focus-visible{ outline:none; z-index:8; }
+.petal:focus-visible .petal-img{ transform:translateY(-10px) scale(1.04);
+  filter:drop-shadow(0 20px 30px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(172,140,85,.5)); }
+.petal.feature .petal-img{ filter:drop-shadow(0 12px 20px rgba(0,0,0,.55)) drop-shadow(0 0 14px rgba(184,156,109,.4)); }
+.petal.center.bloomed-in .petal-img{ animation:jewel-breathe 6s ease-in-out infinite; }
+@keyframes jewel-breathe{ 0%,100%{ filter:drop-shadow(0 12px 22px rgba(0,0,0,.6)); }
+  50%{ filter:drop-shadow(0 12px 22px rgba(0,0,0,.6)) drop-shadow(0 0 26px rgba(172,140,85,.42)); } }
+/* idle attract — petals breathe gold */
+@keyframes petal-attract{ 0%,100%{ filter:drop-shadow(0 12px 20px rgba(0,0,0,.55)); }
+  50%{ filter:drop-shadow(0 12px 20px rgba(0,0,0,.55)) drop-shadow(0 0 16px rgba(172,140,85,.38)); } }
+.crown.attract .petal:not(.feature):not(.center) .petal-img{ animation:petal-attract 3.4s var(--ease-soft) infinite; }
+
+/* ==================================================================
+   7 · FOOTER
+================================================================== */
+.footer{ width:100%; margin-top:clamp(.3rem,.8vh,.7rem); opacity:0; }
+.footer .rule{ height:1px; width:100%; background:var(--hairline-soft); margin-bottom:clamp(.35rem,.8vh,.6rem); }
+.footer .row{ display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+.footer .mono{ display:flex; align-items:center; gap:.8em; }
+.footer .hm{ width:26px; height:26px; border:1px solid var(--hairline); border-radius:50%; display:grid; place-items:center;
+  font-family:var(--font-label); font-weight:400; font-size:9px; letter-spacing:.05em; color:var(--accent-soft); }
+.footer .sig, .footer .rera{ font-family:var(--font-label); font-weight:300; font-size:var(--t-micro);
+  letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--ink-dim); }
+.footer .sig{ color:var(--accent-soft); }
+
+@keyframes hm-rise{ from{ opacity:0; transform:translateY(14px);} to{ opacity:1; transform:translateY(0);} }
+.lit{ animation:hm-rise var(--dur-reveal) var(--ease-settle) forwards; }
+
+/* ==================================================================
+   9 · VEIL + lattice wipe
+================================================================== */
+.section-veil{ position:absolute; inset:0; z-index:40; display:none; background:var(--bg-deep); color:var(--ink);
+  align-items:center; justify-content:center; text-align:center; }
+.section-veil.show{ display:flex; }
+.section-veil .inner{ opacity:0; transform:translateY(14px); }
+.section-veil.show .inner{ animation:hm-rise 1s var(--ease-settle) .35s forwards; }
+.section-veil .crest{ width:clamp(50px,7vw,84px); height:auto; opacity:.92; margin:0 auto 1.3rem; display:block;
+  filter:drop-shadow(0 4px 14px color-mix(in srgb,var(--hm-espresso-2) 70%, transparent)); }
+.section-veil .eyebrow-sm{ display:block; margin-bottom:1rem; }
+.section-veil .big{ font-family:var(--font-display); font-weight:300; line-height:1.04; font-size:var(--t-hero);
+  color:var(--ink); margin:0; letter-spacing:.01em; }
+.section-veil .soon{ display:block; margin-top:.5em; font-size:.3em; color:var(--ink-dim); font-style:italic; letter-spacing:.04em; }
+.section-veil .back{ margin-top:1.5rem; gap:.8em; }
+.wipe{ position:absolute; inset:0; z-index:60; pointer-events:none; opacity:0;
+  background-image:var(--hm-lattice); background-size:clamp(78px,9vw,128px);
+  -webkit-mask-image:linear-gradient(105deg,transparent 0,black 45%,black 55%,transparent 100%);
+          mask-image:linear-gradient(105deg,transparent 0,black 45%,black 55%,transparent 100%);
+  -webkit-mask-size:260% 100%; mask-size:260% 100%; -webkit-mask-position:-130% 0; mask-position:-130% 0; }
+.wipe.run{ animation:hm-wipe 1.05s var(--ease-settle) forwards; }
+@keyframes hm-wipe{ 0%{ opacity:.8; -webkit-mask-position:-130% 0; mask-position:-130% 0; }
+  100%{ opacity:0; -webkit-mask-position:230% 0; mask-position:230% 0; } }
+
+/* ==================================================================
+   10 · REDUCED MOTION
+================================================================== */
+@media (prefers-reduced-motion:reduce){
+  .bird-wrap,.bird .wing-r,.bird .wing-l,.bird .wtip,.bird .bob,.bird .tail{ animation:none !important; }
+  .bird .wing-r{ transform:rotate(-6deg); } .bird .wing-l{ transform:rotate(6deg); }
+  .bird-wrap{ transform:translate(var(--rmx,40vw),var(--rmy,30vh)) scale(var(--scale)); }
+  #mandala.bloomed{ animation:none; } .petal-img{ transition:none; }
+  .petal.center.bloomed-in .petal-img{ animation:none !important; }
+  .crown.attract .petal .petal-img{ animation:none !important; }
+}
+</style>
+</head>
+
+<body>
+<main class="hm-stage" role="application" aria-label="Highland Mayfields — The Estate">
+
+  <!-- ===== shared SVG defs ===== -->
+  <svg class="svg-defs" aria-hidden="true" focusable="false">
+    <defs>
+      <!-- bird golds -->
+      <linearGradient id="goldStroke" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#cfb88d"/><stop offset=".5" stop-color="#ac8c55"/><stop offset="1" stop-color="#7e6336"/>
+      </linearGradient>
+      <linearGradient id="goldFill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="rgba(245,241,235,.055)"/><stop offset="1" stop-color="rgba(245,241,235,.02)"/>
+      </linearGradient>
+      <!-- petal glass -->
+      <clipPath id="petalClip" clipPathUnits="userSpaceOnUse">
+        <path d="M100,14 C152,34 192,96 186,170 C181,232 138,272 100,286 C62,272 19,232 14,170 C8,96 48,34 100,14 Z"/>
+      </clipPath>
+      <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#2c211c"/><stop offset=".34" stop-color="#16110d"/><stop offset="1" stop-color="#080a05"/>
+      </linearGradient>
+      <radialGradient id="sheen" cx=".5" cy=".34" r=".62">
+        <stop offset="0" stop-color="#5a4326" stop-opacity=".42"/><stop offset=".5" stop-color="#2a2014" stop-opacity=".10"/><stop offset="1" stop-color="#000" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#cdb487" stop-opacity=".30"/><stop offset=".4" stop-color="#cdb487" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="cglass" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#33271f"/><stop offset=".4" stop-color="#191310"/><stop offset="1" stop-color="#0a0c06"/>
+      </linearGradient>
+      <radialGradient id="csheen" cx=".5" cy=".30" r=".7">
+        <stop offset="0" stop-color="#6b4f2c" stop-opacity=".42"/><stop offset=".55" stop-color="#2e2214" stop-opacity=".10"/><stop offset="1" stop-color="#000" stop-opacity="0"/>
+      </radialGradient>
+      <filter id="petalShadow" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000" flood-opacity="0.55"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- ===== BACKDROP ===== -->
+  <div class="backdrop" id="backdrop">
+    <div class="lattice"></div>
+    <div class="verts"></div>
+    <div class="glow" id="glow"></div>
+    <div class="lineart" id="lineart" aria-hidden="true">
+      <svg viewBox="0 0 1200 460" preserveAspectRatio="xMidYMax slice" fill="none"
+           stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M0 452 H1200" opacity=".7"/>
+        <g opacity=".9">
+          <path d="M120 452 V360"/><path d="M120 392 C92 380 84 356 96 336 M120 392 C148 380 156 356 144 336"/>
+          <path d="M120 360 C100 350 96 330 108 314 M120 360 C140 350 144 330 132 314"/>
+          <path d="M64 452 V392 M64 414 C48 406 44 390 54 378 M64 414 C80 406 84 390 74 378"/>
+        </g>
+        <g opacity=".95">
+          <path d="M250 452 V250 H300 V452"/><path d="M312 452 V214 H366 V452"/><path d="M378 452 V286 H420 V452"/>
+          <path d="M470 452 V176 H536 V452"/><path d="M548 452 V232 H598 V452"/><path d="M660 452 V150 H734 V452"/>
+          <path d="M820 452 V210 H876 V452"/><path d="M888 452 V268 H934 V452"/>
+          <g opacity=".55">
+            <path d="M470 206 H536 M470 236 H536 M470 266 H536 M470 296 H536 M470 326 H536 M470 356 H536 M470 386 H536 M470 416 H536"/>
+            <path d="M660 182 H734 M660 214 H734 M660 246 H734 M660 278 H734 M660 310 H734 M660 342 H734 M660 374 H734 M660 406 H734"/>
+          </g>
+          <path d="M476 176 H530 L520 162 H486 Z" opacity=".7"/><path d="M668 150 H726 L716 134 H678 Z" opacity=".7"/>
+        </g>
+        <g opacity=".9">
+          <path d="M1080 452 V356"/><path d="M1080 388 C1052 376 1044 352 1056 332 M1080 388 C1108 376 1116 352 1104 332"/>
+          <path d="M1140 452 V396 M1140 418 C1124 410 1120 394 1130 382 M1140 418 C1156 410 1160 394 1150 382"/>
+        </g>
+      </svg>
+    </div>
+    <div class="birds" id="birds" aria-hidden="true"></div>
+    <div class="grain"></div>
+  </div>
+
+  <!-- ===== CONTENT ===== -->
+  <div class="stage-col">
+
+    <header class="topbar">
+      <div class="loc"><div class="loc-line">
+        <span class="tick" aria-hidden="true"></span>
+        <span class="hm-eyebrow">Sector 118 · Airport Road · Mohali</span>
+      </div></div>
+      <div class="brand">
+        <img class="lockup" id="lockup" src="assets/logo-lockup-light.png" alt="Highland Mayfields" width="2000" height="765">
+        <span class="lockup-fallback" id="lockupFallback">Highland&nbsp;Mayfields</span>
+      </div>
+      <div class="tools">
+        <button class="tool-btn" id="groupBtn" type="button">
+          <svg class="gi" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4v2H4V7l8-4zM6 9v8M10 9v8M14 9v8M18 9v8M4 19h16"/></svg>
+          The Group
+        </button>
+        <span class="divider" aria-hidden="true"></span>
+        <button class="hm-enter enquire" id="enquire" type="button">Enquire</button>
+      </div>
+    </header>
+
+    <section class="hero" id="hero">
+      <div class="hm-ticks ticks" aria-hidden="true"><span></span><span></span></div>
+      <span class="kicker hm-eyebrow">The Highland Group · Since 1993</span>
+      <p class="tagline" id="tagline">Excellence has an address</p>
+    </section>
+
+    <nav class="crown-wrap" aria-label="Estate sections">
+      <div class="crown is-arc" id="crown">
+        <div class="fit" id="fit">
+          <div id="mandala"><!-- lotus pieces injected --></div>
+        </div>
+      </div>
+    </nav>
+
+    <footer class="footer" id="footer">
+      <div class="rule"></div>
+      <div class="row">
+        <div class="mono"><span class="hm" aria-hidden="true">HM</span><span class="sig">Special Edition Residences · Sector 118, Mohali</span></div>
+        <span class="rera">RERA · PBRERA-SAS80-PR1041</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ===== VEIL ===== -->
+  <div class="section-veil" id="veil" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="inner">
+      <img class="crest" id="veilCrest" src="assets/logo-crest.webp" alt="" aria-hidden="true">
+      <span class="eyebrow-sm hm-eyebrow" id="veilEyebrow">Highland Mayfields</span>
+      <h2 class="big" id="veilTitle">The Section<span class="soon">arriving soon</span></h2>
+      <div class="hm-plumb" style="margin:1.7rem auto;" aria-hidden="true"></div>
+      <button class="hm-enter back" id="veilBack" type="button"><span aria-hidden="true">&larr;</span> Return to the Estate</button>
+    </div>
+  </div>
+
+  <div class="wipe" id="wipe" aria-hidden="true"></div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const $=(s,r=document)=>r.querySelector(s);
+
+  /* ============ BRAND BIRDS (procedural gold line-art) ============ */
+  function feather(L,w){ const t=L*0.15;
+    return `M0 0 C${L*0.30} ${-w}, ${L*0.82} ${-w*0.92}, ${L} ${-w*0.18} Q${L+t} 0, ${L} ${w*0.18} C${L*0.82} ${w*0.92}, ${L*0.30} ${w}, 0 0 Z`; }
+  function rachis(L){ return `M0 0 L${L*0.9} 0`; }
+  function wing(px,py,dir){
+    const RAD=Math.PI/180, lead=-18, cl=Math.cos(lead*RAD), sl=Math.sin(lead*RAD), N=11;
+    const place=(d,a,L,w,cls,extraY)=>{ const bx=px+dir*(cl*d), by=py+sl*d+(extraY||0);
+      const tr=`translate(${bx.toFixed(1)} ${by.toFixed(1)}) ${dir<0?'scale(-1 1) ':''}rotate(${a.toFixed(1)})`;
+      return `<g transform="${tr}"><path class="${cls}" d="${feather(L,w)}"/>`+(cls==='vane'?`<path class="quill" d="${rachis(L)}"/>`:'')+`</g>`; };
+    const wx=px+dir*cl*90, wy=py+sl*90, ix=px+dir*(cl*12+14), iy=py+sl*12+30;
+    const membrane=`<path class="memb" d="M${px} ${py} Q${(px+dir*cl*50).toFixed(1)} ${(py+sl*50-6).toFixed(1)} ${wx.toFixed(1)} ${wy.toFixed(1)} Q${(px+dir*38).toFixed(1)} ${(py+30).toFixed(1)} ${ix.toFixed(1)} ${iy.toFixed(1)} Q${(px+dir*14).toFixed(1)} ${(py+16).toFixed(1)} ${px} ${py} Z"/>`;
+    let primaries='', secondaries='', coverts='';
+    for(let i=0;i<N;i++){ const f=i/(N-1), a=lead+76*Math.pow(f,1.04), L=100-50*Math.pow(f,1.25), w=Math.max(4.2,L*0.078), d=14+66*(1-f);
+      const g=place(d,a,L,w,'vane',8*f); if(i<3) primaries+=g; else secondaries+=g; }
+    const CN=6; for(let i=0;i<CN;i++){ const f=i/(CN-1); coverts+=place(18+46*(1-f),lead+6+34*f,22-6*f,(22-6*f)*0.4,'covert',6*f); }
+    return `<g class="wfan">${membrane}${secondaries}${coverts}<g class="wtip" style="transform-origin:${px}px ${py}px">${primaries}</g></g>`;
+  }
+  function tail(px,py){ const N=7,a0=64,a1=116; let s='';
+    for(let i=0;i<N;i++){ const f=i/(N-1), a=a0+(a1-a0)*f, L=72-14*Math.abs(f-0.5)*2, w=L*0.11;
+      s+=`<g transform="translate(${px} ${py}) rotate(${a})"><path class="vane" d="${feather(L,w)}"/><path class="quill" d="${rachis(L)}"/></g>`; }
+    return `<g class="tail" style="transform-origin:${px}px ${py}px">${s}</g>`; }
+  function bodyMarkup(){ return `<g class="torso">
+      <path class="fill" d="M118 66 C140 58,158 66,160 86 C162 104,156 122,150 132 C146 140,138 142,132 138 C123 132,118 118,116 104 C114 92,110 76,118 66 Z"/>
+      <path class="hair" d="M126 80 C132 92,132 108,128 124"/><path class="hair" d="M134 78 C141 92,141 110,137 126"/><path class="hair" d="M120 92 C125 102,126 114,124 124"/>
+      <path class="fill" d="M118 66 C112 58,100 58,95 66 C90 74,94 84,104 86 C114 88,122 80,122 72 C122 70,121 68,118 66 Z"/>
+      <path class="hair" d="M99 64 C106 61,114 61,120 66"/><path class="hair" d="M98 69 C105 66,113 67,120 71"/>
+      <path class="beak" d="M95 70 L80 73 L95 77 Z"/><circle class="eye" cx="106" cy="70" r="2.5"/><circle class="eyehi" cx="105.2" cy="69.2" r="0.8"/>
+      <g class="legs"><path d="M134 134 C133 142,131 148,130 152"/><path d="M130 152 l-4 4 M130 152 l-1 5 M130 152 l3 4"/>
+        <path d="M140 134 C140 142,139 148,138 153"/><path d="M138 153 l-3 4 M138 153 l0 5 M138 153 l3 4"/></g></g>`; }
+  function buildBird(){ const LPX=122,LPY=92,RPX=134,RPY=90;
+    return `<svg class="bird" viewBox="0 0 256 210" width="240" role="img" aria-label="gold songbird in flight">
+      <g class="bob"><g class="wing wing-l" style="transform-origin:${LPX}px ${LPY}px">${wing(LPX,LPY,-1)}</g>
+        <g class="wing wing-r" style="transform-origin:${RPX}px ${RPY}px">${wing(RPX,RPY,1)}</g>
+        <g class="body">${tail(150,128)}${bodyMarkup()}</g></g></svg>`; }
+  const FLOCK=[
+    { path:'gC', scale:0.40, opacity:0.12, dur:'34s', flap:'2.2s', delay:'-5s',  rmx:'12vw', rmy:'18vh' },
+    { path:'gB', scale:0.56, opacity:0.17, dur:'30s', flap:'2.0s', delay:'-14s', rmx:'66vw', rmy:'24vh' },
+    { path:'gA', scale:0.74, opacity:0.24, dur:'27s', flap:'1.85s',delay:'-9s',  rmx:'34vw', rmy:'14vh' },
+    { path:'gD', scale:0.96, opacity:0.30, dur:'23s', flap:'1.65s',delay:'-3s',  rmx:'44vw', rmy:'34vh' },
+  ];
+  const birdsLayer=$('#birds');
+  FLOCK.forEach(b=>{ const w=document.createElement('div'); w.className='bird-wrap '+b.path;
+    w.style.setProperty('--scale',b.scale); w.style.setProperty('--dur',b.dur); w.style.setProperty('--flap',b.flap);
+    w.style.setProperty('--rmx',b.rmx); w.style.setProperty('--rmy',b.rmy); w.style.opacity=b.opacity; w.style.animationDelay=b.delay;
+    w.innerHTML=buildBird();
+    w.querySelectorAll('.wing-r,.wing-l,.wtip,.bob,.tail').forEach((el,i)=>{ el.style.animationDelay=((parseFloat(el.style.animationDelay)||0) - ((i*0.37)%1.6)).toFixed(2)+'s'; });
+    birdsLayer.appendChild(w); });
+
+  /* ============ LOTUS — the brand's lotus, sliced into real pieces ============ */
+  /* Geometry from the reference image (1448×1086, exactly 4:3); each piece is the
+     actual PNG slice, placed at its true centre + size and used as-is. */
+  const MW=1280, MH=960;
+  const PIECES=[
+    { key:'residences', cx:0.49931, cy:0.23849, w:0.17058, h:0.33794, t:'Residences',  s:'Homes of stature',      ring:1 },
+    { key:'address',    cx:0.33046, cy:0.30064, w:0.16160, h:0.26335, t:'The Address', s:'Sector 118',            ring:2 },
+    { key:'pearl',      cx:0.66782, cy:0.29972, w:0.16229, h:0.26519, t:'The Pearl',   s:'Eighty-five amenities', ring:2 },
+    { key:'inventory',  cx:0.24102, cy:0.48343, w:0.22859, h:0.24586, t:'Inventory',   s:'Limited residences',    ring:3, feature:true },
+    { key:'landscape',  cx:0.75829, cy:0.48343, w:0.22997, h:0.24586, t:'Landscape',   s:'A sanctuary of nature', ring:3 },
+    { key:'masterplan', cx:0.34392, cy:0.70212, w:0.23273, h:0.29834, t:'Masterplan',  s:'The eight towers',      ring:4 },
+    { key:'gallery',    cx:0.66126, cy:0.70350, w:0.22099, h:0.29374, t:'Gallery',     s:'In light & detail',     ring:4 },
+  ];
+  const VILLAS={ key:'villas', cx:0.49965, cy:0.58425, w:0.26796, h:0.35359, t:'The Villas', s:'Special Edition · 54' };
+
+  const NAVMAP={}; [...PIECES, VILLAS].forEach(p=>NAVMAP[p.key]={nm:p.t, sb:p.s});
+  NAVMAP.enquire={nm:'Enquire', sb:'Speak with us'}; NAVMAP.group={nm:'The Highland Group', sb:'Since 1993 · Mohali'};
+
+  const mandala=$('#mandala');
+  const ox=VILLAS.cx*MW, oy=VILLAS.cy*MH;   // convergence origin = centre of The Villas
+  function makePiece(p){
+    const btn=document.createElement('button'); btn.type='button';
+    btn.className='petal'+(p.feature?' feature':'')+(p.key==='villas'?' center':'');
+    btn.dataset.key=p.key;
+    btn.setAttribute('aria-label',`${p.t} — ${p.s}`);
+    const w=p.w*MW, h=p.h*MH;
+    btn.style.cssText=`left:${(p.cx*MW-w/2).toFixed(1)}px; top:${(p.cy*MH-h/2).toFixed(1)}px; width:${w.toFixed(1)}px; height:${h.toFixed(1)}px;`;
+    btn.innerHTML=`<img class="petal-img" src="assets/petals/${p.key}.png" alt="" draggable="false">`;
+    mandala.appendChild(btn);
+    return btn;
+  }
+  const slots=[];
+  PIECES.forEach(p=>{ const el=makePiece(p); slots.push({ el, dx:ox-p.cx*MW, dy:oy-p.cy*MH, ring:p.ring }); });
+  const centerEl=makePiece(VILLAS);   // appended last → on top
+  const allHit=[...slots.map(s=>s.el), centerEl];
+
+  /* asset fallbacks */
+  const lockup=$('#lockup'); lockup.addEventListener('error',()=>{ lockup.style.display='none'; $('#lockupFallback').style.display='inline-block'; });
+  const veilCrest=$('#veilCrest'); veilCrest.addEventListener('error',()=>veilCrest.style.display='none');
+
+  /* ---------------- FIT (scale mandala into the crown box) ---------------- */
+  const crown=$('#crown');
+  function fit(){
+    const w=crown.clientWidth, h=crown.clientHeight; if(!w||!h) return;
+    const f=Math.min((w*0.99)/MW, (h*0.99)/MH, 1.22);
+    document.documentElement.style.setProperty('--fit', f.toFixed(4));
+  }
+
+  /* ---------------- INTERACTION ---------------- */
+  allHit.forEach(el=>{ el.addEventListener('click',()=>navigate(el.dataset.key)); });
+
+  /* ---------------- NAVIGATION ---------------- */
+  const veil=$('#veil'), wipe=$('#wipe'), veilTitle=$('#veilTitle'), veilEyebrow=$('#veilEyebrow');
+  function runWipe(){ wipe.classList.remove('run'); void wipe.offsetWidth; wipe.classList.add('run'); }
+  function openVeil(eyebrow,title){ runWipe(); setTimeout(()=>{ veilEyebrow.textContent=eyebrow;
+    veilTitle.innerHTML=`${title}<span class="soon">arriving soon</span>`; veil.classList.add('show');
+    veil.setAttribute('aria-hidden','false'); $('#veilBack').focus({preventScroll:true}); },360); }
+  function navigate(key){ poke(); const n=NAVMAP[key];
+    window.dispatchEvent(new CustomEvent('hm:navigate',{detail:{key}}));
+    openVeil(`Highland Mayfields${n&&n.sb?' · '+n.sb:''}`, n?n.nm:'The Section'); }
+  function closeVeil(){ runWipe(); setTimeout(()=>{ veil.classList.remove('show'); veil.setAttribute('aria-hidden','true'); },360); }
+  $('#veilBack').addEventListener('click',closeVeil);
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&veil.classList.contains('show')) closeVeil(); });
+  $('#enquire').addEventListener('click',()=>{ poke(); window.dispatchEvent(new CustomEvent('hm:navigate',{detail:{key:'enquire'}})); openVeil('Speak with us','Enquire'); });
+  $('#groupBtn').addEventListener('click',()=>{ poke(); window.dispatchEvent(new CustomEvent('hm:navigate',{detail:{key:'group'}})); openVeil('Since 1993 · Mohali','The Highland Group'); });
+
+  /* ---------------- LINE-ART parallax ---------------- */
+  const lineart=$('#lineart'), hoverCapable=window.matchMedia('(hover:hover)').matches;
+  if(hoverCapable){ let raf=0; window.addEventListener('pointermove',e=>{ if(raf)return;
+    raf=requestAnimationFrame(()=>{ raf=0; const dx=(e.clientX/innerWidth-.5), dy=(e.clientY/innerHeight-.5);
+      lineart.style.transform=`translate3d(${(-dx*16).toFixed(1)}px,${(-dy*8).toFixed(1)}px,0)`; }); },{passive:true}); }
+
+  /* ---------------- BLOOM (petals emerge from centre) ---------------- */
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const EASE='cubic-bezier(.2,.86,.3,1)', POP='cubic-bezier(.2,1.1,.3,1)';
+  let anims=[];
+  function playBloom(){
+    anims.forEach(a=>a.cancel()); anims=[]; mandala.classList.remove('bloomed'); centerEl.classList.remove('bloomed-in');
+    if(reduce){
+      centerEl.style.transform='translate(0,0) scale(1)';
+      centerEl.animate([{opacity:0},{opacity:1}],{duration:500,fill:'both'});
+      slots.forEach(s=>{ s.el.style.transform='translate(0,0) scale(1)';
+        anims.push(s.el.animate([{opacity:0},{opacity:1}],{duration:600,fill:'both'})); });
+      mandala.classList.add('bloomed'); centerEl.classList.add('bloomed-in'); return;
+    }
+    /* The Villas blooms first, in place */
+    centerEl.style.transform='translate(0,0) scale(1)';
+    anims.push(centerEl.animate(
+      [{transform:'scale(.18)',opacity:0},{transform:'scale(1.06)',opacity:1,offset:.7},{transform:'scale(1)',opacity:1}],
+      {duration:860, easing:POP, fill:'both'}));
+    /* each petal emerges FROM the centre (its own slice flies out to its slot) */
+    const baseDelay=430, ringGap=185, DUR=1360;
+    slots.forEach(s=>{ s.el.style.transform='translate(0,0) scale(1)';
+      const delay=baseDelay + s.ring*ringGap;
+      anims.push(s.el.animate(
+        [{transform:`translate(${s.dx.toFixed(1)}px,${s.dy.toFixed(1)}px) scale(.07)`, opacity:0, offset:0},
+         {transform:`translate(${(s.dx*0.9).toFixed(1)}px,${(s.dy*0.9).toFixed(1)}px) scale(.12)`, opacity:.9, offset:.08},
+         {transform:'translate(0px,0px) scale(1)', opacity:1, offset:1}],
+        {delay, duration:DUR, easing:EASE, fill:'both'})); });
+    const total=baseDelay + 4*ringGap + DUR;
+    setTimeout(()=>{ mandala.classList.add('bloomed'); centerEl.classList.add('bloomed-in'); }, total);
+  }
+
+  /* ---------------- CHOREOGRAPHY ---------------- */
+  let played=false;
+  function lift(el,delay){ if(el){ el.style.animationDelay=delay+'ms'; el.classList.add('lit'); } }
+  function choreograph(){
+    if(played) return; played=true; fit();
+    lift($('.topbar .brand'),60); lift($('.topbar .loc'),240); lift($('.topbar .tools'),380);
+    lift($('#hero'),520); lift($('#footer'),2100);
+    $('#glow').classList.add('on'); setTimeout(()=>$('#birds').classList.add('on'),300);
+    playBloom();
+    setTimeout(poke,3400);
+  }
+
+  /* ---------------- IDLE ATTRACT ---------------- */
+  let idle=0; function poke(){ crown.classList.remove('attract'); clearTimeout(idle);
+    idle=setTimeout(()=>{ if(!veil.classList.contains('show')) crown.classList.add('attract'); },12000); }
+  ['pointerdown','pointermove','keydown','wheel','touchstart'].forEach(ev=>window.addEventListener(ev,poke,{passive:true}));
+
+  /* ---------------- BOOT ---------------- */
+  let rt=0; window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(fit,120); },{passive:true});
+  function boot(){
+    fit();
+    const inIframe=window.parent && window.parent!==window;
+    window.addEventListener('message',e=>{ if(e&&e.data==='hm:enter') choreograph(); });
+    try{ window.parent && window.parent.postMessage('hm:home-ready','*'); }catch(_){}
+    if(inIframe) setTimeout(choreograph,9000); else setTimeout(choreograph,250);
+  }
+  if(document.readyState==='complete'||document.readyState==='interactive') boot();
+  else window.addEventListener('DOMContentLoaded',boot);
+})();
+</script>
+</body>
+</html>
