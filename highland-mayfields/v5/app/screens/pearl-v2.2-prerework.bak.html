@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>The Pearl — Highland Mayfields</title>
+<link rel="stylesheet" href="../styles/brand.css">
+<link rel="stylesheet" href="../assets/css/hm-tools.css">
+<link rel="stylesheet" href="_kit.css">
+<style>
+  /* ============================================================
+     THE PEARL — no-scroll hero frame + floating explore field
+     The clubhouse render fills the screen; all browsing happens via
+     the glass field at the bottom + centered floating popups.
+     ============================================================ */
+
+  /* ---- the render fills the whole body as one hero frame ---- */
+  .pearl-hero{ position:relative; height:100%; border-radius:var(--r-tile); overflow:hidden;
+    border:1px solid var(--hairline-soft); background:#0e0b0a;
+    display:flex; flex-direction:column; justify-content:space-between; }
+  .pearl-hero .render{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;
+    transform:scale(1.06); transform-origin:60% 42%; }
+  .scr.ready .pearl-hero .render{ animation:pearl-kb 26s var(--ease-soft) forwards; }
+  @keyframes pearl-kb{ 0%{ transform:scale(1.06) translate(0,0); } 100%{ transform:scale(1.14) translate(-1.5%,-1.5%); } }
+  .pearl-hero .veil{ position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg, rgba(20,15,13,.55) 0%, rgba(20,15,13,.12) 30%, rgba(20,15,13,.55) 66%, rgba(20,15,13,.96) 100%); }
+  .pearl-hero .veil2{ position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(92deg, rgba(20,15,13,.7), rgba(20,15,13,.18) 52%, transparent 78%); }
+  .pearl-hero .latt{ position:absolute; inset:0; pointer-events:none; opacity:.05; mix-blend-mode:overlay;
+    background-image:var(--hm-lattice); background-size:clamp(96px,9vw,140px); }
+
+  /* ---- explorable hotspots over the render (positions are indicative) ---- */
+  .pearl-spots{ position:absolute; inset:0; pointer-events:none; z-index:2; }
+  .hotspot{ position:absolute; transform:translate(-50%,-50%); pointer-events:auto;
+    display:flex; flex-direction:column; align-items:center; gap:.42em;
+    min-width:44px; min-height:44px; justify-content:center; padding:0;
+    background:none; border:0; cursor:pointer; -webkit-tap-highlight-color:transparent; line-height:1; }
+  .hotspot .hdot{ position:relative; width:15px; height:15px; }
+  .hotspot .hdot .ring{ position:absolute; inset:-5px; border-radius:50%; border:1.5px solid var(--accent);
+    animation:hs-pulse 2.4s ease-out infinite; }
+  .hotspot .hdot .ring.r2{ animation-delay:1.2s; }
+  .hotspot .hdot .core{ position:absolute; inset:0; border-radius:50%;
+    background:radial-gradient(circle at 40% 35%, var(--hm-gold-bright), var(--hm-gold));
+    border:2px solid rgba(20,15,13,.75); box-shadow:0 0 12px rgba(207,184,141,.7), 0 1px 3px rgba(0,0,0,.5);
+    transition:transform .3s var(--ease-soft); }
+  .hotspot .hlab{ font-family:var(--font-label); font-size:11px; font-weight:500;
+    letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--hm-cream);
+    background:rgba(20,15,13,.8); border:1px solid var(--hairline-soft); border-radius:var(--r-pill);
+    padding:.2em .62em; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+    box-shadow:0 2px 6px rgba(0,0,0,.4); white-space:nowrap; display:inline-flex; align-items:center; gap:.42em; }
+  .hotspot .hlab .ct{ font-family:var(--font-display); font-weight:300; color:var(--accent-text);
+    letter-spacing:0; font-size:1.08em; }
+  @keyframes hs-pulse{ 0%{ transform:scale(.7); opacity:.85 } 100%{ transform:scale(2.6); opacity:0 } }
+  @media(hover:hover){ .hotspot:hover .core{ transform:scale(1.2); }
+    .hotspot:hover .hlab{ color:var(--hm-gold-bright); border-color:var(--hairline); } }
+  .hotspot:active .core{ transform:scale(.92); }
+  /* staggered entrance after the screen settles */
+  .scr .hotspot{ opacity:0; }
+  .scr.ready .hotspot{ animation:hs-in .7s var(--ease-settle) forwards; animation-delay:var(--hd,620ms); }
+  @keyframes hs-in{ from{ opacity:0; } to{ opacity:1; } }
+
+  /* ---- editorial overlay (top-left) ---- */
+  .hero-head{ position:relative; padding:clamp(1.2rem,3.4vw,3rem) clamp(1.2rem,3.4vw,3rem) 0; max-width:60ch; }
+  .hero-head .k-title{ font-size:clamp(1.9rem,4.2vw,3.6rem); margin:.22em 0 .42em; }
+  .hero-head .k-lede{ max-width:46ch; }
+
+  /* ---- count-up stats strip (overlaid, airy — no boxes) ---- */
+  .hero-stats{ display:flex; flex-wrap:wrap; gap:clamp(1.4rem,4vw,3.4rem); margin-top:clamp(1rem,2.4vh,1.8rem); }
+  .hstat b{ display:block; font-family:var(--font-display); font-weight:200; line-height:.9;
+    font-size:clamp(1.8rem,4vw,3.2rem); color:var(--ink);
+    text-shadow:0 2px 22px rgba(10,8,7,.55); }
+  .hstat b .pl{ color:var(--accent); font-size:.6em; vertical-align:.18em; margin-left:.04em; }
+  .hstat span{ display:block; margin-top:.45em; font-family:var(--font-label); font-size:var(--t-micro);
+    letter-spacing:var(--track-label); text-transform:uppercase; color:var(--ink-dim); }
+
+  /* ---- floating explore field (glass, anchored bottom) ---- */
+  .pearl-field{ position:relative; margin:0 clamp(1rem,3vw,2.4rem) clamp(1rem,3vw,2.4rem);
+    padding:clamp(.95rem,1.8vw,1.35rem) clamp(1.1rem,2.2vw,1.6rem);
+    background:rgba(26,20,18,.62); border:1px solid var(--hairline-soft); border-radius:6px;
+    backdrop-filter:blur(16px) saturate(1.05); -webkit-backdrop-filter:blur(16px) saturate(1.05);
+    box-shadow:0 22px 60px rgba(0,0,0,.42); }
+  .pearl-field .flab{ display:flex; align-items:baseline; gap:.8em; margin-bottom:.7rem; }
+  .pearl-field .flab .k-eyebrow{ flex:0 0 auto; }
+  .pearl-field .flab .hint{ margin-left:auto; font-family:var(--font-label); font-size:var(--t-micro);
+    letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--ink-dim); opacity:.7; }
+  .pearl-chips{ display:flex; flex-wrap:wrap; gap:.5rem; }
+  .pearl-chips .k-chip{ background:rgba(34,26,24,.55); }
+  .pearl-chips .k-chip .ct{ font-family:var(--font-display); font-weight:300; color:var(--accent-text);
+    margin-left:.15em; font-size:1.02em; letter-spacing:0; text-transform:none; }
+  .pearl-chips .k-chip.viewall{ color:var(--hm-espresso); background:var(--accent); border-color:var(--accent); }
+  .pearl-chips .k-chip.viewall .ct{ color:rgba(34,26,24,.7); }
+
+  /* ---- popup: compact amenity grid (fits the floating window) ---- */
+  .pop-head{ display:flex; align-items:center; gap:.7em; margin:-.2rem 0 .9rem; padding-bottom:.7rem;
+    border-bottom:1px solid var(--hairline-soft); }
+  .pop-head .pd{ width:9px; height:9px; border-radius:50%; flex:0 0 auto; box-shadow:0 0 12px -2px currentColor; }
+  .pop-head .pn{ font-family:var(--font-label); font-size:var(--t-micro); letter-spacing:var(--track-label);
+    text-transform:uppercase; color:var(--ink-dim); }
+  .pop-head .pc{ margin-left:auto; font-family:var(--font-display); font-weight:200;
+    font-size:clamp(1.2rem,2vw,1.7rem); color:var(--accent-text); line-height:1; }
+  .pop-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; }
+  .pop-amen{ display:flex; align-items:center; gap:.6em; min-height:42px; padding:.55rem .8rem;
+    background:rgba(34,26,24,.5); border:1px solid var(--hairline-soft); border-radius:var(--r-tile);
+    font-family:var(--font-body); font-size:var(--t-body); color:var(--ink); line-height:1.22; }
+  .pop-amen .ad{ width:6px; height:6px; border-radius:50%; flex:0 0 auto; opacity:.9; }
+
+  /* ---- popup: view-all overview ---- */
+  .pop-all{ columns:2; column-gap:1.6rem; }
+  .pop-cat{ break-inside:avoid; margin:0 0 1.1rem; }
+  .pop-cat h4{ display:flex; align-items:baseline; gap:.6em; margin:0 0 .5rem; padding-bottom:.4rem;
+    border-bottom:1px solid var(--hairline-soft);
+    font-family:var(--font-label); font-size:var(--t-micro); letter-spacing:var(--track-wide);
+    text-transform:uppercase; color:var(--ink); font-weight:400; }
+  .pop-cat h4 .cd{ width:7px; height:7px; border-radius:50%; flex:0 0 auto; }
+  .pop-cat h4 .cn{ margin-left:auto; font-family:var(--font-display); font-weight:200; color:var(--accent-text); }
+  .pop-cat ul{ list-style:none; margin:0; padding:0; }
+  .pop-cat li{ font-family:var(--font-body); font-size:.92rem; line-height:1.55; color:var(--ink-dim); }
+
+  /* ---- responsive / portrait — still one screen, no scroll ---- */
+  @media (orientation:portrait){
+    .hero-head{ max-width:none; }
+    .hero-stats{ gap:clamp(1rem,5vw,2rem); }
+  }
+  @media (max-width:680px){
+    .pop-grid{ grid-template-columns:1fr; }
+    .pop-all{ columns:1; }
+  }
+</style>
+</head>
+<body data-screen="pearl">
+  <div class="scr">
+    <header class="scr-top">
+      <button class="scr-back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg> Home</button>
+      <div class="scr-head">
+        <span class="k-eyebrow">Eighty-five amenities</span>
+        <h1 class="scr-name">The Pearl</h1>
+      </div>
+      <div class="scr-side"><img class="scr-crest" src="../assets/logo-crest.png" alt="" onerror="this.style.display='none'"></div>
+    </header>
+
+    <main class="scr-body">
+      <div class="scr-wrap fill">
+
+        <!-- HERO FRAME — the render fills the screen -->
+        <section class="pearl-hero" data-reveal>
+          <img class="render" src="../assets/screens/clubhouse.webp" alt="Highland Mayfields clubhouse"
+               loading="eager" onerror="this.style.display='none'">
+          <div class="veil"></div><div class="veil2"></div><div class="latt"></div>
+
+          <!-- EXPLORABLE HOTSPOTS — one per amenity world (positions indicative) -->
+          <div class="pearl-spots" id="spots"></div>
+
+          <!-- editorial + count-up stats -->
+          <div class="hero-head">
+            <span class="k-eyebrow">Three clubhouses · 50,000 sq.ft</span>
+            <h2 class="k-title">The Pearl,<br>fully serviced.</h2>
+            <div class="k-rule"></div>
+            <p class="k-lede">Eighty-five-plus amenities across nine worlds — three dedicated clubhouses
+              spanning fifty thousand square feet of indoor leisure, wellness and play.</p>
+
+            <div class="hero-stats">
+              <div class="hstat"><b><span data-count="85">0</span><span class="pl">+</span></b><span>Amenities</span></div>
+              <div class="hstat"><b><span data-count="15">0</span></b><span>Outdoor Sports</span></div>
+              <div class="hstat"><b><span data-count="3">0</span></b><span>Clubhouses</span></div>
+              <div class="hstat"><b><span data-count="50">0</span>,000</b><span>Sq.ft Club</span></div>
+            </div>
+          </div>
+
+          <!-- FLOATING EXPLORE FIELD -->
+          <div class="pearl-field">
+            <div class="flab">
+              <span class="k-eyebrow">Explore the nine worlds</span>
+              <span class="hint">Tap a point on the render · positions indicative</span>
+            </div>
+            <div class="pearl-chips" id="chips"></div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="_kit.js"></script>
+  <script>
+  (function(){
+    'use strict';
+    window.HM_SCREEN_INFO = { title:'The Pearl', html:
+      '<p class="k-lede">Highland Mayfields · 85+ amenities curated across nine worlds.</p>'+
+      '<ul style="list-style:none;padding:0;margin:.6rem 0;display:flex;flex-direction:column;gap:.5rem">'+
+      '<li>Three dedicated clubhouses · 50,000 sq.ft</li><li>15 outdoor sports facilities</li>'+
+      '<li>Wellness, indoor games, family &amp; kids zones</li><li>Smart, sustainable &amp; secure by design</li></ul>' };
+
+    // category accent tones — tokens only (two-lane gold/copper discipline)
+    var TONE = {
+      clubhouse:'var(--hm-gold-bright)', wellness:'var(--hm-copper)', indoor:'var(--hm-gold-soft)',
+      family:'var(--hm-copper-hi)', outdoor:'var(--hm-gold)', landscape:'var(--hm-copper-t2)',
+      eco:'var(--hm-gold-bright)', smart:'var(--hm-copper)', infra:'var(--hm-gold)'
+    };
+
+    // indicative hotspot positions over the clubhouse render (x%, y%) + short label
+    var SPOT = {
+      clubhouse:{ x:50, y:30, lab:'Clubhouse' },
+      wellness: { x:70, y:24, lab:'Wellness' },
+      indoor:   { x:86, y:36, lab:'Indoor Games' },
+      family:   { x:33, y:43, lab:'Family & Kids' },
+      outdoor:  { x:60, y:50, lab:'Outdoor Sports' },
+      landscape:{ x:88, y:55, lab:'Landscape' },
+      eco:      { x:44, y:60, lab:'Eco' },
+      smart:    { x:74, y:62, lab:'Smart & Digital' },
+      infra:    { x:91, y:72, lab:'Utilities' }
+    };
+
+    var chipsEl = document.getElementById('chips');
+    var spotsEl = document.getElementById('spots');
+    function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function tone(id){ return TONE[id] || 'var(--accent)'; }
+
+    fetch('../data/amenities.json').then(function(r){ return r.json(); }).then(build)
+      .catch(function(){ chipsEl.innerHTML='<p class="k-lede">Amenities list unavailable.</p>'; });
+
+    function categoryHtml(c){
+      var items = (c.items||[]).map(function(it){
+        return '<div class="pop-amen"><span class="ad" style="background:'+tone(c.id)+'"></span><span>'+esc(it)+'</span></div>';
+      }).join('');
+      return '<div class="pop-head">'+
+               '<span class="pd" style="color:'+tone(c.id)+';background:'+tone(c.id)+'"></span>'+
+               '<span class="pn">'+esc(c.name)+'</span>'+
+               '<span class="pc">'+(c.items?c.items.length:0)+'</span>'+
+             '</div>'+
+             '<div class="pop-grid">'+items+'</div>';
+    }
+
+    function allHtml(cats){
+      var total = cats.reduce(function(n,c){ return n + (c.items?c.items.length:0); }, 0);
+      var cols = cats.map(function(c){
+        var lis = (c.items||[]).map(function(it){ return '<li>'+esc(it)+'</li>'; }).join('');
+        return '<div class="pop-cat"><h4><span class="cd" style="background:'+tone(c.id)+'"></span>'+
+                 esc(c.name)+'<span class="cn">'+(c.items?c.items.length:0)+'</span></h4>'+
+                 '<ul>'+lis+'</ul></div>';
+      }).join('');
+      return '<p class="k-lede" style="margin:0 0 1rem">Nine worlds · '+total+' amenities, every one curated for everyday life at Highland Mayfields.</p>'+
+             '<div class="pop-all">'+cols+'</div>';
+    }
+
+    function build(D){
+      var cats = D.categories || [];
+
+      var frag = '';
+      cats.forEach(function(c){
+        frag += '<button class="k-chip" data-cat="'+esc(c.id)+'">'+
+                  '<span class="dot" style="background:'+tone(c.id)+'"></span>'+
+                  esc(c.name)+'<span class="ct">'+(c.items?c.items.length:0)+'</span></button>';
+      });
+      frag += '<button class="k-chip viewall" data-all="1">View all<span class="ct">'+(D._meta&&D._meta.total||'85+')+'</span></button>';
+      chipsEl.innerHTML = frag;
+
+      // ---- explorable hotspots on the render (one per world) ----
+      var byId = {};
+      var sf = '';
+      cats.forEach(function(c, i){
+        byId[c.id] = c;
+        var p = SPOT[c.id] || { x:50, y:50, lab:c.name };
+        sf += '<button class="hotspot" data-cat="'+esc(c.id)+'" style="left:'+p.x+'%;top:'+p.y+'%;--hd:'+(620+i*90)+'ms" '+
+                'aria-label="'+esc(c.name)+' · '+(c.items?c.items.length:0)+' amenities">'+
+                '<span class="hdot"><span class="ring"></span><span class="ring r2"></span>'+
+                  '<span class="core" style="background:radial-gradient(circle at 40% 35%,var(--hm-gold-bright),'+tone(c.id)+')"></span></span>'+
+                '<span class="hlab">'+esc(p.lab)+'<span class="ct">'+(c.items?c.items.length:0)+'</span></span>'+
+              '</button>';
+      });
+      spotsEl.innerHTML = sf;
+
+      if(window.HMKit){ HMKit.bindRipples(chipsEl); HMKit.bindRipples(spotsEl); }
+
+      function openCat(id){
+        if(!window.HMKit) return;
+        if(id==='all'){ HMKit.openFloat('Eighty-five amenities', allHtml(cats), {center:true, wide:true}); return; }
+        var c = byId[id]; if(c) HMKit.openFloat(c.name, categoryHtml(c), {center:true, wide:(c.items&&c.items.length>10)});
+      }
+
+      chipsEl.addEventListener('click', function(e){
+        var btn = e.target.closest('.k-chip'); if(!btn) return;
+        openCat(btn.hasAttribute('data-all') ? 'all' : btn.dataset.cat);
+      });
+      spotsEl.addEventListener('click', function(e){
+        var btn = e.target.closest('.hotspot'); if(!btn) return;
+        e.stopPropagation(); openCat(btn.dataset.cat);
+      });
+    }
+  })();
+  </script>
+</body>
+</html>
