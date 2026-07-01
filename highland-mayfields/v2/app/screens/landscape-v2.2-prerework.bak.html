@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Landscape — Highland Mayfields</title>
+<link rel="stylesheet" href="../styles/brand.css">
+<link rel="stylesheet" href="../assets/css/hm-tools.css">
+<link rel="stylesheet" href="_kit.css">
+<style>
+  /* ============================================================
+     LANDSCAPE — one hero frame + a floating explore field.
+     No page scroll: the hero fills the body; everything overlays it;
+     deeper content opens in centred floating windows / lightbox.
+     ============================================================ */
+
+  /* ---------- the hero stage (fills the whole body) ---------- */
+  .land-stage{ position:relative; flex:1 1 auto; min-height:0; overflow:hidden;
+    border-radius:var(--r-tile); border:1px solid var(--hairline-soft); background:#0e0b0a; }
+
+  .land-imgs{ position:absolute; inset:0; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .land-imgs img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;
+    opacity:0; transform:scale(1.06); transition:opacity 1.2s var(--ease-soft); will-change:opacity,transform; }
+  .land-imgs img.on{ opacity:1; }
+  .scr.ready .land-imgs img.on{ animation:land-kb 26s var(--ease-soft) infinite alternate; }
+  @keyframes land-kb{ from{ transform:scale(1.04) translate3d(0,0,0) } to{ transform:scale(1.13) translate3d(-1.5%,-1.5%,0) } }
+
+  /* legibility veils — bottom-left for the copy, right for the field */
+  .land-veil{ position:absolute; inset:0; pointer-events:none;
+    background:
+      linear-gradient(180deg, rgba(20,15,13,.10) 0%, rgba(20,15,13,.30) 46%, rgba(20,15,13,.90) 100%),
+      linear-gradient(90deg, rgba(20,15,13,.74) 0%, rgba(20,15,13,.18) 46%, transparent 64%); }
+  /* soft biophilic light drift over the canopy */
+  .land-drift{ position:absolute; inset:-18%; pointer-events:none; opacity:.55;
+    background:radial-gradient(40% 48% at 26% 28%, rgba(207,184,141,.16), transparent 60%); }
+  .scr.ready .land-drift{ animation:land-drift 20s var(--ease-soft) infinite alternate; }
+  @keyframes land-drift{ from{ transform:translate3d(-4%,-2%,0) } to{ transform:translate3d(7%,4%,0) } }
+
+  /* tap-to-enlarge hint (bottom-centre of the stage) */
+  .land-hint{ position:absolute; left:50%; bottom:clamp(.7rem,1.8vh,1.2rem); transform:translateX(-50%);
+    pointer-events:none; z-index:5; opacity:0; transition:opacity .8s; text-align:center; max-width:84%; }
+  .scr.ready .land-hint{ opacity:.7; transition-delay:1.1s; }
+
+  /* ---------- explorable hotspots over the render ---------- */
+  .land-hots{ position:absolute; inset:0; z-index:3; pointer-events:none; }
+  .land-hot{ position:absolute; width:34px; height:34px; transform:translate(-50%,-50%);
+    pointer-events:auto; cursor:pointer; -webkit-tap-highlight-color:transparent; display:grid; place-items:center;
+    opacity:0; animation:hot-in .7s var(--ease-settle) forwards; animation-delay:var(--hd,0ms); }
+  @keyframes hot-in{ from{ opacity:0 } to{ opacity:1 } }
+  .land-hot .pt{ position:relative; width:13px; height:13px; border-radius:50%; background:var(--hm-gold-bright);
+    box-shadow:0 0 0 2px rgba(34,26,24,.55), 0 0 12px rgba(207,184,141,.75); transition:transform .3s, background .3s; }
+  .land-hot .ring{ position:absolute; width:13px; height:13px; border-radius:50%; border:1px solid var(--accent); pointer-events:none; }
+  .scr.ready .land-hot .ring{ animation:hot-pulse 2.6s var(--ease-soft) infinite; }
+  @keyframes hot-pulse{ 0%{ transform:scale(1); opacity:.85 } 100%{ transform:scale(3); opacity:0 } }
+  @media(hover:hover){ .land-hot:hover .pt{ transform:scale(1.25); } }
+  .land-hot.on .pt{ background:#fff; transform:scale(1.35); }
+  .land-hot.on .ring{ animation:none; }
+
+  /* the callout shown near a clicked point */
+  .land-cal{ position:absolute; z-index:6; width:min(252px,72vw);
+    background:rgba(26,20,18,.94); border:1px solid var(--hairline); border-radius:var(--r-tile);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 22px 54px rgba(0,0,0,.5);
+    padding:.85rem .95rem; opacity:0; pointer-events:none; transform:scale(.96);
+    transition:opacity .26s var(--ease-soft), transform .26s var(--ease-soft); }
+  .land-cal.on{ opacity:1; pointer-events:auto; transform:none; }
+  .land-cal .cal-head{ display:flex; align-items:center; gap:.7em; padding-right:1.4em; }
+  .land-cal .cal-ico{ flex:0 0 auto; width:26px; height:26px; }
+  .land-cal .cal-ico svg{ width:100%; height:100%; display:block; }
+  .land-cal .cal-ico svg path,.land-cal .cal-ico svg circle{ fill:none; stroke:var(--accent); stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
+  .land-cal .cal-head b{ font-family:var(--font-display); font-weight:300; font-size:var(--t-body); color:var(--ink); line-height:1.2; }
+  .land-cal .cal-head small{ display:block; margin-top:.2em; font-family:var(--font-label); font-size:9px;
+    letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--accent-text); }
+  .land-cal .cal-note{ margin-top:.6rem; padding-top:.55rem; border-top:1px solid var(--hairline-soft);
+    font-family:var(--font-label); font-size:9px; letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--ink-dim); }
+  .land-cal .cal-x{ position:absolute; top:5px; right:5px; width:24px; height:24px; border-radius:50%;
+    display:grid; place-items:center; background:none; border:0; color:var(--ink-dim); cursor:pointer;
+    font-size:13px; line-height:1; -webkit-tap-highlight-color:transparent; }
+  .land-cal .cal-x:hover{ color:var(--ink); }
+
+  /* ---------- overlaid copy block (bottom-left) ---------- */
+  .land-copy{ position:absolute; left:clamp(1.2rem,3.2vw,3.4rem); bottom:clamp(1.2rem,3.4vh,3rem);
+    right:clamp(1.2rem,3vw,3rem); max-width:min(48ch,58%); z-index:2; pointer-events:none; }
+  .land-copy .k-eyebrow{ display:block; }
+  .land-copy .k-title{ font-size:clamp(2rem,4.6vw,4.2rem); margin:.2em 0 .35em; line-height:1.02; }
+  .land-copy .poem{ font-family:var(--font-body); font-style:italic; font-weight:300;
+    font-size:clamp(1rem,1.6vw,1.5rem); line-height:1.45; color:var(--ink-dim); max-width:34ch; }
+
+  .land-stats{ display:flex; gap:clamp(1.6rem,3.4vw,3.4rem); margin-top:clamp(1rem,2.4vh,1.8rem);
+    align-items:flex-end; flex-wrap:wrap; }
+  .land-stat b{ display:block; font-family:var(--font-display); font-weight:200; line-height:.85;
+    font-size:clamp(2.1rem,4.2vw,3.6rem); color:var(--ink); }
+  .land-stat span{ display:block; margin-top:.5em; font-family:var(--font-label); font-size:var(--t-micro);
+    letter-spacing:var(--track-label); text-transform:uppercase; color:var(--accent-text); }
+
+  /* ---------- the floating explore field (glass, right side) ---------- */
+  .land-field{ position:absolute; top:clamp(1rem,2.6vh,2.4rem); right:clamp(1rem,2.4vw,2.4rem);
+    width:min(320px,36vw); z-index:4; display:flex; flex-direction:column; gap:clamp(.7rem,1.4vh,1rem);
+    padding:clamp(.9rem,1.6vw,1.2rem); background:rgba(26,20,18,.66);
+    border:1px solid var(--hairline); border-radius:var(--r-tile);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 24px 60px rgba(0,0,0,.42); }
+  .land-field .fld-eyebrow{ display:flex; align-items:center; justify-content:space-between; gap:1em; }
+  .land-field .fld-eyebrow .k-eyebrow{ color:var(--accent); }
+
+  /* render switcher */
+  .land-thumbs{ display:grid; grid-template-columns:repeat(4,1fr); gap:.45rem; }
+  .land-thumb{ position:relative; aspect-ratio:1/1; overflow:hidden; border-radius:var(--r-tile);
+    border:1px solid var(--hairline-soft); cursor:pointer; -webkit-tap-highlight-color:transparent;
+    background:#0e0b0a; transition:border-color .3s, transform .3s; }
+  .land-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  @media(hover:hover){ .land-thumb:hover{ transform:translateY(-2px); border-color:var(--hairline); } }
+  .land-thumb.on{ border-color:var(--accent); }
+  .land-thumb.on::after{ content:""; position:absolute; inset:0; box-shadow:inset 0 0 0 2px var(--accent); border-radius:var(--r-tile); }
+  .land-thumb .n{ position:absolute; left:4px; bottom:3px; font-family:var(--font-label); font-size:9px;
+    letter-spacing:.1em; color:var(--ink); text-shadow:0 1px 4px rgba(0,0,0,.8); }
+  .fld-cap{ display:flex; align-items:center; justify-content:space-between; gap:.8em; }
+  .fld-cap .now{ font-family:var(--font-display); font-weight:300; font-size:var(--t-body); color:var(--ink);
+    line-height:1.2; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .fld-cap .all{ flex:0 0 auto; display:inline-flex; align-items:center; gap:.45em;
+    font-family:var(--font-label); font-size:9px; letter-spacing:var(--track-wide); text-transform:uppercase;
+    color:var(--accent-text); background:none; border:0; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .fld-cap .all svg{ width:13px; height:13px; }
+  .fld-cap .all svg path{ fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+
+  .fld-div{ height:1px; background:var(--hairline-soft); margin:.1rem 0; }
+
+  /* explore buttons */
+  .land-explore{ display:flex; flex-direction:column; gap:.55rem; }
+  .land-xbtn{ display:flex; align-items:center; gap:.85em; width:100%; text-align:left; min-height:54px;
+    padding:.7rem .9rem; background:rgba(34,26,24,.5); border:1px solid var(--hairline-soft);
+    border-radius:var(--r-tile); cursor:pointer; -webkit-tap-highlight-color:transparent;
+    color:var(--ink); transition:border-color .3s, background .3s, transform .3s; }
+  @media(hover:hover){ .land-xbtn:hover{ border-color:var(--hairline); background:rgba(44,33,29,.62); transform:translateY(-2px); } }
+  .land-xbtn .ico{ flex:0 0 auto; width:24px; height:24px; }
+  .land-xbtn .ico svg{ width:100%; height:100%; display:block; }
+  .land-xbtn .ico svg path,.land-xbtn .ico svg circle,.land-xbtn .ico svg line{ fill:none; stroke:var(--accent);
+    stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
+  .land-xbtn .txt{ flex:1 1 auto; min-width:0; }
+  .land-xbtn .txt b{ display:block; font-family:var(--font-display); font-weight:300; font-size:var(--t-body);
+    color:var(--ink); line-height:1.15; }
+  .land-xbtn .txt small{ display:block; font-family:var(--font-label); font-size:9px; letter-spacing:var(--track-wide);
+    text-transform:uppercase; color:var(--accent-text); margin-top:.25em; }
+  .land-xbtn .chev{ flex:0 0 auto; width:16px; height:16px; color:var(--ink-dim); }
+  .land-xbtn .chev svg{ width:100%; height:100%; }
+  .land-xbtn .chev svg path{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* ---------- amenity list (inside the centred floating windows) ---------- */
+  .land-flist .k-lede{ margin-bottom:1.1rem; }
+  .land-items{ display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr)); gap:.55rem; }
+  .amen{ display:flex; align-items:center; gap:.8em; min-height:54px; padding:.7rem .95rem;
+    background:rgba(34,26,24,.5); border:1px solid var(--hairline-soft); border-radius:var(--r-tile);
+    font-family:var(--font-body); font-size:var(--t-body); color:var(--ink); line-height:1.25; }
+  .amen .ico{ flex:0 0 auto; width:25px; height:25px; }
+  .amen .ico svg{ width:100%; height:100%; display:block; }
+  .amen .ico svg path,.amen .ico svg circle,.amen .ico svg line{ fill:none; stroke:var(--accent);
+    stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* ---------- portrait + narrow: copy to top, field to bottom bar ---------- */
+  @media (orientation:portrait),(max-width:920px){
+    .land-copy{ top:clamp(1rem,3vh,2.2rem); bottom:auto; left:clamp(1.1rem,4vw,2rem);
+      right:clamp(1.1rem,4vw,2rem); max-width:none; }
+    .land-copy .poem{ max-width:42ch; }
+    .land-field{ top:auto; bottom:clamp(1rem,2.6vh,2rem); left:clamp(1rem,4vw,2rem);
+      right:clamp(1rem,4vw,2rem); width:auto; }
+    .land-explore{ flex-direction:row; }
+    .land-explore .land-xbtn{ flex:1 1 0; }
+    .land-hint{ display:none; }
+  }
+  @media (orientation:portrait) and (max-width:560px){
+    .land-explore{ flex-direction:column; }
+  }
+</style>
+</head>
+<body data-screen="landscape">
+  <div class="scr">
+    <header class="scr-top">
+      <button class="scr-back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg> Home</button>
+      <div class="scr-head">
+        <span class="k-eyebrow">A sanctuary of green</span>
+        <h1 class="scr-name">Landscape</h1>
+      </div>
+      <div class="scr-side"><img class="scr-crest" src="../assets/logo-crest.png" alt="" onerror="this.style.display='none'"></div>
+    </header>
+
+    <main class="scr-body">
+      <div class="scr-wrap fill">
+
+        <section class="land-stage" data-reveal>
+          <!-- one hero frame (4 renders crossfade in place) -->
+          <div class="land-imgs" id="heroImgs" role="button" aria-label="Enlarge render"></div>
+          <div class="land-veil"></div>
+          <div class="land-drift"></div>
+
+          <!-- explorable hotspots (rebuilt per render) + callout -->
+          <div class="land-hots" id="hots"></div>
+          <div class="land-cal" id="cal" role="dialog" aria-hidden="true"></div>
+
+          <span class="land-hint k-swipe-hint">Tap a glowing point to explore · positions indicative</span>
+
+          <!-- overlaid copy -->
+          <div class="land-copy">
+            <span class="k-eyebrow">A sanctuary of green</span>
+            <h2 class="k-title">Landscape</h2>
+            <p class="poem">Fifteen acres kept open — quiet greens, water and walking paths, threaded for a slower way of living.</p>
+            <div class="land-stats">
+              <div class="land-stat"><b data-count="70" data-suffix="%">0</b><span>Open Green</span></div>
+              <div class="land-stat"><b data-count="15">0</b><span>Acres</span></div>
+            </div>
+          </div>
+
+          <!-- floating explore field -->
+          <aside class="land-field" aria-label="Explore the landscape">
+            <div class="fld-eyebrow"><span class="k-eyebrow">Explore</span></div>
+
+            <div class="land-thumbs" id="thumbs"></div>
+            <div class="fld-cap">
+              <span class="now" id="nowCap">The open greens</span>
+              <button class="all" id="viewAll" type="button">View all
+                <svg viewBox="0 0 24 24"><path d="M4 4h6M4 4v6M20 20h-6M20 20v-6M14 4h6v6M10 20H4v-6"/></svg>
+              </button>
+            </div>
+
+            <div class="fld-div"></div>
+
+            <div class="land-explore">
+              <button class="land-xbtn" id="btnGreen" type="button">
+                <span class="ico"><svg viewBox="0 0 24 24"><path d="M5 19c0-8 6-13 14-14 0 8-5 14-14 14z"/><path d="M5 19c3-5 6-8 10-10"/></svg></span>
+                <span class="txt"><b>Green Features</b><small id="greenCt">Landscape &amp; green</small></span>
+                <span class="chev"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
+              </button>
+              <button class="land-xbtn" id="btnEco" type="button">
+                <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 21V11"/><path d="M12 13c-3 0-6-2-6-6 3 0 6 2 6 6z"/><path d="M12 11c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg></span>
+                <span class="txt"><b>Sustainability</b><small id="ecoCt">Green by design</small></span>
+                <span class="chev"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
+              </button>
+            </div>
+          </aside>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="_kit.js"></script>
+  <script>
+  (function(){
+    'use strict';
+    function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    window.HM_SCREEN_INFO = { title:'Landscape', html:
+      '<p class="k-lede">Highland Mayfields · a sanctuary of nature across fifteen acres.</p>'+
+      '<ul style="list-style:none;padding:0;margin:.6rem 0;display:flex;flex-direction:column;gap:.5rem">'+
+      '<li>70–80% open &amp; green spaces</li><li>Three-side open views · lowest density per acre</li>'+
+      '<li>Amphitheatre, pavilions, water features &amp; walking paths</li>'+
+      '<li>Rainwater harvesting · solar · greywater recycling · EV charging</li></ul>' };
+
+    /* ---- the four landscape renders ---- */
+    var SHOTS = [
+      { src:'../assets/screens/landscape-1.webp', title:'The open greens' },
+      { src:'../assets/screens/landscape-2.webp', title:'Water features & fountains' },
+      { src:'../assets/screens/landscape-3.webp', title:'Walking paths & pavilions' },
+      { src:'../assets/screens/landscape-4.webp', title:'Open-air amphitheatre' }
+    ];
+
+    /* ---- per-render hotspots. Names MUST match amenities.json exactly;
+            x/y are indicative %-positions over the render. ---- */
+    var HOTS = [
+      [ { name:'Pavilions', x:31, y:30 }, { name:'Outdoor sitting', x:49, y:22 },
+        { name:'Walking paths for seniors', x:42, y:48 }, { name:'Zen & herb garden', x:60, y:56 } ],
+      [ { name:'Water features & fountains', x:45, y:32 }, { name:'Rainwater harvesting', x:33, y:42 },
+        { name:'Greywater recycling', x:61, y:58 } ],
+      [ { name:'Reflexology pathway', x:28, y:32 }, { name:'Pet-friendly walk', x:50, y:25 },
+        { name:'Pavilions', x:44, y:46 }, { name:'Energy-efficient lighting', x:63, y:58 } ],
+      [ { name:'Open-air amphitheatre', x:49, y:26 }, { name:'Outdoor sitting', x:35, y:36 },
+        { name:'Solar panels', x:64, y:56 }, { name:'EV charging points', x:56, y:50 } ]
+    ];
+
+    var heroImgs = document.getElementById('heroImgs');
+    var thumbs   = document.getElementById('thumbs');
+    var nowCap   = document.getElementById('nowCap');
+    var hotsEl   = document.getElementById('hots');
+    var cal      = document.getElementById('cal');
+    var cur = 0;
+    var LOOKUP = {};   /* name -> {cat:'landscape'|'eco'} ; populated from JSON */
+
+    /* build the stacked hero images (crossfade in place) */
+    heroImgs.innerHTML = SHOTS.map(function(s,i){
+      return '<img src="'+s.src+'" alt="'+esc(s.title)+'" loading="'+(i===0?'eager':'lazy')+'"'+
+             (i===0?' class="on"':'')+' onerror="this.style.visibility=\'hidden\'">';
+    }).join('');
+    var imgEls = heroImgs.querySelectorAll('img');
+
+    /* build the thumbnail switcher */
+    thumbs.innerHTML = SHOTS.map(function(s,i){
+      return '<button class="land-thumb'+(i===0?' on':'')+'" type="button" data-i="'+i+'" aria-label="'+esc(s.title)+'">'+
+               '<img src="'+s.src+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">'+
+               '<span class="n">0'+(i+1)+'</span>'+
+             '</button>';
+    }).join('');
+    var thumbEls = thumbs.querySelectorAll('.land-thumb');
+
+    function show(i){
+      i = ((i%SHOTS.length)+SHOTS.length)%SHOTS.length;
+      if(i===cur) return;
+      cur = i;
+      imgEls.forEach(function(el,k){ el.classList.toggle('on', k===i); });
+      thumbEls.forEach(function(el,k){ el.classList.toggle('on', k===i); });
+      nowCap.textContent = SHOTS[i].title;
+      closeCal();
+      buildHots(i);
+    }
+    thumbEls.forEach(function(el){
+      el.addEventListener('click', function(){ show(parseInt(el.dataset.i,10)||0); });
+    });
+
+    /* ---- hotspots: build the markers for a render (data-driven by LOOKUP) ---- */
+    function buildHots(i){
+      var list = (HOTS[i]||[]).filter(function(h){ return LOOKUP[h.name]; });
+      hotsEl.innerHTML = list.map(function(h,k){
+        return '<button class="land-hot" type="button" data-name="'+esc(h.name)+'" data-x="'+h.x+'" data-y="'+h.y+'"'+
+               ' style="left:'+h.x+'%;top:'+h.y+'%;--hd:'+(k*120)+'ms" aria-label="'+esc(h.name)+'">'+
+                 '<span class="ring"></span><span class="pt"></span>'+
+               '</button>';
+      }).join('');
+      hotsEl.querySelectorAll('.land-hot').forEach(function(el){
+        el.addEventListener('click', function(e){ e.stopPropagation(); openCal(el); });
+      });
+    }
+
+    /* ---- callout near a clicked point ---- */
+    function calIcon(cat){ return cat==='eco' ? ECO : LEAF; }
+    function openCal(hot){
+      var name = hot.getAttribute('data-name');
+      var info = LOOKUP[name]; if(!info) return;
+      var x = parseFloat(hot.dataset.x), y = parseFloat(hot.dataset.y);
+      hotsEl.querySelectorAll('.land-hot').forEach(function(el){ el.classList.toggle('on', el===hot); });
+      cal.innerHTML =
+        '<button class="cal-x" type="button" aria-label="Close">✕</button>'+
+        '<div class="cal-head"><span class="cal-ico">'+calIcon(info.cat)+'</span>'+
+          '<div><b>'+esc(name)+'</b><small>'+esc(info.catName)+'</small></div></div>'+
+        '<div class="cal-note">Indicative location on render</div>';
+      cal.querySelector('.cal-x').addEventListener('click', function(e){ e.stopPropagation(); closeCal(); });
+      /* place: open toward the open side, vertically anchored to the point */
+      var tx = x < 50 ? '16px' : 'calc(-100% - 16px)';
+      var ty = y < 26 ? '6px' : (y > 70 ? 'calc(-100% - 6px)' : '-50%');
+      cal.style.left = x + '%'; cal.style.top = y + '%';
+      cal.style.transform = 'translate('+tx+','+ty+')';
+      cal.setAttribute('aria-hidden','false');
+      requestAnimationFrame(function(){ cal.classList.add('on'); });
+    }
+    function closeCal(){
+      cal.classList.remove('on'); cal.setAttribute('aria-hidden','true');
+      hotsEl.querySelectorAll('.land-hot.on').forEach(function(el){ el.classList.remove('on'); });
+    }
+
+    /* tap the hero (empty area) → close any callout, else open lightbox of all 4 */
+    function openLb(){ if(window.HMKit && HMKit.lightbox) HMKit.lightbox(SHOTS, cur); }
+    heroImgs.addEventListener('click', function(){
+      if(cal.classList.contains('on')){ closeCal(); return; }
+      openLb();
+    });
+    document.getElementById('viewAll').addEventListener('click', function(e){ e.stopPropagation(); openLb(); });
+    /* Esc closes the callout first (capture so kit's back-nav doesn't fire) */
+    document.addEventListener('keydown', function(e){
+      if(e.key==='Escape' && cal.classList.contains('on')){ e.stopImmediatePropagation(); closeCal(); }
+    }, true);
+
+    /* ---- amenity icons ---- */
+    var LEAF = '<svg viewBox="0 0 24 24"><path d="M5 19c0-8 6-13 14-14 0 8-5 14-14 14z"/><path d="M5 19c3-5 6-8 10-10"/></svg>';
+    var ECO  = '<svg viewBox="0 0 24 24"><path d="M12 21V11"/><path d="M12 13c-3 0-6-2-6-6 3 0 6 2 6 6z"/><path d="M12 11c3 0 6-2 6-5-3 0-6 2-6 5z"/></svg>';
+
+    function listHtml(intro, items, glyph){
+      return '<div class="land-flist"><p class="k-lede">'+intro+'</p><div class="land-items">'+
+        (items||[]).map(function(it){
+          return '<div class="amen"><span class="ico">'+glyph+'</span><span>'+esc(it)+'</span></div>';
+        }).join('')+'</div></div>';
+    }
+
+    var GREEN=null, ECOC=null;
+    fetch('../data/amenities.json').then(function(r){ return r.json(); }).then(function(D){
+      var cats = D.categories || [];
+      function find(id){ for(var i=0;i<cats.length;i++){ if(cats[i].id===id) return cats[i]; } return null; }
+      GREEN = find('landscape'); ECOC = find('eco');
+      if(GREEN){ document.getElementById('greenCt').textContent = GREEN.items.length+' open-space features';
+                 GREEN.items.forEach(function(n){ LOOKUP[n]={ cat:'landscape', catName:GREEN.name }; }); }
+      if(ECOC){ document.getElementById('ecoCt').textContent  = ECOC.items.length+' eco systems';
+                ECOC.items.forEach(function(n){ LOOKUP[n]={ cat:'eco', catName:ECOC.name }; }); }
+      buildHots(cur);   /* hotspots only appear once their data is verified present */
+    }).catch(function(){});
+
+    document.getElementById('btnGreen').addEventListener('click', function(){
+      if(!window.HMKit) return;
+      var intro='Open spaces shaped for stillness and gathering — amphitheatre, pavilions and pathways that invite a slower pace.';
+      HMKit.openFloat('Green Features', listHtml(intro, GREEN&&GREEN.items, LEAF), {center:true, wide:true});
+    });
+    document.getElementById('btnEco').addEventListener('click', function(){
+      if(!window.HMKit) return;
+      var intro='A landscape that gives back — rainwater harvested, water recycled, sunlight harnessed, every system tuned to tread lightly.';
+      HMKit.openFloat('Sustainability &amp; Eco', listHtml(intro, ECOC&&ECOC.items, ECO), {center:true, wide:true});
+    });
+
+    /* swipe the hero to change renders (touch) */
+    if(window.HMKit && HMKit.swipe){
+      HMKit.swipe(heroImgs, { onLeft:function(){ show(cur+1); }, onRight:function(){ show(cur-1); } });
+    }
+  })();
+  </script>
+</body>
+</html>
