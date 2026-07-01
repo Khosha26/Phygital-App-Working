@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>The Villas — Highland Mayfields</title>
+<link rel="stylesheet" href="../styles/brand.css">
+<link rel="stylesheet" href="../assets/css/hm-tools.css">
+<link rel="stylesheet" href="_kit.css">
+<style>
+  /* ============================================================
+     THE VILLAS · v5 — CREATIVE, IMMERSIVE, INTERACTIVE.
+     Screen 1 = cinematic chooser of two collections (EARTH vs SKY),
+       each previewing its world + a plan + a massing model, on a
+       central line-art tower spine that shows WHERE each sits.
+     Then a per-collection journey: 01 Concept · 02 Model · 03 Plans
+       · 04 Interiors — real renders, spotlight cut-outs, interactive
+       room hotspots (Earth) + level switch (Sky), gold-medallion
+       button language shared with Inventory / Masterplan.
+     NO-SCROLL LAW: every view fits the viewport. Token-driven (kd L2).
+     Honesty (kd L3): price "On Request"; villa counts per brochure (Earth 6 / Sky 12)
+       the Sky silhouette SVG traces
+       the foreground water-plane not the building, so the model view uses
+       a cinematic spotlight cut rather than an exact clip-mask.
+     ============================================================ */
+
+  .vl-fill{ height:100%; display:flex; flex-direction:column; gap:clamp(.5rem,1.3vh,1rem); min-height:0; }
+
+  /* ---------- breadcrumb (shared look with inventory) ---------- */
+  .vl-crumbs{ flex:0 0 auto; display:flex; align-items:center; flex-wrap:wrap; gap:.15rem; min-height:30px; }
+  .vl-crumb{ display:inline-flex; align-items:center; min-height:30px; padding:.28em .65em;
+    font-family:var(--font-label); font-size:var(--t-micro); letter-spacing:var(--track-wide); text-transform:uppercase;
+    color:var(--ink-dim); background:none; border:0; border-radius:var(--r-pill); cursor:pointer;
+    -webkit-tap-highlight-color:transparent; transition:color .25s,background .25s; white-space:nowrap; }
+  .vl-crumb.link:hover{ color:var(--ink); background:rgba(34,26,24,.5); }
+  .vl-crumb.cur{ color:var(--accent); cursor:default; }
+  .vl-csep{ color:var(--hairline); font-size:var(--t-micro); padding:0 .05em; user-select:none; }
+
+  /* ---------- animated step stage ---------- */
+  .vl-stage{ position:relative; flex:1 1 auto; min-height:0; }
+  .vl-step{ position:absolute; inset:0; opacity:0; transform:translateX(30px); pointer-events:none;
+    transition:opacity .45s var(--ease-soft), transform .6s var(--ease-settle); }
+  .vl-step.on{ opacity:1; transform:none; pointer-events:auto; }
+  .vl-step.back{ transform:translateX(-30px); }
+  .vl-step > .in{ height:100%; display:flex; flex-direction:column; min-height:0; }
+
+  /* ============================================================
+     STEP 1 · CHOOSER  — Earth │ tower-spine │ Sky
+     ============================================================ */
+  .vl-ch-head{ flex:0 0 auto; text-align:center; display:flex; flex-direction:column; align-items:center;
+    margin:0 auto clamp(.5rem,1.4vh,1rem); }
+  .vl-ch-emblem{ width:clamp(30px,3.2vw,46px); height:auto; opacity:.94; margin-bottom:clamp(.3rem,.9vh,.6rem);
+    filter:drop-shadow(0 6px 20px rgba(0,0,0,.55)); }
+  .vl-ch-title{ font-family:var(--font-display); font-weight:300; line-height:1.02; letter-spacing:.01em;
+    font-size:clamp(1.5rem,3vw,2.7rem); color:var(--ink); margin:.15em 0 0; }
+  .vl-ch-lede{ font-family:var(--font-body); font-style:italic; font-weight:300;
+    font-size:clamp(.86rem,1.15vw,1.1rem); color:var(--ink-dim); max-width:56ch; margin:.5em auto 0; line-height:1.5; }
+
+  .vl-duo{ flex:1 1 auto; min-height:0; display:grid;
+    grid-template-columns:1fr clamp(128px,11vw,196px) 1fr; gap:clamp(.7rem,1.4vw,1.3rem); }
+
+  /* --- collection panel --- */
+  .vl-panel{ position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end;
+    cursor:pointer; min-height:0; isolation:isolate; background:#0c0907;
+    border:1px solid var(--hairline-soft); border-radius:var(--r-tile);
+    box-shadow:0 18px 50px -28px rgba(0,0,0,.7);
+    transform-origin:var(--ox,50%) var(--oy,50%); will-change:transform;
+    transition:border-color .4s var(--ease-soft), transform .42s var(--ease-settle), box-shadow .4s var(--ease-soft);
+    -webkit-tap-highlight-color:transparent; }
+  .vl-panel .media{ position:absolute; inset:0; z-index:0; overflow:hidden; }
+  .vl-panel .media img{ width:100%; height:100%; object-fit:cover; display:block; transform:scale(1.1); will-change:transform; }
+  .vl-panel.earth .media{ background:#efe9df; }
+  .vl-panel.earth .media img{ object-position:50% 46%; transform-origin:50% 62%;
+    animation:vl-ken-a 36s var(--ease-soft) infinite alternate; }
+  .vl-panel.sky   .media img{ object-position:38% 46%; transform-origin:36% 44%;
+    animation:vl-ken-b 40s var(--ease-soft) infinite alternate; }
+  @keyframes vl-ken-a{ from{ transform:scale(1.08) } to{ transform:scale(1.16) translate3d(1%,-1.6%,0) } }
+  @keyframes vl-ken-b{ from{ transform:scale(1.1) } to{ transform:scale(1.2) translate3d(-1.6%,1.4%,0) } }
+  /* moving spotlight over each world's zone */
+  .vl-panel .spot{ position:absolute; z-index:1; width:80%; height:80%; pointer-events:none; mix-blend-mode:screen;
+    background:radial-gradient(closest-side, rgba(255,243,224,.24), rgba(255,243,224,.06) 46%, transparent 72%);
+    filter:blur(3px); }
+  .vl-panel.earth .spot{ animation:vl-spot-a 15s ease-in-out infinite alternate; }
+  .vl-panel.sky   .spot{ animation:vl-spot-b 17s ease-in-out infinite alternate; }
+  @keyframes vl-spot-a{ 0%{ transform:translate3d(2%,42%,0) scale(.85); opacity:.4 } 100%{ transform:translate3d(30%,30%,0) scale(1.05); opacity:.75 } }
+  @keyframes vl-spot-b{ 0%{ transform:translate3d(6%,10%,0) scale(1); opacity:.8 } 100%{ transform:translate3d(-6%,34%,0) scale(.9); opacity:.4 } }
+  /* legibility veil — earth is light art (needs top+bottom scrim), sky is dark render */
+  .vl-panel .media::after{ content:""; position:absolute; inset:0; z-index:2; pointer-events:none; }
+  .vl-panel.sky .media::after{ background:linear-gradient(183deg, rgba(12,9,7,.22) 0%, rgba(12,9,7,0) 24%, rgba(12,9,7,.4) 54%, rgba(12,9,7,.9) 100%); }
+  .vl-panel.earth .media::after{ background:linear-gradient(183deg, rgba(20,15,13,.34) 0%, rgba(20,15,13,.05) 22%, rgba(20,15,13,.5) 58%, rgba(18,13,11,.92) 100%); }
+  .vl-panel .frame{ position:absolute; z-index:3; inset:clamp(.5rem,.9vw,.9rem); pointer-events:none;
+    border:1px solid var(--hm-gold-soft); opacity:.32; mix-blend-mode:screen; transition:opacity .4s var(--ease-soft), inset .4s var(--ease-soft); }
+  .vl-panel .rep{ position:absolute; z-index:4; top:clamp(.7rem,1.1vw,1rem); right:clamp(.7rem,1.1vw,1rem);
+    font-family:var(--font-label); font-size:8px; letter-spacing:var(--track-wide); text-transform:uppercase;
+    color:var(--hm-cream); padding:.4em .7em; border-radius:var(--r-pill);
+    background:rgba(20,15,13,.6); border:1px solid var(--hairline); backdrop-filter:blur(5px); }
+
+  .vl-panel .body{ position:relative; z-index:4; padding:clamp(1rem,1.9vw,1.8rem); }
+  .vl-panel .ptop{ display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }
+  .vl-tier{ font-family:var(--font-label); font-size:var(--t-micro); letter-spacing:var(--track-label);
+    text-transform:uppercase; color:var(--hm-copper-hi); line-height:1.5; text-shadow:0 2px 12px rgba(0,0,0,.7); }
+  .vl-count{ text-align:right; flex:0 0 auto; white-space:nowrap; }
+  .vl-count b{ font-family:var(--font-display); font-weight:200; line-height:1; font-size:clamp(1.5rem,2.5vw,2.2rem);
+    color:var(--hm-gold-bright); display:inline-block; text-shadow:0 4px 18px rgba(0,0,0,.6); }
+  .vl-count b sup{ font-size:.4em; color:var(--hm-copper-hi); top:-1.1em; }
+  .vl-count span{ font-family:var(--font-label); font-size:8px; letter-spacing:var(--track-wide); text-transform:uppercase;
+    color:rgba(245,241,235,.72); display:block; margin-top:.25em; }
+  .vl-name{ font-family:var(--font-display); font-weight:300; line-height:1; font-size:clamp(1.7rem,3.1vw,2.9rem);
+    color:var(--hm-cream); margin:clamp(.55rem,1.4vh,1rem) 0 0; text-shadow:0 6px 30px rgba(0,0,0,.7); }
+  .vl-tag{ font-family:var(--font-body); font-style:italic; font-weight:300; font-size:var(--t-body); line-height:1.4;
+    color:rgba(245,241,235,.85); margin:.3em 0 0; text-shadow:0 3px 16px rgba(0,0,0,.7); }
+  /* plan + model mini strip */
+  .vl-minis{ display:flex; gap:.6rem; margin-top:clamp(.7rem,1.6vh,1.1rem); }
+  .vl-mini{ flex:1 1 0; min-width:0; display:flex; flex-direction:column; gap:.32rem; }
+  .vl-mini .thumb{ position:relative; aspect-ratio:16/10; overflow:hidden; border-radius:var(--r-tile);
+    border:1px solid var(--hairline); background:#f3efe9; }
+  .vl-mini .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .vl-mini .thumb.dark{ background:#0e0b0a; }
+  .vl-mini small{ font-family:var(--font-label); font-size:8px; letter-spacing:var(--track-wide); text-transform:uppercase;
+    color:rgba(245,241,235,.72); text-align:center; }
+  .vl-go{ display:inline-flex; align-items:center; gap:.6em; margin-top:clamp(.8rem,1.7vh,1.2rem);
+    font-family:var(--font-label); font-size:var(--t-label); letter-spacing:var(--track-label); text-transform:uppercase; color:var(--hm-cream); }
+  .vl-go svg{ width:16px; height:16px; fill:none; stroke:var(--hm-gold-bright); stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; transition:transform .4s var(--ease-settle); }
+  @media(hover:hover){
+    .vl-panel:hover{ border-color:var(--hairline); transform:translateY(-4px); box-shadow:0 30px 70px -26px rgba(0,0,0,.8); }
+    .vl-panel:hover .frame{ opacity:.72; }
+    .vl-panel:hover .vl-go svg{ transform:translateX(6px); }
+  }
+  .vl-panel.pressing{ transform:scale(.972); border-color:var(--hm-gold);
+    box-shadow:0 14px 44px -22px rgba(0,0,0,.85), 0 0 0 1px var(--hm-gold-soft) inset; }
+  .vl-panel.pressing .frame{ opacity:.9; inset:clamp(.32rem,.6vw,.6rem); }
+
+  /* --- central tower spine — villas-tower line-art, both zones lit --- */
+  .vl-spine{ position:relative; min-height:0; overflow:hidden; border-radius:var(--r-tile);
+    border:1px solid var(--hairline-soft); background:linear-gradient(180deg,#1c1512,#221a18);
+    display:flex; flex-direction:column; align-items:center; }
+  .vl-spine .simg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:52% 42%;
+    opacity:.85; filter:saturate(1.02) contrast(1.02); }
+  .vl-spine::after{ content:""; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg, rgba(20,15,13,.55), transparent 26% 70%, rgba(20,15,13,.7)); }
+  .vl-spine .z{ position:absolute; z-index:2; left:50%; transform:translateX(-50%); text-align:center;
+    font-family:var(--font-label); letter-spacing:var(--track-wide); text-transform:uppercase; white-space:nowrap; }
+  .vl-spine .z .n{ display:block; font-size:8px; color:var(--hm-copper-hi); }
+  .vl-spine .z .l{ display:block; font-size:clamp(.62rem,.78vw,.82rem); color:var(--hm-gold-bright); margin-top:.15em; }
+  .vl-spine .z.crown{ top:clamp(.8rem,2.2vh,1.6rem); }
+  .vl-spine .z.base{ bottom:clamp(.8rem,2.2vh,1.6rem); }
+  .vl-spine .zdot{ position:absolute; z-index:2; left:50%; width:9px; height:9px; border-radius:50%;
+    transform:translate(-50%,-50%); background:var(--hm-gold-bright); box-shadow:0 0 12px 2px rgba(201,176,120,.65);
+    animation:vl-zpulse 3s var(--ease-soft) infinite; }
+  .vl-spine .zdot.crown{ top:30%; } .vl-spine .zdot.base{ top:74%; animation-delay:1.2s; }
+  @keyframes vl-zpulse{ 0%,100%{ transform:translate(-50%,-50%) scale(1); opacity:.9 } 50%{ transform:translate(-50%,-50%) scale(1.5); opacity:.5 } }
+  .vl-spine .spinelbl{ position:absolute; z-index:2; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-90deg);
+    font-family:var(--font-label); font-size:8px; letter-spacing:.5em; text-transform:uppercase; color:rgba(245,241,235,.4); white-space:nowrap; }
+
+  /* footnote: residence types + count caveat */
+  .vl-foot{ flex:0 0 auto; display:flex; align-items:center; justify-content:center; gap:.5rem 1.2rem; flex-wrap:wrap;
+    padding-top:clamp(.35rem,.9vh,.7rem); }
+  .vl-foot .types{ display:flex; align-items:center; gap:.5rem 1rem; flex-wrap:wrap;
+    font-family:var(--font-label); font-size:8.5px; letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--ink-dim); }
+  .vl-foot .types b{ color:var(--accent-text); font-weight:400; }
+  .vl-foot .types i{ font-style:normal; color:var(--hairline); }
+  .vl-foot .cav{ font-family:var(--font-label); font-size:8.5px; letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--ink-dim); }
+  .vl-foot .cav b{ color:var(--accent-text); font-weight:400; }
+
+  /* ============================================================
+     STEP 2 · COLLECTION JOURNEY
+     ============================================================ */
+  .vl-jrn{ height:100%; display:flex; flex-direction:column; gap:clamp(.5rem,1.3vh,1rem); min-height:0; }
+  .vl-jrn-top{ flex:0 0 auto; display:flex; align-items:flex-end; justify-content:space-between; gap:1rem 1.4rem; flex-wrap:wrap; }
+  .vl-jrn-id{ min-width:0; }
+  .vl-jrn-id .eb{ display:flex; align-items:center; gap:.6em; font-family:var(--font-label); font-size:var(--t-micro);
+    letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--accent-text); }
+  .vl-jrn-id .eb .dot{ width:6px; height:6px; transform:rotate(45deg); background:var(--accent); }
+  .vl-jrn-id h2{ font-family:var(--font-display); font-weight:300; line-height:1; letter-spacing:.01em;
+    font-size:clamp(1.5rem,2.8vw,2.5rem); color:var(--ink); margin:.12em 0 0; }
+  .vl-jrn-id .poem{ font-family:var(--font-body); font-style:italic; font-weight:300; font-size:var(--t-body);
+    color:var(--ink-dim); margin:.35em 0 0; line-height:1.4; }
+  .vl-jrn-meta{ display:flex; align-items:center; gap:clamp(1rem,2vw,2rem); flex:0 0 auto; }
+  .vl-jm{ text-align:center; }
+  .vl-jm b{ display:block; font-family:var(--font-display); font-weight:200; font-size:clamp(1.2rem,2vw,1.7rem); color:var(--hm-gold-bright); line-height:1; }
+  .vl-jm b sup{ font-size:.42em; color:var(--hm-copper-hi); top:-1.1em; }
+  .vl-jm span{ display:block; font-family:var(--font-label); font-size:8px; letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--ink-dim); margin-top:.3em; }
+  .vl-switch{ display:inline-flex; align-items:center; gap:.55em; min-height:38px; padding:.4em 1em;
+    font-family:var(--font-label); font-size:var(--t-micro); letter-spacing:var(--track-wide); text-transform:uppercase;
+    color:var(--ink-dim); background:rgba(34,26,24,.5); border:1px solid var(--hairline-soft); border-radius:var(--r-pill);
+    cursor:pointer; -webkit-tap-highlight-color:transparent; transition:color .25s,border-color .25s; backdrop-filter:blur(6px); }
+  .vl-switch:hover{ color:var(--ink); border-color:var(--hairline); }
+  .vl-switch svg{ width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* --- medallion tab rail (shared button language) --- */
+  .vl-tabs{ flex:0 0 auto; display:flex; align-items:flex-start; gap:clamp(.5rem,1.4vw,1.4rem); }
+  .vl-tab{ position:relative; display:flex; flex-direction:column; align-items:center; gap:.4rem; background:none; border:0;
+    cursor:pointer; padding:.2rem .2rem 0; -webkit-tap-highlight-color:transparent; flex:0 0 auto; }
+  .vl-tab .med{ position:relative; width:clamp(38px,3.2vw,50px); height:clamp(38px,3.2vw,50px); display:grid; place-items:center;
+    border-radius:50%; border:1.5px solid var(--hm-gold-soft); background:rgba(24,17,14,.82); backdrop-filter:blur(6px);
+    font-family:var(--font-display); font-weight:400; font-size:clamp(.85rem,1.15vw,1.1rem); color:var(--ink);
+    font-variant-numeric:tabular-nums; box-shadow:0 0 0 3px rgba(201,176,120,.06), inset 0 0 10px rgba(201,176,120,.08);
+    transition:transform .25s var(--ease-soft), background .3s, color .3s, border-color .3s, box-shadow .3s; }
+  .vl-tab .lbl{ font-family:var(--font-label); font-size:9px; letter-spacing:var(--track-wide); text-transform:uppercase;
+    color:var(--ink-dim); transition:color .3s; white-space:nowrap; }
+  .vl-tab .con{ position:absolute; left:50%; top:calc(clamp(38px,3.2vw,50px) + .2rem); width:calc(100% + clamp(.5rem,1.4vw,1.4rem));
+    height:1px; transform:translateX(-50%) translateX(calc(50% + clamp(.25rem,.7vw,.7rem)));
+    background:linear-gradient(90deg,var(--hairline),var(--hairline-soft)); z-index:-1; }
+  .vl-tab:last-child .con{ display:none; }
+  @media(hover:hover){ .vl-tab:hover .med{ transform:translateY(-2px); border-color:var(--hm-gold-bright); }
+    .vl-tab:hover .lbl{ color:var(--ink); } }
+  .vl-tab.active .med{ background:var(--accent); color:var(--hm-espresso); border-color:var(--accent);
+    box-shadow:0 0 0 4px rgba(201,176,120,.12), 0 0 22px 4px rgba(201,176,120,.35); }
+  .vl-tab.active .lbl{ color:var(--accent); }
+  .vl-tab.done .med{ border-color:var(--hm-gold-bright); }
+
+  /* --- journey content stage --- */
+  .vl-jrn-stage{ position:relative; flex:1 1 auto; min-height:0; }
+  .vl-pane{ position:absolute; inset:0; opacity:0; transform:translateY(10px); pointer-events:none;
+    transition:opacity .4s var(--ease-soft), transform .5s var(--ease-settle); }
+  .vl-pane.on{ opacity:1; transform:none; pointer-events:auto; }
+  .vl-split{ height:100%; display:grid; grid-template-columns:1.62fr 1fr; gap:clamp(.9rem,2vw,1.8rem); min-height:0; }
+
+  /* canvas (image / interactive) */
+  .vl-canvas{ position:relative; min-height:0; overflow:hidden; border-radius:var(--r-tile);
+    border:1px solid var(--hairline-soft); background:var(--hm-espresso-2); container-type:size;
+    display:grid; place-items:center; padding:clamp(.4rem,1vw,1rem); cursor:zoom-in; -webkit-tap-highlight-color:transparent; }
+  .vl-canvas.light{ background:#f3efe9; }
+  .vl-canvas.plain{ cursor:default; }
+  .vl-canvas img{ pointer-events:none; }   /* clicks fall through to canvas / badge, never the image box */
+  .vl-canvas .zbadge{ position:absolute; bottom:clamp(.6rem,1.2vw,1rem); right:clamp(.6rem,1.2vw,1rem); z-index:6;
+    width:36px; height:36px; border-radius:50%; display:grid; place-items:center;
+    background:rgba(20,15,13,.66); border:1px solid var(--hairline); color:var(--hm-cream); pointer-events:none; }
+  .vl-canvas .zbadge.zbtn{ pointer-events:auto; cursor:pointer; transition:background .25s, transform .16s var(--ease-soft); }
+  @media(hover:hover){ .vl-canvas .zbadge.zbtn:hover{ background:var(--accent); color:var(--hm-espresso); } }
+  .vl-canvas .zbadge.zbtn:active{ transform:scale(.94); }
+  .vl-canvas .zbadge svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; }
+  .vl-canvas .tagpill{ position:absolute; top:clamp(.6rem,1.2vw,1rem); left:clamp(.6rem,1.2vw,1rem); z-index:6;
+    display:inline-flex; align-items:center; gap:.5em; padding:.4em .85em; font-family:var(--font-label); font-size:9px;
+    letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--hm-cream);
+    background:rgba(20,15,13,.72); border:1px solid var(--hairline); border-radius:var(--r-pill); backdrop-filter:blur(6px); }
+  .vl-canvas .tagpill::before{ content:""; width:6px; height:6px; transform:rotate(45deg); background:var(--accent); }
+
+  /* aspect-locked fit box → % hotspots map 1:1 */
+  .vl-fit{ position:relative; }
+  .vl-fit img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block; }
+
+  /* spotlight cut-out (model views) */
+  .vl-cut{ position:absolute; inset:0; }
+  .vl-cut .cimg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .vl-cut.contain .cimg{ object-fit:contain; }
+  .vl-cut .dim{ position:absolute; inset:0; z-index:1; pointer-events:none; background:rgba(14,10,8,.72);
+    -webkit-mask-image:radial-gradient(ellipse var(--rx,30%) var(--ry,34%) at var(--mx,50%) var(--my,50%), transparent 44%, #000 84%);
+            mask-image:radial-gradient(ellipse var(--rx,30%) var(--ry,34%) at var(--mx,50%) var(--my,50%), transparent 44%, #000 84%);
+    opacity:0; animation:vl-focus 1s var(--ease-settle) .2s forwards; }
+  .vl-cut .glow{ position:absolute; inset:0; z-index:2; pointer-events:none; mix-blend-mode:screen;
+    background:radial-gradient(ellipse calc(var(--rx,30%) + 5%) calc(var(--ry,34%) + 5%) at var(--mx,50%) var(--my,50%), rgba(201,176,120,.26), transparent 70%);
+    opacity:0; animation:vl-focus 1.4s var(--ease-settle) .35s forwards; }
+  .vl-cut .ring{ position:absolute; z-index:3; transform:translate(-50%,-50%); left:var(--mx,50%); top:var(--my,50%);
+    width:calc(var(--rx,30%) * 2.1); height:calc(var(--ry,34%) * 2.05); border-radius:50%; pointer-events:none;
+    box-shadow:0 0 0 1px rgba(201,176,120,.3), 0 0 60px 8px rgba(201,176,120,.14) inset;
+    opacity:0; animation:vl-focus 1.5s var(--ease-settle) .5s forwards; }
+  @keyframes vl-focus{ to{ opacity:1 } }
+  .vl-cut .cframe{ position:absolute; z-index:4; inset:clamp(.5rem,1vw,.9rem); pointer-events:none;
+    border:1px solid var(--hm-gold-soft); opacity:.3; mix-blend-mode:screen; }
+  @media (prefers-reduced-motion:reduce){ .vl-cut .dim,.vl-cut .glow,.vl-cut .ring{ animation:none; opacity:1; } }
+
+  /* --- room hotspots (Earth plans) — gold medallion pins --- */
+  .vl-marks{ position:absolute; inset:0; z-index:5; pointer-events:none; }
+  .vl-hot{ position:absolute; transform:translate(-50%,-50%); pointer-events:auto; cursor:pointer; padding:0; border:0; background:none;
+    -webkit-tap-highlight-color:transparent; }
+  .vl-hot .med{ position:relative; width:clamp(24px,2vw,32px); height:clamp(24px,2vw,32px); display:grid; place-items:center;
+    border-radius:50%; border:1.5px solid var(--hm-gold-bright); background:rgba(24,17,14,.55); backdrop-filter:blur(3px);
+    font-family:var(--font-display); font-weight:500; font-size:clamp(.66rem,.9vw,.86rem); color:var(--hm-gold-bright);
+    box-shadow:0 2px 10px rgba(0,0,0,.45); transition:transform .25s var(--ease-soft), background .25s, color .25s, box-shadow .25s, opacity .25s;
+    opacity:.5; }
+  .vl-hot .med::after{ content:""; position:absolute; inset:-5px; border-radius:50%; border:1.5px solid var(--hm-gold-bright);
+    opacity:0; }
+  @media(hover:hover){ .vl-hot:hover .med{ opacity:1; transform:scale(1.14); background:var(--accent); color:var(--hm-espresso); } }
+  .vl-hot.hi .med{ opacity:1; background:var(--accent); color:var(--hm-espresso);
+    box-shadow:0 0 0 3px rgba(201,176,120,.16), 0 0 18px 3px rgba(201,176,120,.5); }
+  .vl-hot.hi .med::after{ opacity:.5; animation:vl-ping 2.2s var(--ease-soft) infinite; }
+  @keyframes vl-ping{ 0%{ transform:scale(1); opacity:.5 } 70%{ transform:scale(1.7); opacity:0 } 100%{ opacity:0 } }
+  .vl-hot.dim .med{ opacity:.18; }
+
+  /* aside (info column) */
+  .vl-aside{ min-height:0; display:flex; flex-direction:column; gap:clamp(.6rem,1.4vh,1rem); overflow:hidden; }
+  .vl-aside .lede{ font-family:var(--font-body); font-weight:300; font-size:var(--t-body); line-height:1.5; color:var(--ink-dim); margin:0; }
+  .vl-aside .lede b{ color:var(--ink); font-weight:400; }
+  .vl-steps{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.1rem; }
+  .vl-steps li{ display:flex; align-items:center; gap:.9em; padding:.5rem 0; border-bottom:1px solid var(--hairline-soft); }
+  .vl-steps li:last-child{ border-bottom:0; }
+  .vl-steps .n{ flex:0 0 auto; width:clamp(22px,1.8vw,28px); height:clamp(22px,1.8vw,28px); display:grid; place-items:center;
+    border-radius:50%; border:1px solid var(--hairline); font-family:var(--font-display); font-weight:400; font-size:.72rem;
+    color:var(--accent); font-variant-numeric:tabular-nums; }
+  .vl-steps .tx{ min-width:0; }
+  .vl-steps .tx b{ display:block; font-family:var(--font-display); font-weight:300; font-size:var(--t-body); color:var(--ink); line-height:1.1; }
+  .vl-steps .tx span{ font-family:var(--font-body); font-weight:300; font-size:var(--t-micro); color:var(--ink-dim); }
+
+  /* rows (facts) */
+  .vl-rows{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.05rem; }
+  .vl-rows li{ display:flex; align-items:baseline; justify-content:space-between; gap:1rem; padding:.5rem 0; border-bottom:1px solid var(--hairline-soft); }
+  .vl-rows li:last-child{ border-bottom:0; }
+  .vl-rows .k{ font-family:var(--font-label); font-size:var(--t-micro); letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--ink-dim); }
+  .vl-rows .v{ font-family:var(--font-display); font-weight:300; font-size:var(--t-body); color:var(--ink); text-align:right; }
+
+  /* interactive room legend (Earth plans aside) */
+  .vl-legend{ display:flex; flex-direction:column; gap:.6rem; min-height:0; }
+  .vl-legrow{ display:flex; flex-wrap:wrap; gap:.4rem; }
+  .vl-legchip{ display:inline-flex; align-items:center; gap:.5em; min-height:36px; padding:.32em .8em .32em .34em;
+    font-family:var(--font-label); font-size:var(--t-micro); letter-spacing:var(--track-wide); text-transform:uppercase;
+    color:var(--ink-dim); background:rgba(34,26,24,.45); border:1px solid var(--hairline-soft); border-radius:var(--r-pill);
+    cursor:pointer; -webkit-tap-highlight-color:transparent; transition:all .25s; }
+  .vl-legchip .b{ width:clamp(22px,1.7vw,26px); height:clamp(22px,1.7vw,26px); display:grid; place-items:center; border-radius:50%;
+    border:1px solid var(--hairline); font-family:var(--font-display); font-weight:500; font-size:.72rem; color:var(--accent); flex:0 0 auto; }
+  .vl-legchip:hover{ color:var(--ink); border-color:var(--hairline); }
+  .vl-legchip.active{ color:var(--hm-espresso); background:var(--accent); border-color:var(--accent); }
+  .vl-legchip.active .b{ border-color:rgba(34,26,24,.4); color:var(--hm-espresso); }
+  .vl-roomnote{ padding:clamp(.7rem,1.3vw,1rem); background:rgba(61,18,15,.2); border:1px solid var(--hairline-soft);
+    border-left:2px solid var(--accent); border-radius:var(--r-tile); }
+  .vl-roomnote b{ font-family:var(--font-label); font-size:var(--t-micro); letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--accent); }
+  .vl-roomnote p{ font-family:var(--font-body); font-weight:300; font-size:var(--t-body); line-height:1.45; color:var(--ink-dim); margin:.4rem 0 0; }
+
+  /* level switch (Sky plans) — medallion pills */
+  .vl-levels{ display:flex; gap:.6rem; }
+  .vl-lvl{ flex:1 1 0; display:flex; align-items:center; gap:.7em; min-height:52px; padding:.5em .9em;
+    background:rgba(34,26,24,.45); border:1px solid var(--hairline-soft); border-radius:var(--r-tile);
+    cursor:pointer; -webkit-tap-highlight-color:transparent; transition:all .25s; text-align:left; }
+  .vl-lvl .med{ flex:0 0 auto; width:clamp(30px,2.4vw,38px); height:clamp(30px,2.4vw,38px); display:grid; place-items:center; border-radius:50%;
+    border:1.5px solid var(--hm-gold-soft); background:rgba(24,17,14,.7); font-family:var(--font-display); font-weight:400;
+    font-size:clamp(.78rem,1vw,.98rem); color:var(--ink); transition:all .25s; }
+  .vl-lvl .tx b{ display:block; font-family:var(--font-display); font-weight:300; font-size:var(--t-body); color:var(--ink); line-height:1.05; }
+  .vl-lvl .tx span{ font-family:var(--font-label); font-size:8.5px; letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--ink-dim); }
+  .vl-lvl:hover{ border-color:var(--hairline); }
+  .vl-lvl.active{ border-color:var(--accent); background:rgba(184,156,109,.14); }
+  .vl-lvl.active .med{ background:var(--accent); color:var(--hm-espresso); border-color:var(--accent); box-shadow:0 0 16px 3px rgba(201,176,120,.3); }
+
+  /* features grid (Interiors) */
+  .vl-feat{ height:100%; min-height:0; display:grid; gap:clamp(.6rem,1.2vw,1rem);
+    grid-template-columns:repeat(3,1fr); grid-auto-rows:1fr; }
+  .vl-fcard{ position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; gap:.3rem;
+    padding:clamp(.8rem,1.4vw,1.3rem); min-height:0; background:rgba(34,26,24,.5);
+    border:1px solid var(--hairline-soft); border-radius:var(--r-tile); transition:border-color .3s, transform .3s, background .3s; }
+  @media(hover:hover){ .vl-fcard:hover{ border-color:var(--hairline); transform:translateY(-2px); background:rgba(40,30,27,.6); } }
+  .vl-fcard::before{ content:""; position:absolute; inset:0; background-image:var(--hm-lattice); background-size:120px; opacity:.03; pointer-events:none; }
+  .vl-fcard .ico{ width:clamp(24px,2vw,30px); height:clamp(24px,2vw,30px); margin-bottom:auto; color:var(--accent); }
+  .vl-fcard .ico svg{ width:100%; height:100%; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+  .vl-fcard b{ font-family:var(--font-display); font-weight:300; font-size:clamp(1.02rem,1.4vw,1.28rem); color:var(--ink); line-height:1.1; }
+  .vl-fcard span{ font-family:var(--font-body); font-weight:300; font-size:var(--t-micro); color:var(--ink-dim); line-height:1.4; }
+  .vl-fcard.wide{ grid-column:span 3; flex-direction:row; align-items:center; justify-content:flex-start; gap:1rem; }
+  .vl-fcard.wide .ico{ margin:0; }
+
+  .vl-note{ margin-top:auto; }
+  .vl-note-in{ padding:clamp(.6rem,1.1vw,.9rem); background:rgba(61,18,15,.18); border:1px solid var(--hairline-soft);
+    border-left:2px solid var(--accent); border-radius:var(--r-tile);
+    font-family:var(--font-label); font-size:8.5px; letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--ink-dim); line-height:1.7; }
+  .vl-note-in b{ color:var(--accent-text); font-weight:400; }
+  .vl-aside .actions{ margin-top:auto; display:flex; flex-wrap:wrap; gap:.6rem; padding-top:.4rem; }
+
+  /* ---------- responsive / portrait ---------- */
+  @media (max-width:1000px), (orientation:portrait){
+    .vl-duo{ grid-template-columns:1fr; grid-auto-rows:minmax(0,1fr); }
+    .vl-spine{ display:none; }
+    .vl-split{ grid-template-columns:1fr; grid-template-rows:1.4fr auto; }
+    .vl-aside{ overflow:visible; }
+    .vl-feat{ grid-template-columns:repeat(2,1fr); }
+    .vl-fcard.wide{ grid-column:span 2; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .vl-panel .media img{ animation:none !important; transform:scale(1.06) !important; }
+    .vl-panel .spot{ animation:none !important; opacity:.5; }
+    .vl-panel,.vl-panel.pressing{ transform:none !important; }
+    .vl-step,.vl-pane{ transition:opacity .12s linear; transform:none !important; }
+    .vl-spine .zdot{ animation:none; }
+  }
+</style>
+</head>
+<body data-screen="villas">
+  <div class="scr">
+    <header class="scr-top">
+      <button class="scr-back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg> Home</button>
+      <div class="scr-head">
+        <span class="k-eyebrow">Special Edition</span>
+        <h1 class="scr-name">The Villas</h1>
+      </div>
+      <div class="scr-side"><img class="scr-crest" src="../assets/logo-crest.webp" alt="" onerror="this.style.display='none'"></div>
+    </header>
+
+    <main class="scr-body">
+      <div class="scr-wrap fill">
+        <div class="vl-fill">
+
+          <nav class="vl-crumbs" id="vlCrumbs" aria-label="Villas navigation"></nav>
+
+          <div class="vl-stage" id="vlStage">
+
+            <!-- ===== STEP 1 · CHOOSER ===== -->
+            <section class="vl-step on" data-step="chooser">
+              <div class="in">
+                <div class="vl-ch-head">
+                  <img class="vl-ch-emblem" src="../assets/logo-crest.webp" alt="" onerror="this.style.display='none'">
+                  <span class="k-eyebrow">Special Edition · Form &amp; Function</span>
+                  <h2 class="vl-ch-title">Two Ways to Live Apart</h2>
+                  <p class="vl-ch-lede">An L-shaped built mass opens wide views; parking sinks below to keep the ground green. Two collections — grounded, and crowned. Choose a world to begin.</p>
+                </div>
+
+                <div class="vl-duo">
+
+                  <!-- EARTH -->
+                  <article class="vl-panel earth" data-collection="earth" tabindex="0" role="button" aria-label="Enter Earth Villas">
+                    <div class="media"><img src="../assets/screens/villa/earth-sketch.webp" alt="Earth Villas — grounded at the base of the tower"><span class="spot"></span></div>
+                    <span class="frame"></span>
+                    <span class="rep">Concept view</span>
+                    <div class="body">
+                      <div class="ptop">
+                        <span class="vl-tier">Grounded · Biophilic<br>Nature meets luxury</span>
+                        <div class="vl-count"><b>06</b><span>Villas</span></div>
+                      </div>
+                      <h3 class="vl-name">Earth Villas</h3>
+                      <p class="vl-tag">Where nature meets luxury.</p>
+                      <div class="vl-minis">
+                        <div class="vl-mini"><div class="thumb"><img src="../assets/screens/villa/earth-floorplan.webp" alt=""></div><small>The Plan</small></div>
+                        <div class="vl-mini"><div class="thumb"><img src="../assets/screens/villa/earth-concept.webp" alt=""></div><small>The Massing</small></div>
+                      </div>
+                      <span class="vl-go">Enter the ground <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                    </div>
+                  </article>
+
+                  <!-- SPINE -->
+                  <div class="vl-spine" aria-hidden="true">
+                    <img class="simg" src="../assets/screens/villa/villas-tower.webp" alt="">
+                    <span class="spinelbl">The Tower</span>
+                    <span class="zdot crown"></span>
+                    <span class="zdot base"></span>
+                    <span class="z crown"><span class="n">The Crown · 26F</span><span class="l">Sky</span></span>
+                    <span class="z base"><span class="n">The Base · G+1</span><span class="l">Earth</span></span>
+                  </div>
+
+                  <!-- SKY -->
+                  <article class="vl-panel sky" data-collection="sky" tabindex="0" role="button" aria-label="Enter Sky Villas">
+                    <div class="media"><img src="../assets/screens/villa/sky-render@2560.webp" alt="Sky Villas — the two-level penthouse crown at dusk"><span class="spot"></span></div>
+                    <span class="frame"></span>
+                    <span class="rep">Render</span>
+                    <div class="body">
+                      <div class="ptop">
+                        <span class="vl-tier">Elevated · Duplex<br>The crown, 26th floor</span>
+                        <div class="vl-count"><b>12</b><span>Villas</span></div>
+                      </div>
+                      <h3 class="vl-name">Sky Villas</h3>
+                      <p class="vl-tag">Rise above it all.</p>
+                      <div class="vl-minis">
+                        <div class="vl-mini"><div class="thumb dark"><img src="../assets/screens/villa/sky-floor-1.webp" alt=""></div><small>The Plan</small></div>
+                        <div class="vl-mini"><div class="thumb dark"><img src="../assets/screens/villa/sky-render@2560.webp" alt=""></div><small>The Crown</small></div>
+                      </div>
+                      <span class="vl-go">Rise to the crown <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                    </div>
+                  </article>
+
+                </div>
+
+                <div class="vl-foot">
+                  <span class="types"><b>Also at Highland Mayfields</b> <i>·</i> 3 BHK <i>·</i> 3+1 BHK <i>·</i> 4 BHK <i>·</i> 4+1 BHK</span>
+                  <span class="cav">A limited release · Price on request</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- ===== STEP 2 · JOURNEY (JS-populated) ===== -->
+            <section class="vl-step" data-step="journey">
+              <div class="in vl-jrn">
+                <div class="vl-jrn-top">
+                  <div class="vl-jrn-id">
+                    <span class="eb"><span class="dot"></span> <span id="jrnTier">Collection</span></span>
+                    <h2 id="jrnName">Villas</h2>
+                    <p class="poem" id="jrnPoem"></p>
+                  </div>
+                  <div class="vl-jrn-meta">
+                    <div class="vl-jm"><b id="jrnCount">0</b><span>Villas</span></div>
+                    <div class="vl-jm"><b id="jrnLevels">—</b><span id="jrnLevelsLbl">Levels</span></div>
+                    <button class="vl-switch" id="jrnSwitch" type="button">
+                      <svg viewBox="0 0 24 24"><path d="M17 3l4 4-4 4M21 7H8M7 21l-4-4 4-4M3 17h13"/></svg>
+                      <span id="jrnSwitchLbl">Other collection</span>
+                    </button>
+                  </div>
+                </div>
+
+                <nav class="vl-tabs" id="jrnTabs" aria-label="Collection sections"></nav>
+
+                <div class="vl-jrn-stage" id="jrnStage"></div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="_kit.js"></script>
+  <script>
+  (function(){
+    'use strict';
+    var $  = function(s,r){ return (r||document).querySelector(s); };
+    var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+    var A  = '../assets/screens/villa/';
+
+    /* ===== ICONS (inline, gold stroke) ===== */
+    var IC = {
+      bed:'<path d="M3 18v-6a2 2 0 012-2h14a2 2 0 012 2v6M3 18v2M21 18v2M3 14h18M7 10V7a1 1 0 011-1h4a1 1 0 011 1v3"/>',
+      bath:'<path d="M4 12h16v3a4 4 0 01-4 4H8a4 4 0 01-4-4v-3zM6 12V6a2 2 0 012-2 2 2 0 012 2M16 6h3"/>',
+      kitchen:'<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 3v6M12 3v6M8 6h4M15 6v4"/>',
+      stair:'<path d="M4 20h4v-4h4v-4h4v-4h4"/>',
+      lift:'<rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 8l3-3 3 3M9 16l3 3 3-3"/>',
+      terrace:'<path d="M3 20h18M5 20v-8h14v8M5 12l7-6 7 6M9 20v-4h6v4"/>',
+      view:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+      garden:'<path d="M12 22V12M12 12c0-3 2-5 5-5-1 3-2 5-5 5zM12 14c0-3-2-5-5-5 1 3 2 5 5 5zM6 22h12"/>',
+      car:'<path d="M5 16v2M19 16v2M3 13l1.5-4.5A2 2 0 016.4 7h11.2a2 2 0 011.9 1.5L21 13v3H3v-3zM6 13h.01M18 13h.01"/>',
+      key:'<circle cx="8" cy="8" r="4"/><path d="M11 11l8 8M17 17l2-2M15 15l2-2"/>',
+      height:'<path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/>',
+      club:'<path d="M4 21V9l8-6 8 6v12M9 21v-6h6v6M4 21h16"/>',
+      powder:'<circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/>',
+      leaf:'<path d="M5 21c0-8 5-14 14-14 0 9-6 14-14 14zM5 21c2-4 5-7 9-9"/>',
+      duplex:'<path d="M4 21V11l8-5 8 5v10M4 15h16M8 21v-4h3v4M13 21v-4h3v4"/>',
+      compass:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>'
+    };
+    function svg(k){ return '<svg viewBox="0 0 24 24">'+(IC[k]||'')+'</svg>'; }
+
+    /* ===== DATA (brochure only — kd Law 3) =====
+       Counts per brochure: Earth 6, Sky 12. */
+    var DATA = {
+      earth: {
+        key:'earth', name:'Earth Villas', tier:'Grounded · Biophilic', tag:'Where nature meets luxury.',
+        count:'06', levels:'G+1', levelsLbl:'Storeys',
+        poem:'“Nestled close to the ground they rise, a haven beneath the open skies.”',
+        heroImg:A+'earth-sketch.webp',
+        tabs:[
+          { id:'concept', n:'01', lbl:'Concept' },
+          { id:'model',   n:'02', lbl:'Massing' },
+          { id:'plans',   n:'03', lbl:'The Plan' },
+          { id:'interiors', n:'04', lbl:'Inside' }
+        ]
+      },
+      sky: {
+        key:'sky', name:'Sky Villas', tier:'Elevated · Duplex Penthouse', tag:'Rise above it all.',
+        count:'12', levels:'26F', levelsLbl:'Crown',
+        poem:'“High above, where the daylight streams, Sky Villas awaken unspoken dreams.”',
+        heroImg:A+'sky-render@2560.webp',
+        tabs:[
+          { id:'concept', n:'01', lbl:'Concept' },
+          { id:'model',   n:'02', lbl:'The Crown' },
+          { id:'plans',   n:'03', lbl:'Levels' },
+          { id:'interiors', n:'04', lbl:'Inside' }
+        ]
+      }
+    };
+
+    /* Earth room hotspots (% on earth-floorplan.webp fit-box, 1190×842).
+       Coordinates ring the badges already printed on the isometric drawing. */
+    var EARTH_HOT = [
+      {k:'1', x:36.1, y:70.7}, {k:'2', x:50.2, y:57.0}, {k:'3', x:72.4, y:75.2},
+      {k:'4', x:36.1, y:28.5}, {k:'5', x:50.2, y:14.6}, {k:'6', x:66.8, y:29.3},
+      {k:'K', x:65.7, y:76.0},
+      {k:'L', x:47.7, y:71.6}, {k:'L', x:47.7, y:30.3},
+      {k:'D', x:58.0, y:68.1},
+      {k:'B', x:50.2, y:48.9}, {k:'B', x:33.4, y:64.1}, {k:'B', x:70.4, y:85.5},
+      {k:'B', x:50.7, y:6.9},  {k:'B', x:33.4, y:21.7}, {k:'B', x:70.4, y:43.7}
+    ];
+    var EARTH_LEG = [
+      { keys:['1','2','3','4','5','6'], badge:'6', label:'Bedrooms', note:'Six spacious bedrooms — each with its own attached washroom.' },
+      { keys:['K'], badge:'K', label:'Kitchen', note:'A well-planned kitchen at the heart of the ground floor.' },
+      { keys:['L'], badge:'L', label:'Living', note:'Expansive living, opening to soaring double-height volumes.' },
+      { keys:['D'], badge:'D', label:'Drawing', note:'A separate, formal drawing area for receiving guests.' },
+      { keys:['B'], badge:'B', label:'Balconies', note:'Private balconies on both storeys, opening to the greens.' }
+    ];
+
+    var EARTH_FEATURES = [
+      { i:'bed',   t:'Six Bedrooms', s:'Each with an attached washroom.' },
+      { i:'powder',t:'Powder Room', s:'A guest powder room.' },
+      { i:'kitchen',t:'Kitchen', s:'A well-planned kitchen.' },
+      { i:'height',t:'Double-Height', s:'Soaring living volumes.' },
+      { i:'stair', t:'Internal Staircase', s:'Private G+1 connection.' },
+      { i:'garden',t:'Private Greens', s:'Your own garden.' },
+      { i:'key',   t:'Servant’s Room', s:'Own washroom + independent external entry.' },
+      { i:'car',   t:'Private Car Park', s:'Private access, private parking.' },
+      { i:'club',  t:'Clubhouse View', s:'Overlooks The Pearl.' }
+    ];
+    var SKY_FEATURES = [
+      { i:'lift',  t:'Private Lift', s:'Arrive directly into your home.' },
+      { i:'duplex',t:'Two Levels', s:'A duplex penthouse.' },
+      { i:'terrace',t:'Private Terraces', s:'Expansive open-air rooms.' },
+      { i:'view',  t:'Panoramic Views', s:'Green grounds + skyline.' },
+      { i:'bed',   t:'Bedrooms En-Suite', s:'Attached washrooms.' },
+      { i:'kitchen',t:'Kitchen', s:'A refined kitchen.' },
+      { i:'stair', t:'Internal Staircase', s:'Level to level, privately.' },
+      { i:'compass',t:'Balanced Zones', s:'Private + open social living.' },
+      { i:'height',t:'The Crown · 26F', s:'Perched at the very top.' }
+    ];
+    var SKY_LEVELS = [
+      { n:'01', name:'Lower Level', sub:'Arrival & Social', img:A+'sky-floor-1.webp',
+        holds:'You arrive by private lift into the social heart — living and dining that open onto balconies, a refined kitchen, and bedrooms with attached washrooms.' },
+      { n:'02', name:'Upper Level', sub:'Private & Terrace', img:A+'sky-floor-2.webp',
+        holds:'An internal staircase rises to the private tier — further bedrooms and expansive terraces where the living room simply steps out into the open sky.' }
+    ];
+
+    /* ===== STATE ===== */
+    var state = { step:'chooser', collection:null, tab:'concept', earthKey:null, skyLevel:0 };
+    var stage = $('#vlStage');
+    var steps = $$('.vl-step', stage);
+    function stepEl(name){ return steps.filter(function(s){ return s.getAttribute('data-step')===name; })[0]; }
+
+    var ORDER = ['chooser','journey'];
+    function showStep(name){
+      if(name===state.step) return;
+      var back = ORDER.indexOf(name) < ORDER.indexOf(state.step);
+      var incoming = stepEl(name), outgoing = stepEl(state.step);
+      incoming.classList.toggle('back', back);
+      outgoing.classList.toggle('back', !back);
+      incoming.classList.add('on');
+      outgoing.classList.remove('on');
+      state.step = name;
+      renderCrumbs();
+    }
+
+    /* ===== BREADCRUMB ===== */
+    function renderCrumbs(){
+      var nav=$('#vlCrumbs'); nav.innerHTML='';
+      var crumbs=[{ label:'The Villas', go:function(){ showStep('chooser'); } }];
+      if(state.step==='journey' && state.collection){
+        var c=DATA[state.collection];
+        crumbs.push({ label:c.name, go:function(){ showTab('concept'); } });
+        var t=c.tabs.filter(function(x){return x.id===state.tab;})[0];
+        if(t) crumbs.push({ label:t.lbl, cur:true });
+      }
+      crumbs.forEach(function(cr,i){
+        if(i){ var sep=document.createElement('span'); sep.className='vl-csep'; sep.textContent='›'; nav.appendChild(sep); }
+        var b=document.createElement('button'); b.type='button';
+        b.className='vl-crumb'+(cr.cur?' cur':' link'); b.textContent=cr.label;
+        if(!cr.cur && cr.go) b.addEventListener('click',cr.go);
+        nav.appendChild(b);
+      });
+    }
+
+    /* ===== OPEN A COLLECTION ===== */
+    function openCollection(key){
+      state.collection=key; state.earthKey=null; state.skyLevel=0;
+      var c=DATA[key];
+      $('#jrnTier').textContent=c.tier;
+      $('#jrnName').textContent=c.name;
+      $('#jrnPoem').textContent=c.poem;
+      $('#jrnCount').innerHTML=c.count;
+      $('#jrnLevels').textContent=c.levels;
+      $('#jrnLevelsLbl').textContent=c.levelsLbl;
+      $('#jrnSwitchLbl').textContent=(key==='earth'?'Sky Villas':'Earth Villas');
+      buildTabs(c);
+      showStep('journey');
+      showTab('concept');
+    }
+
+    function buildTabs(c){
+      var tabsEl=$('#jrnTabs'); tabsEl.innerHTML='';
+      c.tabs.forEach(function(t){
+        var b=document.createElement('button'); b.type='button'; b.className='vl-tab'; b.setAttribute('data-tab',t.id);
+        b.innerHTML='<span class="med">'+t.n+'</span><span class="lbl">'+t.lbl+'</span><span class="con"></span>';
+        b.addEventListener('click',function(){ showTab(t.id); });
+        tabsEl.appendChild(b);
+      });
+    }
+
+    /* ===== TAB SWITCH ===== */
+    function showTab(id){
+      state.tab=id;
+      var c=DATA[state.collection];
+      $$('.vl-tab', $('#jrnTabs')).forEach(function(b){
+        var bid=b.getAttribute('data-tab');
+        var idx=c.tabs.map(function(x){return x.id;});
+        b.classList.toggle('active', bid===id);
+        b.classList.toggle('done', idx.indexOf(bid) < idx.indexOf(id));
+      });
+      renderPane(id);
+      renderCrumbs();
+    }
+
+    /* ===== PANE RENDER ===== */
+    function renderPane(id){
+      var wrap=$('#jrnStage');
+      var built = PANES[state.collection][id]();
+      var pane=document.createElement('div'); pane.className='vl-pane'; pane.innerHTML=built.html;
+      // swap
+      var old=$('.vl-pane', wrap);
+      wrap.appendChild(pane);
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ pane.classList.add('on'); }); });
+      if(old){ old.classList.remove('on'); setTimeout(function(){ old.remove(); }, 460); }
+      if(built.mount) built.mount(pane);
+      if(window.HMKit&&HMKit.bindRipples) HMKit.bindRipples(pane);
+    }
+
+    /* ---- shared builders ---- */
+    function splitPane(canvasHtml, asideHtml){
+      return '<div class="vl-split">'+canvasHtml+'<div class="vl-aside">'+asideHtml+'</div></div>';
+    }
+    function zoomBadge(){ return '<span class="zbadge"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg></span>'; }
+    function lightboxOn(el, src, title){
+      el.addEventListener('click', function(){ if(window.HMKit&&HMKit.lightbox) HMKit.lightbox([{src:src, title:title}],0); });
+    }
+    function featGrid(list, note){
+      var h='<div class="vl-feat">';
+      list.forEach(function(f){ h+='<div class="vl-fcard"><span class="ico">'+svg(f.i)+'</span><b>'+f.t+'</b><span>'+f.s+'</span></div>'; });
+      h+='</div>';
+      return h;
+    }
+    function actions(collection){
+      return '<div class="actions">'+
+        '<button class="k-btn gold" data-reg type="button">Register Interest '+
+          '<svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>'+
+      '</div>';
+    }
+    function wireReg(pane){
+      $$('[data-reg]', pane).forEach(function(b){ b.addEventListener('click', openRegister); });
+    }
+
+    /* ===== PANE DEFINITIONS ===== */
+    var PANES = {
+      earth: {
+        concept: function(){
+          var canvas='<div class="vl-canvas light" id="cvw"><div class="vl-fit" style="aspect-ratio:1190/842;width:min(100%,calc(100cqh*1190/842))"><img src="'+A+'earth-concept.webp" alt="Earth Villa massing evolution + biophilic section"></div>'+
+            '<span class="tagpill">Massing evolution · biophilic section</span>'+zoomBadge()+'</div>';
+          var aside='<p class="lede"><b>Rooted in biophilic design.</b> The house is grown from the ground up — a flat plate becomes a built mass, then opens a courtyard so nature runs straight through the home.</p>'+
+            '<ul class="vl-steps">'+
+              '<li><span class="n">1</span><span class="tx"><b>The Plate</b><span>The grounded footprint.</span></span></li>'+
+              '<li><span class="n">2</span><span class="tx"><b>Built Mass</b><span>Volume rises on the base.</span></span></li>'+
+              '<li><span class="n">3</span><span class="tx"><b>Landscape</b><span>Greens draw up to the walls.</span></span></li>'+
+              '<li><span class="n">4</span><span class="tx"><b>The Courtyard</b><span>A void carved for light &amp; air.</span></span></li>'+
+              '<li><span class="n">5</span><span class="tx"><b>The Home</b><span>Indoor &amp; outdoor become one.</span></span></li>'+
+            '</ul>'+actions('earth');
+          return { html:splitPane(canvas,aside), mount:function(p){ lightboxOn($('#cvw',p), A+'earth-concept.webp', 'Earth Villa — massing evolution & biophilic section'); wireReg(p); } };
+        },
+        model: function(){
+          var canvas='<div class="vl-canvas light" id="cvw">'+
+            '<div class="vl-cut contain" style="--mx:52%;--my:73%;--rx:44%;--ry:24%">'+
+              '<img class="cimg" src="'+A+'earth-sketch.webp" alt="Earth Villas at the grounded base of the tower">'+
+              '<span class="dim"></span><span class="glow"></span><span class="ring"></span><span class="cframe"></span>'+
+            '</div>'+
+            '<span class="tagpill">The grounded base · villa zones lit</span>'+zoomBadge()+'</div>';
+          var aside='<p class="lede">Earth Villas sit at the <b>base of the tower</b> — the copper band you see is where they root into the ground plane, opening straight to private greens and overlooking The Pearl clubhouse.</p>'+
+            '<ul class="vl-rows">'+
+              row('Position','Base of the tower')+
+              row('Configuration','G+1 · two storeys')+
+              row('Character','Grounded · biophilic')+
+              row('Outlook','Overlooks the clubhouse')+
+            '</ul>'+
+            '<div class="vl-note"><div class="note-in vl-note-in"><b>Note</b> — Line-art context render; <b>villa zones highlighted</b> by the architect. Areas &amp; sanctioned drawings on request.</div></div>'+
+            actions('earth');
+          return { html:splitPane(canvas,aside), mount:function(p){ lightboxOn($('#cvw',p), A+'earth-sketch.webp', 'Earth Villas — grounded at the base of the tower'); wireReg(p); } };
+        },
+        plans: function(){
+          var hots='';
+          EARTH_HOT.forEach(function(h,i){
+            hots+='<button class="vl-hot" data-k="'+h.k+'" style="left:'+h.x+'%;top:'+h.y+'%" aria-label="'+h.k+'"><span class="med">'+h.k+'</span></button>';
+          });
+          var canvas='<div class="vl-canvas light plain" id="cvw"><div class="vl-fit" style="aspect-ratio:1190/842;width:min(100%,calc(100cqh*1190/842))">'+
+              '<img src="'+A+'earth-floorplan.webp" alt="Earth Villa — ground & first floor isometric plan">'+
+              '<div class="vl-marks">'+hots+'</div>'+
+            '</div>'+
+            '<span class="tagpill">Ground + First · G+1 isometric</span>'+
+            '<span class="zbadge zbtn" id="cvzoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg></span></div>';
+          var chips='';
+          EARTH_LEG.forEach(function(l,i){
+            chips+='<button class="vl-legchip" data-leg="'+i+'"><span class="b">'+l.badge+'</span>'+l.label+'</button>';
+          });
+          var aside='<div class="vl-legend">'+
+              '<p class="lede">Tap a room type to trace it across both storeys.</p>'+
+              '<div class="vl-legrow">'+chips+'</div>'+
+              '<div class="vl-roomnote" id="roomNote"><b>Six bedrooms</b><p>Each with its own attached washroom. Tap a room type above to highlight it on the plan.</p></div>'+
+            '</div>'+
+            '<div class="vl-note"><div class="note-in vl-note-in"><b>Legend</b> — 1–6 Bedrooms · K Kitchen · L Living · D Drawing · B Balcony · plus a separate servant’s room. Areas on request.</div></div>'+
+            actions('earth');
+          return { html:splitPane(canvas,aside), mount:mountEarthPlans };
+        },
+        interiors: function(){
+          return { html:'<div class="vl-pane-feat" style="height:100%;display:flex;flex-direction:column;gap:1rem;min-height:0">'+
+              featGrid(EARTH_FEATURES)+'</div>', mount:function(p){ wireReg(p); } };
+        }
+      },
+      sky: {
+        concept: function(){
+          var canvas='<div class="vl-canvas light" id="cvw"><div class="vl-fit" style="aspect-ratio:920/614;width:min(100%,calc(100cqh*920/614))"><img src="'+A+'sky-sketch-1.webp" alt="Sky Villa concept — the crown of the tower"></div>'+
+            '<span class="tagpill">Concept · the crown highlighted</span>'+zoomBadge()+'</div>';
+          var aside='<p class="lede"><b>Perched on the 26th floor.</b> The Sky Villas are the crown of the tower — a duplex of refined interiors that give onto private terraces, open to the green grounds and the skyline beyond.</p>'+
+            '<ul class="vl-steps">'+
+              '<li><span class="n">↑</span><span class="tx"><b>The Crown</b><span>Two levels at the very top.</span></span></li>'+
+              '<li><span class="n">◇</span><span class="tx"><b>Private + Open</b><span>Balanced social &amp; private zones.</span></span></li>'+
+              '<li><span class="n">▢</span><span class="tx"><b>The Terrace</b><span>Living steps out into the sky.</span></span></li>'+
+            '</ul>'+actions('sky');
+          return { html:splitPane(canvas,aside), mount:function(p){ lightboxOn($('#cvw',p), A+'sky-sketch-1.webp', 'Sky Villas — the crown of the tower'); wireReg(p); } };
+        },
+        model: function(){
+          var canvas='<div class="vl-canvas" id="cvw">'+
+            '<div class="vl-cut" style="--mx:36%;--my:52%;--rx:31%;--ry:36%">'+
+              '<img class="cimg" src="'+A+'sky-render@2560.webp" alt="Sky Villa penthouse crown at dusk">'+
+              '<span class="dim"></span><span class="glow"></span><span class="ring"></span><span class="cframe"></span>'+
+            '</div>'+
+            '<span class="tagpill">The crown · two-level penthouse at dusk</span>'+zoomBadge()+'</div>';
+          var aside='<p class="lede">A two-level crown wrapped in glass and a shading pergola — <b>warm interiors above the treeline</b>, private terraces reaching toward the sunset, the city falling quietly away below.</p>'+
+            '<ul class="vl-rows">'+
+              row('Position','The crown · 26th floor')+
+              row('Configuration','Duplex · two levels')+
+              row('Access','Private lift')+
+              row('Outlook','Panoramic · green + skyline')+
+            '</ul>'+
+            '<div class="vl-note"><div class="note-in vl-note-in"><b>Note</b> — Artist’s render. Final finishes, terrace layouts &amp; areas confirmed against sanctioned drawings on request.</div></div>'+
+            actions('sky');
+          return { html:splitPane(canvas,aside), mount:function(p){ lightboxOn($('#cvw',p), A+'sky-render@2560.webp', 'Sky Villas — the two-level crown at dusk'); wireReg(p); } };
+        },
+        plans: function(){
+          var lv=SKY_LEVELS[state.skyLevel];
+          var canvas='<div class="vl-canvas light plain" id="cvw"><div class="vl-fit" id="skyFit" style="width:100%;height:100%"><img id="skyPlanImg" src="'+lv.img+'" alt="'+lv.name+' plan"></div>'+
+            '<span class="tagpill" id="skyTag">'+lv.name+' · isometric</span>'+
+            '<span class="zbadge zbtn" id="cvzoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg></span></div>';
+          var pills='';
+          SKY_LEVELS.forEach(function(l,i){
+            pills+='<button class="vl-lvl'+(i===state.skyLevel?' active':'')+'" data-lvl="'+i+'"><span class="med">'+l.n+'</span><span class="tx"><b>'+l.name+'</b><span>'+l.sub+'</span></span></button>';
+          });
+          var aside='<p class="lede">A duplex — switch between the two levels.</p>'+
+            '<div class="vl-levels">'+pills+'</div>'+
+            '<div class="vl-roomnote" id="lvlNote"><b>'+lv.name+'</b><p>'+lv.holds+'</p></div>'+
+            '<div class="vl-note"><div class="note-in vl-note-in"><b>Note</b> — Representative level layouts; internal staircase connects the two. Room counts, areas &amp; orientation confirmed in person.</div></div>'+
+            actions('sky');
+          return { html:splitPane(canvas,aside), mount:mountSkyPlans };
+        },
+        interiors: function(){
+          return { html:'<div class="vl-pane-feat" style="height:100%;display:flex;flex-direction:column;gap:1rem;min-height:0">'+
+              featGrid(SKY_FEATURES)+'</div>', mount:function(p){ wireReg(p); } };
+        }
+      }
+    };
+
+    function row(k,v){ return '<li><span class="k">'+k+'</span><span class="v">'+v+'</span></li>'; }
+
+    /* ===== EARTH PLANS interactivity ===== */
+    function mountEarthPlans(pane){
+      var hots=$$('.vl-hot', pane);
+      var chips=$$('.vl-legchip', pane);
+      var note=$('#roomNote', pane);
+      function clearHi(){ hots.forEach(function(h){ h.classList.remove('hi','dim'); }); }
+      function activate(i){
+        state.earthKey=i;
+        chips.forEach(function(c,ci){ c.classList.toggle('active', ci===i); });
+        var leg=EARTH_LEG[i];
+        clearHi();
+        hots.forEach(function(h){
+          if(leg.keys.indexOf(h.getAttribute('data-k'))>=0) h.classList.add('hi'); else h.classList.add('dim');
+        });
+        note.innerHTML='<b>'+leg.label+'</b><p>'+leg.note+'</p>';
+      }
+      chips.forEach(function(c,i){ c.addEventListener('click',function(){ if(state.earthKey===i){ // toggle off
+        state.earthKey=null; c.classList.remove('active'); clearHi(); note.innerHTML='<b>Six bedrooms</b><p>Each with its own attached washroom. Tap a room type above to highlight it on the plan.</p>'; }
+        else activate(i); }); });
+      // clicking a hotspot selects its legend group
+      hots.forEach(function(h){ h.addEventListener('click',function(){ var k=h.getAttribute('data-k');
+        var gi=EARTH_LEG.map(function(l){return l.keys.indexOf(k)>=0;}).indexOf(true); if(gi>=0) activate(gi); }); });
+      // zoom
+      var zoom=$('#cvzoom',pane); if(zoom) zoom.addEventListener('click',function(){ if(window.HMKit&&HMKit.lightbox)
+        HMKit.lightbox([{src:A+'earth-floorplan.webp', title:'Earth Villa — Ground & First floor plan'}],0); });
+      wireReg(pane);
+    }
+
+    /* ===== SKY PLANS interactivity ===== */
+    function mountSkyPlans(pane){
+      var pills=$$('.vl-lvl', pane);
+      var img=$('#skyPlanImg', pane);
+      var tag=$('#skyTag', pane);
+      var note=$('#lvlNote', pane);
+      pills.forEach(function(p,i){ p.addEventListener('click',function(){
+        state.skyLevel=i;
+        pills.forEach(function(x,xi){ x.classList.toggle('active', xi===i); });
+        var lv=SKY_LEVELS[i];
+        img.style.opacity='0';
+        setTimeout(function(){ img.src=lv.img; img.style.opacity=''; },180);
+        tag.textContent=lv.name+' · isometric';
+        note.innerHTML='<b>'+lv.name+'</b><p>'+lv.holds+'</p>';
+      }); });
+      img.style.transition='opacity .3s var(--ease-soft)';
+      var zoom=$('#cvzoom',pane); if(zoom) zoom.addEventListener('click',function(){ if(window.HMKit&&HMKit.lightbox)
+        HMKit.lightbox([{src:SKY_LEVELS[state.skyLevel].img, title:'Sky Villa — '+SKY_LEVELS[state.skyLevel].name}],0); });
+      wireReg(pane);
+    }
+
+    /* ===== REGISTER INTEREST (floating window) ===== */
+    function openRegister(){
+      var c=DATA[state.collection];
+      var html='<p class="k-lede" style="margin-bottom:.9rem">'+c.tag+' '+c.poem+'</p>'+
+        '<ul style="list-style:none;padding:0;margin:0 0 1rem;display:flex;flex-direction:column;gap:.55rem">'+
+          fRow('Collection', c.name)+
+          fRow('Character', c.tier)+
+          fRow('Configuration', (c.key==='earth'?'G+1 · two storeys':'Duplex · two levels'))+
+          fRow('Villas', c.count, true)+
+        '</ul>'+
+        '<span class="k-eyebrow">To register your interest</span>'+
+        '<p class="k-lede" style="margin-top:.5rem">Floor plans, areas, availability and pricing for the Special Edition villas are shared in person. Please speak with our team at the Highland Mayfields experience centre, Sector 118, Mohali, to arrange a private viewing.</p>'+
+        '<p class="k-lede" style="font-size:var(--t-micro);margin-top:.8rem">A limited release. RERA · PBRERA-SAS80-PR1041.; layouts &amp; areas subject to sanctioned drawings.</p>';
+      if(window.HMKit&&HMKit.openFloat) HMKit.openFloat(c.name+' · Register Interest', html);
+    }
+    function fRow(k,v,last){
+      return '<li style="display:flex;justify-content:space-between;gap:1rem;'+(last?'':'border-bottom:1px solid var(--hairline-soft);padding-bottom:.5rem')+'">'+
+        '<span style="color:var(--ink-dim)">'+k+'</span>'+
+        '<b style="font-family:var(--font-display);font-weight:300;color:var(--ink);text-align:right">'+v+'</b></li>';
+    }
+
+    /* ===== CHOOSER wiring (cinematic press + enter) ===== */
+    $$('.vl-panel').forEach(function(ch){
+      var key=ch.getAttribute('data-collection');
+      ch.addEventListener('click',function(){ openCollection(key); });
+      ch.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openCollection(key); } });
+      function press(e){
+        var r=ch.getBoundingClientRect(), x=(e.clientX!=null?e.clientX:r.left+r.width/2), y=(e.clientY!=null?e.clientY:r.top+r.height/2);
+        ch.style.setProperty('--ox', Math.max(0,Math.min(100,(x-r.left)/r.width*100))+'%');
+        ch.style.setProperty('--oy', Math.max(0,Math.min(100,(y-r.top)/r.height*100))+'%');
+        ch.classList.add('pressing');
+      }
+      function release(){ ch.classList.remove('pressing'); }
+      ch.addEventListener('pointerdown',press);
+      ['pointerup','pointerleave','pointercancel'].forEach(function(ev){ ch.addEventListener(ev,release); });
+    });
+    $('#jrnSwitch').addEventListener('click',function(){ openCollection(state.collection==='earth'?'sky':'earth'); });
+
+    renderCrumbs();
+
+    /* ===== SCREEN INFO (FAB) ===== */
+    window.HM_SCREEN_INFO = { title:'The Villas · Special Edition', html:
+      '<p class="k-lede">A collection apart — Earth Villas grounded at the base of the tower, Sky Villas crowning the top. Choose a collection, then walk its concept, massing, plans and interiors.</p>'+
+      '<ul style="list-style:none;padding:0;margin:.7rem 0;display:flex;flex-direction:column;gap:.5rem">'+
+      '<li>Earth Villas — grounded, biophilic · G+1 · 6 bedrooms en-suite + servant’s room · private garden</li>'+
+      '<li>Sky Villas — the crown, 26th floor · duplex penthouse · private lift + terraces · panoramic views</li>'+
+      '<li>Interactive — Earth room hotspots (1–6 · K · L · D · B) · Sky level switch (lower / upper)</li>'+
+      '<li>Price on request · RERA PBRERA-SAS80-PR1041</li></ul>'+
+      '<p class="k-lede" style="font-size:var(--t-micro)">Earth Villas: 6 · Sky Villas: 12 (per the project brochure). Renders &amp; line-art are the architect’s; villa-specific areas &amp; sanctioned plans shared in person.</p>' };
+
+  })();
+  </script>
+</body>
+</html>
