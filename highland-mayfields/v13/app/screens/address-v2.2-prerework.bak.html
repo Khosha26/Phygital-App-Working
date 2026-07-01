@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>The Address — Highland Mayfields</title>
+<link rel="stylesheet" href="../styles/brand.css">
+<link rel="stylesheet" href="../assets/css/hm-tools.css">
+<link rel="stylesheet" href="_kit.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  /* ---- full-screen live map = the frame ---- */
+  .addr-map{ position:relative; flex:1 1 auto; min-height:0; width:100%;
+    border:1px solid var(--hairline); border-radius:var(--r-tile); overflow:hidden; background:#13100e; }
+  #map{ position:absolute; inset:0; background:#13100e; }
+  .leaflet-container{ background:#13100e; font-family:var(--font-body); }
+  .leaflet-control-zoom{ margin:14px !important; }
+  .leaflet-control-zoom a{ background:rgba(26,20,18,.9); color:var(--hm-gold-bright); border-color:var(--hairline-soft); }
+  .leaflet-control-zoom a:hover{ background:rgba(48,36,32,.95); }
+  .leaflet-popup-content-wrapper{ background:rgba(26,20,18,.96); color:var(--ink); border:1px solid var(--hairline); border-radius:6px; box-shadow:0 16px 40px rgba(0,0,0,.5); }
+  .leaflet-popup-tip{ background:rgba(26,20,18,.96); border:1px solid var(--hairline); }
+  .leaflet-popup-content{ margin:.7em .9em; font-family:var(--font-body); }
+  .pop-name{ font-family:var(--font-display); font-weight:400; font-size:1.05rem; color:var(--ink); }
+  .pop-cat{ font-family:var(--font-label); font-size:9px; letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--accent); display:block; margin-top:.2em; }
+  .pop-note{ color:var(--ink-dim); font-size:.85rem; margin-top:.35em; }
+
+  /* custom markers */
+  .mk{ display:grid; place-items:center; }
+  .mk-dot{ width:14px; height:14px; border-radius:50%; border:2px solid rgba(20,15,13,.8); box-shadow:0 2px 6px rgba(0,0,0,.5); transform-origin:center bottom; }
+  .mk-proj{ width:26px; height:26px; }
+  .mk-proj .ring{ position:absolute; width:26px; height:26px; border-radius:50%; border:2px solid var(--hm-copper); animation:mk-pulse 2.4s ease-out infinite; }
+  .mk-proj .core{ width:16px; height:16px; border-radius:50%; background:radial-gradient(circle at 40% 35%,var(--hm-copper-hi),var(--hm-copper)); border:2px solid rgba(20,15,13,.7); box-shadow:0 0 14px rgba(222,155,138,.7); position:relative; }
+  @keyframes mk-pulse{ 0%{ transform:scale(.7); opacity:.9 } 100%{ transform:scale(2.6); opacity:0 } }
+  /* choreography: emphatic project flare + target bounce */
+  @keyframes proj-emph{ 0%{ transform:scale(1) } 32%{ transform:scale(1.55) } 100%{ transform:scale(1) } }
+  .mk.flare .core{ animation:proj-emph .6s var(--ease-soft); }
+  .mk.flare .ring{ animation:mk-pulse 1s ease-out 2; }
+  @keyframes mk-bounce{ 0%{ transform:translateY(0) scale(1) } 28%{ transform:translateY(-12px) scale(1.28) } 55%{ transform:translateY(0) scale(1.05) } 78%{ transform:translateY(-4px) } 100%{ transform:translateY(0) scale(1) } }
+  .mk.bounce .mk-dot{ animation:mk-bounce .75s var(--ease-soft); box-shadow:0 0 0 4px rgba(207,184,141,.28),0 2px 6px rgba(0,0,0,.5); }
+  /* animated connection line (SVG path) */
+  .flow-line{ fill:none; stroke-linecap:round; stroke-linejoin:round;
+    filter:drop-shadow(0 0 5px rgba(207,184,141,.6)); pointer-events:none; }
+
+  /* offline fallback */
+  .map-fallback{ position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:1rem; text-align:center; padding:2rem;
+    background:rgba(20,15,13,.92); z-index:700; }
+  .map-fallback.on{ display:flex; }
+  .map-fallback img{ max-width:72%; max-height:60%; border:1px solid var(--hairline); border-radius:var(--r-tile); }
+
+  /* ---- ONE right-side glass panel: everything lives here ---- */
+  .ov-panel{ position:absolute; z-index:600; top:clamp(10px,1.4vw,18px); right:clamp(10px,1.4vw,18px);
+    bottom:clamp(118px,15vh,156px); width:min(360px,40vw); display:flex; flex-direction:column;
+    background:rgba(26,20,18,.86); border:1px solid var(--hairline-soft); border-radius:var(--r-tile);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); box-shadow:0 20px 50px rgba(0,0,0,.45); overflow:hidden; }
+  .ovp-body{ flex:1 1 auto; min-height:0; overflow:auto; -webkit-overflow-scrolling:touch;
+    padding:clamp(.95rem,1.5vw,1.35rem) clamp(.95rem,1.5vw,1.3rem) clamp(1rem,1.6vw,1.4rem); }
+  .ovp-body::-webkit-scrollbar{ width:6px; } .ovp-body::-webkit-scrollbar-thumb{ background:var(--hairline-soft); border-radius:3px; }
+  .ovp-sec{ margin-top:clamp(.9rem,1.6vh,1.25rem); }
+  .ovp-sec:first-child{ margin-top:0; }
+  .ovp-panel-title{ font-size:clamp(1.15rem,1.9vw,1.7rem); margin:.18em 0 0; line-height:1.06; }
+  .ovp-lede{ font-size:clamp(.82rem,.95vw,1rem); line-height:1.55; margin-top:.45rem; }
+
+  /* layer toggles */
+  .ov-toggles{ display:flex; gap:.4rem; flex-wrap:wrap; }
+  .map-toggle{ font-family:var(--font-label); font-size:9px; letter-spacing:var(--track-wide); text-transform:uppercase;
+    color:var(--ink-dim); background:rgba(34,26,24,.55); border:1px solid var(--hairline-soft); border-radius:var(--r-pill);
+    padding:.55em 1.05em; cursor:pointer; min-height:34px; -webkit-tap-highlight-color:transparent; transition:all .25s; }
+  .map-toggle:hover{ color:var(--ink); border-color:var(--hairline); }
+  .map-toggle.active{ color:var(--hm-espresso); background:var(--accent); border-color:var(--accent); }
+
+  /* filter chips (double as legend via colour swatch) */
+  .ov-filter{ display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.6rem; }
+  .flt{ display:inline-flex; align-items:center; gap:.5em; min-height:32px; padding:.4em .85em;
+    font-family:var(--font-label); font-size:9px; letter-spacing:var(--track-wide); text-transform:uppercase;
+    color:var(--ink-dim); background:rgba(34,26,24,.5); border:1px solid var(--hairline-soft); border-radius:var(--r-pill);
+    cursor:pointer; -webkit-tap-highlight-color:transparent; transition:all .25s; white-space:nowrap; }
+  .flt:hover{ color:var(--ink); border-color:var(--hairline); }
+  .flt .sw{ width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
+  .flt.active{ color:var(--ink); border-color:var(--hairline); background:rgba(48,36,32,.6); }
+  .flt.off{ opacity:.4; }
+  .flt-all.active{ color:var(--hm-espresso); background:var(--accent); border-color:var(--accent); }
+
+  /* video thumbnail → centered floating player */
+  .ov-vid{ position:relative; display:block; width:100%; aspect-ratio:16/9; border-radius:var(--r-tile); overflow:hidden;
+    border:1px solid var(--hairline-soft); background:#000; cursor:pointer; padding:0; -webkit-tap-highlight-color:transparent; }
+  .ov-vid img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform .8s var(--ease-soft); }
+  @media(hover:hover){ .ov-vid:hover img{ transform:scale(1.05); } }
+  .ov-vid .vshade{ position:absolute; inset:0; background:linear-gradient(transparent 35%,rgba(14,11,10,.82)); }
+  .ov-vid .vplay{ position:absolute; left:.7rem; bottom:.55rem; right:.7rem; display:flex; align-items:center; gap:.55em; }
+  .ov-vid .vplay .pb{ width:30px; height:30px; flex:0 0 auto; border-radius:50%; background:rgba(34,26,24,.65);
+    border:1px solid var(--accent); display:grid; place-items:center; backdrop-filter:blur(4px); }
+  .ov-vid .vplay .pb::after{ content:""; border-left:10px solid var(--hm-gold-bright); border-top:6px solid transparent; border-bottom:6px solid transparent; margin-left:3px; }
+  .ov-vid .vplay b{ font-family:var(--font-label); font-weight:400; font-size:9px; letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--ink); }
+
+  /* connectivity list */
+  .conn-list{ list-style:none; margin:.45rem 0 0; padding:0; display:flex; flex-direction:column; }
+  .conn-list li{ display:flex; align-items:center; gap:.7em; padding:.55em 0; border-bottom:1px solid var(--hairline-soft);
+    font-size:clamp(.82rem,.95vw,1rem); color:var(--ink); cursor:pointer; transition:color .2s; }
+  .conn-list li:last-child{ border-bottom:0; }
+  .conn-list li:hover{ color:var(--hm-gold-bright); }
+  .conn-list li .sw{ width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+  .conn-list li small{ margin-left:auto; color:var(--ink-dim); font-family:var(--font-label); font-size:9px; letter-spacing:var(--track-wide); text-transform:uppercase; }
+
+  /* centered floating video player */
+  .vid-player{ position:relative; width:100%; aspect-ratio:16/9; background:#000; border-radius:var(--r-tile); overflow:hidden; }
+  .vid-player video{ width:100%; height:100%; object-fit:cover; display:block; }
+
+  /* keep the sales-tools FAB above the panel */
+  .fab{ z-index:640; }
+
+  @media (orientation:portrait){ .ov-panel{ width:min(46vw,360px); } }
+</style>
+</head>
+<body data-screen="address">
+  <div class="scr">
+    <header class="scr-top">
+      <button class="scr-back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg> Home</button>
+      <div class="scr-head">
+        <span class="k-eyebrow">Sector 118 · Airport Road · Mohali</span>
+        <h1 class="scr-name">The Address</h1>
+      </div>
+      <div class="scr-side"><img class="scr-crest" src="../assets/logo-crest.webp" alt="" onerror="this.style.display='none'"></div>
+    </header>
+
+    <main class="scr-body">
+      <div class="scr-wrap fill">
+        <!-- FULL-SCREEN live map; one panel floats over the right edge -->
+        <div class="addr-map" data-reveal>
+          <div id="map"></div>
+
+          <aside class="ov-panel" data-reveal data-d="160ms">
+            <div class="ovp-body">
+              <!-- narrative -->
+              <div class="ovp-sec">
+                <span class="k-eyebrow">Where it stands</span>
+                <h2 class="k-title ovp-panel-title">Between three cities,<br>on the Airport Road</h2>
+                <div class="k-rule"></div>
+                <p class="k-lede ovp-lede">Sector 118 sits on the 200-ft PR-7 Airport Road — woven between Chandigarh, Mohali &amp; New Chandigarh, with direct airport access via PR-7 &amp; PR-6.</p>
+              </div>
+
+              <!-- map layers -->
+              <div class="ovp-sec">
+                <span class="k-eyebrow">Map layer</span>
+                <div class="ov-toggles" style="margin-top:.55rem">
+                  <button class="map-toggle active" id="tStreets" type="button">Vector</button>
+                  <button class="map-toggle" id="tSat" type="button">Satellite</button>
+                  <button class="map-toggle" id="tFit" type="button">Fit all</button>
+                </div>
+              </div>
+
+              <!-- category filter (= legend) -->
+              <div class="ovp-sec">
+                <span class="k-eyebrow">Filter landmarks</span>
+                <div class="ov-filter" id="filter"></div>
+              </div>
+
+              <!-- location tour -->
+              <div class="ovp-sec">
+                <span class="k-eyebrow">Location tour</span>
+                <button class="ov-vid" id="locVideo" type="button" style="margin-top:.55rem" aria-label="Play location &amp; construction tour">
+                  <img src="../assets/screens/location-tour-poster.webp" alt="Location &amp; construction tour" onerror="this.style.display='none'">
+                  <span class="vshade"></span>
+                  <span class="vplay"><span class="pb"></span><b>Play tour</b></span>
+                </button>
+              </div>
+
+              <!-- around the address -->
+              <div class="ovp-sec">
+                <span class="k-eyebrow">Around the address <span id="connCnt" style="color:var(--ink-dim)"></span></span>
+                <ul class="conn-list" id="connList"></ul>
+              </div>
+            </div>
+          </aside>
+
+          <!-- offline fallback -->
+          <div class="map-fallback" id="mapFallback">
+            <span class="k-eyebrow">Live map offline</span>
+            <img src="../assets/screens/location-map.webp" alt="Location map">
+            <p class="k-lede" style="max-width:46ch">Connect to the internet for the live vector &amp; satellite map. Showing the official location plan.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="_kit.js"></script>
+  <script>
+  (function(){
+    window.HM_SCREEN_INFO = { title:'The Address', html:
+      '<p class="k-lede">Highland Mayfields · Sector 118, Airport Road (PR-7), Mohali.</p>'+
+      '<ul style="list-style:none;padding:0;margin:.6rem 0;display:flex;flex-direction:column;gap:.5rem">'+
+      '<li>Direct airport access via PR-7 &amp; PR-6</li><li>Between Chandigarh, Mohali &amp; New Chandigarh</li>'+
+      '<li>Only high-rise development in Sector 118</li><li>RERA · PBRERA-SAS80-PR1041</li></ul>' };
+
+    fetch('../data/landmarks.json').then(function(r){return r.json();}).then(initMap).catch(showFallback);
+
+    var map, streets, sat, groups={}, allMarkers=[], activeLine=null;
+    function showFallback(){ var f=document.getElementById('mapFallback'); if(f) f.classList.add('on'); }
+
+    /* quadratic-bezier arc points between two latlngs (gentle bow) */
+    function arc(a,b){
+      var dlat=b[0]-a[0], dlng=b[1]-a[1];
+      var clat=(a[0]+b[0])/2 + dlng*0.18, clng=(a[1]+b[1])/2 - dlat*0.18;
+      var pts=[], n=44;
+      for(var i=0;i<=n;i++){ var t=i/n, u=1-t;
+        pts.push([ u*u*a[0]+2*u*t*clat+t*t*b[0], u*u*a[1]+2*u*t*clng+t*t*b[1] ]); }
+      return pts;
+    }
+
+    /* draw ONE progressive line (animate stroke-dashoffset), clearing the previous */
+    function drawFlow(from,to,color,done){
+      if(activeLine){ map.removeLayer(activeLine); activeLine=null; }
+      activeLine=L.polyline(arc(from,to),{ color:color||'#cfb88d', weight:2.6, opacity:.95, className:'flow-line' }).addTo(map);
+      var path=activeLine._path;
+      if(path && path.getTotalLength){
+        var len=path.getTotalLength();
+        path.style.strokeDasharray=len; path.style.strokeDashoffset=len;
+        path.getBoundingClientRect(); // force reflow before transition
+        path.style.transition='stroke-dashoffset .82s cubic-bezier(.16,1,.3,1)';
+        path.style.strokeDashoffset='0';
+      }
+      setTimeout(done||function(){},840);
+    }
+
+    function initMap(D){
+      if(typeof L==='undefined'){ showFallback(); return; }
+      map=L.map('map',{ zoomControl:true, attributionControl:false, scrollWheelZoom:true }).setView([D.project.lat,D.project.lng], D.zoom||13);
+      streets=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
+      sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19});
+      streets.addTo(map);
+      var tileErr=0; function onErr(){ tileErr++; if(tileErr>6) showFallback(); }
+      streets.on('tileerror',onErr); sat.on('tileerror',onErr);
+      if(!navigator.onLine) showFallback();
+
+      var projLL=[D.project.lat,D.project.lng];
+      var projIcon=L.divIcon({className:'mk', html:'<div class="mk-proj"><span class="ring"></span><span class="core"></span></div>', iconSize:[26,26], iconAnchor:[13,13]});
+      var pm=L.marker(projLL,{icon:projIcon,zIndexOffset:1000}).addTo(map);
+      pm.bindPopup('<span class="pop-name">'+D.project.name+'</span><span class="pop-cat">The Address</span><div class="pop-note">'+D.project.note+'</div>');
+
+      var catColor={}; D.categories.forEach(function(c){ catColor[c.id]=c.color; groups[c.id]=L.layerGroup().addTo(map); });
+      var filter=document.getElementById('filter'), connList=document.getElementById('connList');
+
+      /* ---------- cinematic focus choreography ---------- */
+      function focusLandmark(p,m,html){
+        map.closePopup();
+        // (a) project marker flares first
+        if(pm._icon){ pm._icon.classList.remove('flare'); void pm._icon.offsetWidth; pm._icon.classList.add('flare'); }
+        // (b) animated line draws outward, then (c) target bounces + popup + frame both
+        setTimeout(function(){
+          drawFlow(projLL,[p.lat,p.lng], catColor[p.cat], function(){
+            if(m._icon){ m._icon.classList.remove('bounce'); void m._icon.offsetWidth; m._icon.classList.add('bounce'); }
+            L.popup({offset:[0,-8]}).setLatLng([p.lat,p.lng]).setContent(html).openOn(map);
+            try{ map.flyToBounds(L.featureGroup([pm,m]).getBounds().pad(.45),{duration:1.0,maxZoom:15}); }catch(e){}
+          });
+        },330);
+      }
+
+      /* ---------- filter chips (also serve as legend) ---------- */
+      var state={}, catChips=[]; D.categories.forEach(function(c){ state[c.id]=true; });
+      var allChip=document.createElement('button'); allChip.type='button'; allChip.className='flt flt-all active'; allChip.textContent='All';
+      filter.appendChild(allChip);
+      D.categories.forEach(function(c){
+        var ch=document.createElement('button'); ch.type='button'; ch.className='flt active'; ch.dataset.cat=c.id;
+        ch.innerHTML='<span class="sw" style="background:'+c.color+'"></span>'+c.name;
+        ch.addEventListener('click',function(){ state[c.id]=!state[c.id]; refresh(); });
+        filter.appendChild(ch); catChips.push(ch);
+      });
+      allChip.addEventListener('click',function(){ D.categories.forEach(function(c){ state[c.id]=true; }); refresh(); });
+      function refresh(){
+        D.categories.forEach(function(c){
+          var on=state[c.id];
+          if(on && !map.hasLayer(groups[c.id])) groups[c.id].addTo(map);
+          if(!on && map.hasLayer(groups[c.id])) map.removeLayer(groups[c.id]);
+        });
+        Array.prototype.forEach.call(connList.children,function(li){ li.style.display = state[li.dataset.cat]?'flex':'none'; });
+        catChips.forEach(function(ch){ var on=state[ch.dataset.cat]; ch.classList.toggle('active',on); ch.classList.toggle('off',!on); });
+        allChip.classList.toggle('active', D.categories.every(function(c){ return state[c.id]; }));
+      }
+
+      /* ---------- markers + connectivity list ---------- */
+      D.landmarks.forEach(function(p){
+        var col=catColor[p.cat]||'#cfb88d';
+        var html='<span class="pop-name">'+p.name+'</span><span class="pop-cat">'+p.cat+'</span>'+(p.note?'<div class="pop-note">'+p.note+'</div>':'');
+        var ic=L.divIcon({className:'mk', html:'<div class="mk-dot" style="background:'+col+'"></div>', iconSize:[14,14], iconAnchor:[7,7]});
+        var m=L.marker([p.lat,p.lng],{icon:ic}).addTo(groups[p.cat]);
+        m.on('click',function(){ focusLandmark(p,m,html); });
+        allMarkers.push(m);
+        var li=document.createElement('li'); li.dataset.cat=p.cat;
+        li.innerHTML='<span class="sw" style="background:'+col+'"></span>'+p.name+'<small>'+p.cat+'</small>';
+        li.addEventListener('click',function(){ focusLandmark(p,m,html); });
+        connList.appendChild(li);
+      });
+      var cnt=document.getElementById('connCnt'); if(cnt) cnt.textContent='· '+D.landmarks.length;
+
+      /* ---------- layer toggles ---------- */
+      var tS=document.getElementById('tStreets'), tA=document.getElementById('tSat'), tF=document.getElementById('tFit');
+      tS.addEventListener('click',function(){ map.removeLayer(sat); streets.addTo(map); tS.classList.add('active'); tA.classList.remove('active'); });
+      tA.addEventListener('click',function(){ map.removeLayer(streets); sat.addTo(map); tA.classList.add('active'); tS.classList.remove('active'); });
+      tF.addEventListener('click',function(){ try{ map.flyToBounds(L.featureGroup(allMarkers.concat([pm])).getBounds().pad(.18),{duration:.9}); }catch(e){} });
+
+      setTimeout(function(){ map.invalidateSize(); map.setView(projLL, D.zoom||13); },300);
+      window.addEventListener('resize',function(){ if(map) map.invalidateSize(); });
+    }
+
+    /* location-tour video → centered floating player (HMKit.openFloat) */
+    var lv=document.getElementById('locVideo');
+    lv.addEventListener('click',function(){
+      var box=document.createElement('div'); box.className='vid-player';
+      var v=document.createElement('video'); v.src='../assets/screens/location-tour.mp4'; v.controls=true; v.autoplay=true; v.playsInline=true;
+      box.appendChild(v);
+      if(window.HMKit && HMKit.openFloat) HMKit.openFloat('Location & Construction Tour', box, {center:true, wide:true});
+    });
+  })();
+  </script>
+</body>
+</html>
