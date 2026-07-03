@@ -1272,6 +1272,11 @@ function sdMapWalkin(w) {
       typology: '—', sqft: '—', budget: '—', purpose: '—', timeline: '—',
       family: '—', source: 'GRE walk-in', mustHaves: [],
     },
+    // ── LIVE GRE + sales-qualification fields (feed the editable interest panel)
+    greBudget: w.budget || '',                 // GRE-captured budget band (read-only)
+    greCategory: w.category || '',             // Residential / Commercial (read-only)
+    residence: w.residence || '',              // current residence (editable, saved top-level)
+    qualification: (w.qualification && typeof w.qualification === 'object') ? w.qualification : {},
     matches: [],                 // recommended units not carried by the relay yet
     journey: [],
     _stageRaw: w.stage || null,
@@ -1734,6 +1739,204 @@ function AgentCodeGate({ onCancel, onSignIn }) {
   );
 }
 
+// ── EDITABLE GRE / CUSTOMER-INTEREST PANEL ───────────────────────────────────
+// Renders the selected walk-in's REAL GRE fields (budget band + Residential/
+// Commercial category are GRE-captured, read-only) plus the sales-completed
+// qualification, which the presenting salesperson can fill ON BEHALF of the
+// customer during the presentation. Saves via POST /api/studio/qualify and
+// merges the result back into the parent's walk-in via onSaved(id, qual, res).
+// Remounts per selected walk-in (key={active.id}) so local edits reset cleanly.
+const SD_SIZE_4BHK = ['1000-1500 Sq. ft Carpet', '1500-2000 Sq. ft Carpet', '2000-2500 Sq. ft Carpet'];
+const SD_SIZE_PENTHOUSE = 'Above 3100 Sq. ft RERA Carpet';
+// The 7 answerable fields that drive the completeness indicator.
+const SD_QUAL_FIELDS = ['looking_for','size_range','purpose_timeline','family_must_haves','service_business','secondary_phone','residence'];
+
+function SdInterestPanel({ active, code, onSaved }) {
+  const q = active.qualification || {};
+  const [form, setForm] = React.useState({
+    looking_for:       q.looking_for       || '',
+    size_range:        q.size_range        || '',
+    purpose_timeline:  q.purpose_timeline  || '',
+    family_must_haves: q.family_must_haves || '',
+    service_business:  q.service_business  || '',
+    secondary_phone:   q.secondary_phone   || '',
+    residence:         active.residence    || '',
+  });
+  const [saving, setSaving] = React.useState(false);
+  const [saved, setSaved]   = React.useState(false);
+  const [error, setError]   = React.useState('');
+
+  const lastName = active.name ? active.name.split(' ').slice(-1)[0] : '';
+  const set = (k, v) => { setForm(f => ({ ...f, [k]: v })); setSaved(false); setError(''); };
+  // Looking-for drives size-range options; reset (or auto-select penthouse) on change.
+  const setLookingFor = (v) => {
+    setForm(f => ({ ...f, looking_for: v, size_range: v === 'Penthouse' ? SD_SIZE_PENTHOUSE : '' }));
+    setSaved(false); setError('');
+  };
+  const sizeOptions = form.looking_for === 'Penthouse' ? [SD_SIZE_PENTHOUSE]
+                    : form.looking_for === '4 BHK'     ? SD_SIZE_4BHK : [];
+  const answered = SD_QUAL_FIELDS.filter(k => (form[k] || '').trim()).length;
+
+  const save = () => {
+    if (!code) { setError('No connected agent'); return; }
+    setSaving(true); setError('');
+    const qualification = {
+      service_business:  form.service_business,
+      looking_for:       form.looking_for,
+      size_range:        form.size_range,
+      purpose_timeline:  form.purpose_timeline,
+      family_must_haves: form.family_must_haves,
+      secondary_phone:   form.secondary_phone,
+    };
+    fetch(SD_API + '/api/studio/qualify', {
+      method:'POST', headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ passcode: code, lead_id: active.id, qualification, residence: form.residence }),
+    })
+      .then(r => r.json())
+      .then(j => {
+        setSaving(false);
+        if (j && j.ok) {
+          setSaved(true);
+          onSaved(active.id, j.qualification || qualification, form.residence);
+          setTimeout(() => setSaved(false), 2800);
+        } else { setError((j && j.error) || 'Save failed'); }
+      })
+      .catch(() => { setSaving(false); setError('Network error'); });
+  };
+
+  const card = {
+    background:'rgba(255,253,249,0.74)', border:'1px solid var(--line)', borderRadius:22,
+    boxShadow:'0 22px 54px rgba(40,30,12,0.07), inset 0 1px 0 rgba(255,255,255,0.7)',
+    backdropFilter:'blur(10px)', WebkitBackdropFilter:'blur(10px)',
+  };
+  const eyebrow = { fontSize:12.5, letterSpacing:'0.28em', color:'var(--slate)' };
+  const fieldLabel = { fontSize:11, letterSpacing:'0.18em', color:'var(--gold-deep)' };
+  const inputBase = {
+    width:'100%', boxSizing:'border-box', marginTop:8, padding:'12px 14px',
+    border:'1.5px solid var(--gold-soft)', borderRadius:12, background:'rgba(255,255,255,0.78)',
+    fontSize:18, color:'var(--ink)', fontFamily:'inherit', outline:'none',
+  };
+  const onFocus = e => { e.target.style.borderColor = 'var(--gold)'; e.target.style.boxShadow = '0 6px 18px rgba(176,138,63,0.16)'; };
+  const onBlur  = e => { e.target.style.borderColor = 'var(--gold-soft)'; e.target.style.boxShadow = 'none'; };
+
+  // read-only GRE tile (budget band / category)
+  const ROTile = ({ k, v, ic }) => (
+    <div style={{padding:'18px 20px', borderRadius:16, background:'rgba(201,160,94,0.10)', border:'1px solid var(--gold-soft)'}}>
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8}}>
+        <div className="mono" style={fieldLabel}>{k}</div>
+        <span style={{width:30, height:30, borderRadius:9, flex:'0 0 auto', display:'flex', alignItems:'center', justifyContent:'center',
+          background:'rgba(255,255,255,0.7)', border:'1px solid var(--gold-soft)', color:'var(--gold-deep)'}}>
+          <span style={{width:17, height:17}}><SdMiniIcon type={ic}/></span>
+        </span>
+      </div>
+      <div className="serif" style={{fontSize:v && v.length > 16 ? 21 : 27, color: v ? 'var(--ink)' : 'var(--slate)', marginTop:10, lineHeight:1.08}}>{v || 'Not captured'}</div>
+    </div>
+  );
+  // labelled editable text field
+  const TextField = ({ k, keyName, ph, ic }) => (
+    <div style={{marginTop:18}}>
+      <div style={{display:'flex', alignItems:'center', gap:8}}>
+        {ic && <span style={{width:15, height:15, flex:'0 0 auto', color:'var(--gold-deep)'}}><SdMiniIcon type={ic}/></span>}
+        <div className="mono" style={fieldLabel}>{k}</div>
+      </div>
+      <input value={form[keyName]} onChange={e => set(keyName, e.target.value)} placeholder={ph}
+        onFocus={onFocus} onBlur={onBlur} style={inputBase}/>
+    </div>
+  );
+
+  return (
+    <div style={{...card, padding:'28px 32px', flex:'0 0 auto'}}>
+      {/* header + completeness indicator */}
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16}}>
+        <div>
+          <div className="mono" style={{...eyebrow, color:'var(--gold-deep)'}}>GRE · CUSTOMER INTEREST</div>
+          <div className="serif" style={{fontSize:31, marginTop:8}}>What {lastName} is looking for</div>
+        </div>
+        <div className="mono" style={{display:'flex', alignItems:'center', gap:8, flex:'0 0 auto', padding:'9px 15px', borderRadius:999,
+          background: answered === 7 ? 'rgba(123,182,97,0.16)' : 'rgba(201,160,94,0.14)',
+          border:'1px solid '+(answered === 7 ? 'rgba(123,182,97,0.42)' : 'var(--gold-soft)'),
+          color: answered === 7 ? '#4e7d3a' : 'var(--gold-deep)', fontSize:13, letterSpacing:'0.12em', whiteSpace:'nowrap'}}>
+          <span style={{width:8, height:8, borderRadius:'50%', background: answered === 7 ? '#7bb661' : 'var(--gold)'}}/>
+          {answered}/7 ANSWERED
+        </div>
+      </div>
+
+      {/* GRE read-only bands — budget + residential/commercial */}
+      <div style={{display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:16, marginTop:22}}>
+        <ROTile k="BUDGET · GRE" v={active.greBudget} ic="rupee"/>
+        <ROTile k="RESIDENTIAL / COMMERCIAL · GRE" v={active.greCategory} ic="building"/>
+      </div>
+
+      {/* editable qualification — looking-for + conditional size-range */}
+      <div style={{display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:16, marginTop:20}}>
+        <div>
+          <div className="mono" style={fieldLabel}>LOOKING FOR · TYPOLOGY</div>
+          <select value={form.looking_for} onChange={e => setLookingFor(e.target.value)}
+            onFocus={onFocus} onBlur={onBlur} style={{...inputBase, cursor:'pointer', appearance:'auto'}}>
+            <option value="">Select typology…</option>
+            <option value="4 BHK">4 BHK</option>
+            <option value="Penthouse">Penthouse</option>
+          </select>
+        </div>
+        <div>
+          <div className="mono" style={fieldLabel}>SIZE RANGE</div>
+          <select value={form.size_range} onChange={e => set('size_range', e.target.value)} disabled={!form.looking_for}
+            onFocus={onFocus} onBlur={onBlur}
+            style={{...inputBase, cursor: form.looking_for ? 'pointer' : 'not-allowed', appearance:'auto', opacity: form.looking_for ? 1 : 0.55}}>
+            <option value="">{form.looking_for ? 'Select size…' : 'Pick typology first'}</option>
+            {sizeOptions.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {/* editable qualification — free-text answers */}
+      <TextField k="PURPOSE & TIMELINE" keyName="purpose_timeline" ph="e.g. End-use · closing this quarter" ic="compass"/>
+      <TextField k="FAMILY & MUST-HAVES" keyName="family_must_haves" ph="e.g. Family of 4 · needs 2 covered parkings, high floor" ic="users"/>
+      <TextField k="SERVICE / BUSINESS" keyName="service_business" ph="e.g. Doctor · runs a clinic in Maninagar" ic="user"/>
+      <div style={{display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:16, marginTop:18}}>
+        <div>
+          <div style={{display:'flex', alignItems:'center', gap:8}}>
+            <span style={{width:15, height:15, flex:'0 0 auto', color:'var(--gold-deep)'}}><SdMiniIcon type="phone"/></span>
+            <div className="mono" style={fieldLabel}>SECONDARY PHONE</div>
+          </div>
+          <input value={form.secondary_phone} onChange={e => set('secondary_phone', e.target.value)} placeholder="Alternate contact number"
+            onFocus={onFocus} onBlur={onBlur} style={inputBase}/>
+        </div>
+        <div>
+          <div style={{display:'flex', alignItems:'center', gap:8}}>
+            <span style={{width:15, height:15, flex:'0 0 auto', color:'var(--gold-deep)'}}><SdMiniIcon type="link"/></span>
+            <div className="mono" style={fieldLabel}>CURRENT RESIDENCE</div>
+          </div>
+          <input value={form.residence} onChange={e => set('residence', e.target.value)} placeholder="Where the customer lives now"
+            onFocus={onFocus} onBlur={onBlur} style={inputBase}/>
+        </div>
+      </div>
+
+      {/* save + confirmation */}
+      <div style={{display:'flex', alignItems:'center', gap:16, marginTop:24}}>
+        <button onClick={save} disabled={saving} className="mono" style={{
+          cursor: saving ? 'default' : 'pointer', flex:'0 0 auto',
+          background:'linear-gradient(135deg, var(--gold), var(--gold-deep))', border:'1px solid var(--gold-deep)',
+          borderRadius:13, padding:'15px 30px', fontSize:14, letterSpacing:'0.18em', color:'#2a1d05', fontWeight:600,
+          boxShadow:'0 10px 24px rgba(176,138,63,0.28)', opacity: saving ? 0.7 : 1,
+        }}>{saving ? 'SAVING…' : 'SAVE INTEREST'}</button>
+        {saved && (
+          <span className="mono" style={{display:'inline-flex', alignItems:'center', gap:9, fontSize:13, letterSpacing:'0.14em', color:'#4e7d3a'}}>
+            <span style={{width:9, height:9, borderRadius:'50%', background:'#7bb661', boxShadow:'0 0 10px rgba(123,182,97,0.8)'}}/>
+            SAVED · SYNCED TO CRM
+          </span>
+        )}
+        {error && (
+          <span className="mono" style={{fontSize:13, letterSpacing:'0.1em', color:'var(--venus-red)'}}>{error}</span>
+        )}
+        {!saved && !error && (
+          <span className="mono" style={{fontSize:11.5, letterSpacing:'0.12em', color:'var(--slate)'}}>Fill on behalf of the customer during the presentation</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SalesDesk({ onClose, agent }) {
   const data = window.SALES_DESK;               // static stage descriptors only
   const sess = useUniSession();                 // live journey store (re-renders on change)
@@ -1794,6 +1997,14 @@ function SalesDesk({ onClose, agent }) {
   });
   const active = walkIns.find(w => w.id === activeId) || walkIns[0] || null;
   const lastName = active ? active.name.split(' ').slice(-1)[0] : '';
+
+  // Merge a saved qualification (+ residence) back into the local walk-in so the
+  // interest panel + completeness indicator refresh instantly after a save.
+  const onQualSaved = React.useCallback((id, qualification, residence) => {
+    setWalkIns(ws => ws.map(w => w.id === id
+      ? { ...w, qualification: qualification || {}, residence: (residence != null ? residence : w.residence) }
+      : w));
+  }, []);
 
   const card = {
     background:'rgba(255,253,249,0.74)',
@@ -2094,56 +2305,8 @@ function SalesDesk({ onClose, agent }) {
         {/* RIGHT — GRE interest + recommended matches (scrolls within) */}
         <div className="uni-crm-scroll" style={{flex:'1 1 auto', minWidth:0, minHeight:0, overflowY:'auto', display:'flex', flexDirection:'column', gap:18, paddingRight:6}}>
 
-          {/* GRE customer-interest summary */}
-          <div style={{...card, padding:'28px 32px', flex:'0 0 auto'}}>
-            <div style={{display:'flex', justifyContent:'space-between', alignItems:'baseline'}}>
-              <div>
-                <div className="mono" style={{...eyebrow, color:'var(--gold-deep)'}}>GRE · CUSTOMER INTEREST</div>
-                <div className="serif" style={{fontSize:31, marginTop:8}}>What {lastName} is looking for</div>
-              </div>
-              <div className="mono" style={{fontSize:12.5, letterSpacing:'0.18em', color:'var(--slate)'}}>INTENT · {active.intent.toUpperCase()}</div>
-            </div>
-            {/* the headline interest points — each with a glyph (budget hidden) */}
-            <div style={{display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:16, marginTop:22}}>
-              {[
-                ['BHK / TYPOLOGY', active.prefs.typology, 'building'],
-                ['SIZE SOUGHT',    active.prefs.sqft,     'ruler'],
-              ].map(([k,v,ic]) => (
-                <div key={k} style={{padding:'18px 20px', borderRadius:16, background:'rgba(201,160,94,0.10)', border:'1px solid var(--gold-soft)'}}>
-                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8}}>
-                    <div className="mono" style={{fontSize:11, letterSpacing:'0.18em', color:'var(--gold-deep)'}}>{k}</div>
-                    <span style={{width:30, height:30, borderRadius:9, flex:'0 0 auto', display:'flex', alignItems:'center', justifyContent:'center',
-                      background:'rgba(255,255,255,0.7)', border:'1px solid var(--gold-soft)', color:'var(--gold-deep)'}}>
-                      <span style={{width:17, height:17}}><SdMiniIcon type={ic}/></span>
-                    </span>
-                  </div>
-                  <div className="serif" style={{fontSize:27, color:'var(--ink)', marginTop:10, lineHeight:1.08}}>{v}</div>
-                </div>
-              ))}
-            </div>
-            {/* secondary interest meta — small glyph + label + value */}
-            <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'16px 26px', marginTop:24}}>
-              {[
-                ['PURPOSE', active.prefs.purpose, 'compass'], ['TIMELINE', active.prefs.timeline, 'calendar'], ['FAMILY', active.prefs.family, 'users'],
-              ].map(([k,v,ic]) => (
-                <div key={k}>
-                  <div style={{display:'flex', alignItems:'center', gap:8}}>
-                    <span style={{width:16, height:16, flex:'0 0 auto', color:'var(--slate)'}}><SdMiniIcon type={ic}/></span>
-                    <div className="mono" style={{fontSize:11.5, letterSpacing:'0.2em', color:'var(--slate)'}}>{k}</div>
-                  </div>
-                  <div className="serif" style={{fontSize:20, color:'var(--ink)', marginTop:7, lineHeight:1.15}}>{v}</div>
-                </div>
-              ))}
-            </div>
-            {/* must-haves — each chip carries a fitting glyph */}
-            <div style={{display:'flex', flexWrap:'wrap', gap:9, marginTop:22}}>
-              {active.prefs.mustHaves.map(m => (
-                <span key={m} style={{display:'inline-flex', alignItems:'center', gap:8, padding:'8px 15px', borderRadius:999, fontSize:14,
-                  background:'rgba(255,255,255,0.6)', border:'1px solid var(--gold-soft)', color:'var(--gold-deep)'}}>
-                  <span style={{width:15, height:15, flex:'0 0 auto'}}><SdMiniIcon type={mustHaveIcon(m)}/></span>{m}</span>
-              ))}
-            </div>
-          </div>
+          {/* GRE customer-interest — REAL + editable (sales fills on behalf of the customer) */}
+          <SdInterestPanel key={active.id} active={active} code={(agent && agent.code) || ''} onSaved={onQualSaved}/>
 
           {/* recommended matches */}
           <div style={{...card, padding:'24px 32px', flex:'0 0 auto'}}>
