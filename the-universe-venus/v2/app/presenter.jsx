@@ -1,20 +1,25 @@
 // ============================================================================
-// PresenterGate — salesperson passcode-claim overlay.
+// Presenter passcode gate — protects ONLY the mini-CRM (not the whole app).
 // ----------------------------------------------------------------------------
-// Sits at the very top of the render tree (wraps <App/>), before any screen
-// mounts. A salesperson punches their 4-digit CRM passcode + the guest's
-// mobile number; on success the lead in the central CRM is claimed to them
-// and this device's session is tagged with their name for the rest of the
-// walk-in (sessionStorage — re-asks on a fresh tab/kiosk reboot).
+// The Studio boots straight into its normal home/experience with NO passcode —
+// a salesperson presenting does not sign in just to use the tablet.
 //
-// Never blocks the demo: every error state offers "Continue without
-// claiming", and a network/CORS failure degrades to the same escape hatch.
-// Uses data-crm="1" (existing convention — see session.jsx) so the
-// salesperson's own taps here never pollute the customer's journey log.
+// The mini-CRM (today's walk-ins = sensitive customer data) opens by TRIPLE-
+// CLICKING the centre Universe logo on Home. On triple-click, if no valid
+// presenter is stored, this on-brand 4-digit PIN pad appears FIRST. The PIN is
+// validated by the relay (POST /api/studio/validate → studio_validate_passcode
+// RPC). On success the presenter {user_id, name, passcode} is stored in
+// sessionStorage (uni_presenter_v1) and the mini-CRM opens. A stored presenter
+// means triple-click opens the mini-CRM directly (no re-ask this session); a
+// "lock/switch presenter" affordance in the StudioBar clears it.
+//
+// There is NO mobile-number entry anywhere — selecting a customer card in the
+// mini-CRM and starting their journey is what links them to the salesperson.
+// data-crm="1" so the presenter's own taps never pollute the customer journey.
 // ============================================================================
 (function () {
   const SKEY = 'uni_presenter_v1';
-  const CLAIM_URL = 'https://universegre.venusprojects.co.in/api/studio/claim';
+  const VALIDATE_URL = 'https://universegre.venusprojects.co.in/api/studio/validate';
 
   function loadPresenter() {
     try { return JSON.parse(sessionStorage.getItem(SKEY)) || null; } catch (e) { return null; }
@@ -25,9 +30,20 @@
   function clearPresenter() {
     try { sessionStorage.removeItem(SKEY); } catch (e) {}
   }
+  function signedIn() { const p = loadPresenter(); return !!(p && p.passcode); }
 
-  function Keypad({ value, onChange, onSubmit }) {
+  // Shared helper store so home.jsx / minicrm.jsx agree on the presenter.
+  window.UNI_PRESENTER = {
+    get: loadPresenter,
+    save: savePresenter,
+    clear: clearPresenter,
+    signedIn,
+    passcode() { const p = loadPresenter(); return p && p.passcode ? p.passcode : ''; },
+  };
+
+  function Keypad({ value, onChange, onSubmit, disabled }) {
     const press = (d) => {
+      if (disabled) return;
       if (d === 'back') { onChange(value.slice(0, -1)); return; }
       if (d === 'clear') { onChange(''); return; }
       if (value.length >= 4) return;
@@ -52,142 +68,68 @@
     );
   }
 
-  function PresenterGate({ children }) {
-    const [presenter, setPresenter] = React.useState(loadPresenter);
-    const [open, setOpen] = React.useState(!presenter);
+  // Full-screen PIN overlay. Props: onSuccess(presenter), onCancel().
+  function PresenterPasscodeGate({ onSuccess, onCancel }) {
     const [pin, setPin] = React.useState('');
-    const [phone, setPhone] = React.useState('');
-    const [status, setStatus] = React.useState('idle'); // idle | busy | error | success
+    const [status, setStatus] = React.useState('idle'); // idle | busy | error
     const [errMsg, setErrMsg] = React.useState('');
-    const [errCode, setErrCode] = React.useState(null);
-    const [successInfo, setSuccessInfo] = React.useState(null);
-
-    const reset = () => { setPin(''); setStatus('idle'); setErrMsg(''); setErrCode(null); setSuccessInfo(null); };
 
     async function submit(pinValue) {
       const p = (pinValue !== undefined ? pinValue : pin).trim();
-      const ph = phone.replace(/\D/g, '');
       if (p.length !== 4) { setErrMsg('Enter the full 4-digit PIN.'); setStatus('error'); return; }
-      if (ph.length < 10) { setErrMsg('Enter the guest’s 10-digit mobile number.'); setStatus('error'); setErrCode(null); return; }
-      setStatus('busy'); setErrMsg(''); setErrCode(null);
+      setStatus('busy'); setErrMsg('');
       try {
-        const res = await fetch(CLAIM_URL, {
+        const res = await fetch(VALIDATE_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ passcode: p, phone: ph }),
+          body: JSON.stringify({ passcode: p }),
         });
         let data = null;
         try { data = await res.json(); } catch (e) { data = null; }
         if (data && data.ok) {
-          // Persist the PIN so the mini-CRM ("Today at The Universe") can reuse
-          // it to load walk-ins, claim more guests and end sessions without re-asking.
-          const info = { name: data.claimed_by, passcode: p, leadId: data.lead_id, leadName: data.lead_name, stage: data.stage, claimedAt: Date.now() };
+          const info = { user_id: data.user_id, name: data.name || 'Presenter', passcode: p, at: Date.now() };
           savePresenter(info);
-          setSuccessInfo(info);
-          setStatus('success');
-          if (window.UNI_SESSION) {
-            window.UNI_SESSION.setCustomer({ id: data.lead_id, name: data.lead_name, phone: ph });
-          }
-          setTimeout(() => { setPresenter(info); setOpen(false); }, 1700);
+          if (onSuccess) onSuccess(info);
         } else {
-          const code = data && data.error;
-          setErrCode(code || 'unknown');
-          if (code === 'invalid_passcode') setErrMsg('PIN not recognised.');
-          else if (code === 'lead_not_found') setErrMsg('No active lead for this number — register the guest at GRE first.');
-          else setErrMsg('Couldn’t verify right now.');
+          setErrMsg('PIN not recognised.');
           setStatus('error');
           setPin('');
         }
       } catch (e) {
-        setErrCode('network');
-        setErrMsg('Couldn’t reach the presenter service — check the connection.');
+        setErrMsg('Couldn’t reach the studio service — check the connection.');
         setStatus('error');
         setPin('');
       }
     }
 
-    function continueWithoutClaiming() {
-      savePresenter({ skipped: true, claimedAt: Date.now() });
-      setPresenter({ skipped: true });
-      setOpen(false);
-    }
-
-    function switchPresenter() {
-      clearPresenter();
-      setPresenter(null);
-      reset();
-      setPhone('');
-      setOpen(true);
-    }
-
     return (
-      <React.Fragment>
-        {children}
-        {!open && presenter && !presenter.skipped && (
-          <div data-crm="1" className="pgate-chip" onClick={switchPresenter} title="Tap to switch presenter">
-            <span className="pgate-chip-dot"/> Presenter: {presenter.name}
+      <div data-crm="1" className="pgate-overlay">
+        <style>{PGATE_CSS}</style>
+        <div className="pgate-card">
+          <div className="pgate-kicker">Venus Group &middot; Sales Studio</div>
+          <div className="pgate-title display">Presenter access</div>
+          <div className="pgate-sub">Enter your 4-digit PIN to open today&rsquo;s guest list.</div>
+
+          <div className="pgate-pin-row">
+            {[0,1,2,3].map((i) => (
+              <div key={i} className={'pgate-pin-dot' + (pin.length > i ? ' filled' : '')}/>
+            ))}
           </div>
-        )}
-        {!open && presenter && presenter.skipped && (
-          <div data-crm="1" className="pgate-chip pgate-chip-muted" onClick={switchPresenter} title="Tap to claim this lead">
-            Claim lead
+
+          <Keypad value={pin} onChange={(v) => { setPin(v); if (status === 'error') setStatus('idle'); }} onSubmit={submit} disabled={status === 'busy'}/>
+
+          {status === 'error' && <div className="pgate-err">{errMsg}</div>}
+          {status === 'busy' && <div className="pgate-busy mono">Verifying&hellip;</div>}
+
+          <button className="pgate-submit" disabled={status === 'busy'} onClick={() => submit()}>
+            {status === 'busy' ? 'Verifying…' : 'Unlock'}
+          </button>
+
+          <div className="pgate-skip" onClick={() => onCancel && onCancel()}>
+            Cancel
           </div>
-        )}
-        {open && (
-          <div data-crm="1" className="pgate-overlay">
-            <style>{PGATE_CSS}</style>
-            <div className="pgate-card">
-              {status === 'success' && successInfo ? (
-                <div className="pgate-success">
-                  <div className="pgate-kicker">Claimed</div>
-                  <div className="pgate-title display">Presenting to {successInfo.leadName}</div>
-                  <div className="pgate-sub mono">claimed by {successInfo.name}</div>
-                </div>
-              ) : (
-                <React.Fragment>
-                  <div className="pgate-kicker">Venus Group &middot; Sales Studio</div>
-                  <div className="pgate-title display">Presenter sign-in</div>
-                  <div className="pgate-sub">Punch your 4-digit PIN and the guest&rsquo;s mobile number to tag this walk-in to you.</div>
-
-                  <div className="pgate-pin-row">
-                    {[0,1,2,3].map((i) => (
-                      <div key={i} className={'pgate-pin-dot' + (pin.length > i ? ' filled' : '')}/>
-                    ))}
-                  </div>
-
-                  <Keypad value={pin} onChange={setPin} onSubmit={submit}/>
-
-                  <label className="pgate-label mono">Guest mobile number</label>
-                  <input
-                    className="pgate-input"
-                    type="tel"
-                    inputMode="numeric"
-                    placeholder="98765 43210"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    disabled={status === 'busy'}
-                  />
-
-                  {status === 'error' && (
-                    <div className="pgate-err">
-                      {errMsg}
-                    </div>
-                  )}
-                  {status === 'busy' && <div className="pgate-busy mono">Verifying&hellip;</div>}
-
-                  <button className="pgate-submit" disabled={status === 'busy'} onClick={() => submit()}>
-                    {status === 'busy' ? 'Verifying…' : 'Claim this walk-in'}
-                  </button>
-
-                  <div className="pgate-skip" onClick={continueWithoutClaiming}>
-                    Continue without claiming
-                  </div>
-                </React.Fragment>
-              )}
-            </div>
-          </div>
-        )}
-      </React.Fragment>
+        </div>
+      </div>
     );
   }
 
@@ -242,17 +184,6 @@
   }
   .pgate-key:active { transform: scale(0.94); background: rgba(201,160,94,0.22); }
   .pgate-key-alt { color: rgba(244,236,218,0.55); font-size: 13px; letter-spacing: 0.08em; }
-  .pgate-label {
-    align-self: flex-start; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: rgba(244,236,218,0.5); margin: 2px auto 8px; width: min(320px, 78vw); text-align: left;
-  }
-  .pgate-input {
-    width: min(320px, 78vw); font: 500 18px/1 'Inter', sans-serif; color: #fbf4e3;
-    background: rgba(255,255,255,0.04); border: 1px solid rgba(232,215,168,0.25); border-radius: 12px;
-    padding: 15px 18px; text-align: center; margin-bottom: 8px; outline: none;
-  }
-  .pgate-input:focus { border-color: #c9a05e; background: rgba(201,160,94,0.08); }
-  .pgate-input::placeholder { color: rgba(244,236,218,0.32); }
   .pgate-err {
     width: min(320px, 78vw); color: #e58a83; font-size: 13px; line-height: 1.5; margin: 8px auto 4px;
   }
@@ -270,21 +201,7 @@
     color: rgba(244,236,218,0.4); cursor: pointer; text-transform: uppercase;
   }
   .pgate-skip:hover { color: rgba(244,236,218,0.68); }
-  .pgate-success .pgate-title { margin-top: 4px; }
-  .pgate-success .pgate-sub.mono { font-family: 'JetBrains Mono', monospace; color: #c9a05e; margin-top: 10px; }
-
-  .pgate-chip {
-    position: fixed; left: 18px; bottom: 18px; z-index: 100040;
-    display: flex; align-items: center; gap: 8px;
-    font: 600 11px/1 'JetBrains Mono', monospace; letter-spacing: 0.08em;
-    color: #faf6e8; background: rgba(10,10,10,0.72); backdrop-filter: blur(6px);
-    border: 1px solid rgba(232,215,168,0.28); border-radius: 999px;
-    padding: 9px 16px; cursor: pointer; user-select: none;
-  }
-  .pgate-chip:hover { background: rgba(10,10,10,0.86); }
-  .pgate-chip-dot { width: 7px; height: 7px; border-radius: 50%; background: #4a8b52; box-shadow: 0 0 6px rgba(74,139,82,0.7); }
-  .pgate-chip-muted { color: rgba(250,246,232,0.6); }
   `;
 
-  window.PresenterGate = PresenterGate;
+  window.PresenterPasscodeGate = PresenterPasscodeGate;
 })();

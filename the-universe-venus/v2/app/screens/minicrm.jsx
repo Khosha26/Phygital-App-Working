@@ -28,6 +28,8 @@
     const [rows, setRows] = React.useState([]);
     const [state, setState] = React.useState('idle'); // idle | loading | ready | error | denied
     const [err, setErr] = React.useState('');
+    const [claiming, setClaiming] = React.useState(null); // lead id currently being claimed
+    const [claimErr, setClaimErr] = React.useState('');
 
     const load = React.useCallback(async () => {
       const pc = passcode();
@@ -37,20 +39,44 @@
         const res = await fetch(`${RELAY}/api/studio/walkins?passcode=${encodeURIComponent(pc)}`);
         const data = await res.json();
         if (data && data.ok) { setRows(data.walkins || []); setState('ready'); }
-        else { setErr(data && data.error === 'invalid_passcode' ? 'PIN not recognised — sign in again.' : 'Couldn’t load walk-ins.'); setState('error'); }
+        else { setErr(data && data.error === 'invalid_passcode' ? 'PIN not recognised — unlock again.' : 'Couldn’t load walk-ins.'); setState('error'); }
       } catch (e) { setErr('Couldn’t reach the studio service.'); setState('error'); }
     }, []);
 
     React.useEffect(() => { load(); }, [load]);
 
-    function startPresenting(row) {
-      // Hand this guest to the current session: set them as the customer and
-      // begin the journey tracker, then drop the salesperson onto Home.
-      if (window.UNI_SESSION) {
-        window.UNI_SESSION.setCustomer({ id: row.id, name: row.name, phone: row.phone });
-        if (!window.UNI_SESSION.isActive()) window.UNI_SESSION.start({ id: row.id, name: row.name, phone: row.phone });
+    // Selecting a customer + starting their journey is what LINKS them to the
+    // salesperson — no typed phone number. Claim the lead by id via the relay,
+    // then set them as the active session and drop onto Home to present.
+    async function startPresenting(row) {
+      if (claiming) return;
+      const pc = passcode();
+      if (!pc) { setState('denied'); return; }
+      setClaiming(row.id); setClaimErr('');
+      try {
+        const res = await fetch(`${RELAY}/api/studio/claim-by-id`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passcode: pc, lead_id: row.id }),
+        });
+        const data = await res.json();
+        if (data && data.ok) {
+          const cust = { id: data.lead_id || row.id, name: data.lead_name || row.name };
+          if (window.UNI_SESSION) {
+            window.UNI_SESSION.setCustomer(cust);
+            if (!window.UNI_SESSION.isActive()) window.UNI_SESSION.start(cust);
+          }
+          if (window.navigate) window.navigate('home');
+        } else {
+          setClaimErr(data && data.error === 'invalid_passcode' ? 'PIN not recognised — unlock again.'
+            : data && data.error === 'lead_not_found' ? 'This lead is no longer active.'
+            : 'Couldn’t start the journey.');
+          setClaiming(null);
+        }
+      } catch (e) {
+        setClaimErr('Couldn’t reach the studio service.');
+        setClaiming(null);
       }
-      if (window.navigate) window.navigate('home');
     }
 
     return (
@@ -67,29 +93,34 @@
           </button>
         </div>
 
-        {state === 'denied' && <div className="mcrm-empty">Sign in as a presenter first (tap “Claim lead”).</div>}
+        {state === 'denied' && <div className="mcrm-empty">Unlock the studio first (triple-tap the centre logo on Home).</div>}
         {state === 'error' && <div className="mcrm-empty mcrm-err">{err}</div>}
         {state === 'ready' && rows.length === 0 && <div className="mcrm-empty">No walk-ins yet today.</div>}
+        {claimErr && <div className="mcrm-empty mcrm-err">{claimErr}</div>}
 
-        <div className="mcrm-list">
+        <div className="mcrm-strip">
           {rows.map((r) => (
             <div key={r.id} className={'mcrm-card' + (r.attended ? ' is-attended' : '')}>
-              <div className="mcrm-card-main">
-                <div className="mcrm-name">{r.name || 'Guest'}</div>
-                <div className="mcrm-meta">
-                  <span className="mcrm-phone mono">{r.phone}</span>
-                  <span className="mcrm-chip">{prettyStage(r.stage)}</span>
-                  {r.owner && <span className="mcrm-owner">· {r.owner.name}</span>}
-                </div>
-              </div>
-              <div className="mcrm-card-right">
+              <div className="mcrm-card-top">
                 {r.attended ? (
                   <span className="mcrm-status attended"><span className="mcrm-tick">✓</span> Attended</span>
                 ) : (
-                  <React.Fragment>
-                    <span className="mcrm-status awaiting"><span className="mcrm-dot" /> Awaiting</span>
-                    <button className="mcrm-start" onClick={() => startPresenting(r)}>Start presenting</button>
-                  </React.Fragment>
+                  <span className="mcrm-status awaiting"><span className="mcrm-dot" /> Awaiting</span>
+                )}
+                <span className="mcrm-chip">{prettyStage(r.stage)}</span>
+              </div>
+              <div className="mcrm-name">{r.name || 'Guest'}</div>
+              <div className="mcrm-phone mono">{r.phone}</div>
+              {r.owner && <div className="mcrm-owner">Owner · {r.owner.name}</div>}
+              <div className="mcrm-card-foot">
+                {r.attended ? (
+                  <button className="mcrm-start mcrm-start-alt" onClick={() => startPresenting(r)} disabled={!!claiming}>
+                    {claiming === r.id ? 'Starting…' : 'Resume journey'}
+                  </button>
+                ) : (
+                  <button className="mcrm-start" onClick={() => startPresenting(r)} disabled={!!claiming}>
+                    {claiming === r.id ? 'Starting…' : 'Start journey'}
+                  </button>
                 )}
               </div>
             </div>
@@ -236,6 +267,16 @@
     if (!signedIn()) return null;
     const customer = sess && sess.getCustomer && sess.getCustomer();
     const onMiniCrm = (location.hash || '').indexOf('minicrm') >= 0;
+    const pres = presenter();
+
+    function lockStudio() {
+      // Lock / switch presenter: clear the stored PIN so the next mini-CRM open
+      // re-asks for a passcode. Never disturbs the customer's live journey.
+      if (window.UNI_PRESENTER) window.UNI_PRESENTER.clear();
+      else { try { sessionStorage.removeItem(PKEY); } catch (e) {} }
+      if (onMiniCrm && window.navigate) window.navigate('home');
+      force((x) => x + 1);
+    }
 
     return (
       <div data-crm="1" className="sbar">
@@ -253,6 +294,9 @@
         {customer && (
           <button className="sbar-btn sbar-end" onClick={() => setModal(true)}>End session</button>
         )}
+        <button className="sbar-btn sbar-lock" onClick={lockStudio} title="Lock / switch presenter">
+          <span className="sbar-ic">⎋</span> {pres && pres.name ? pres.name.split(' ')[0] : 'Lock'}
+        </button>
         {modal && <EndSessionModal onClose={() => setModal(false)} />}
       </div>
     );
@@ -276,32 +320,44 @@
   .mcrm-refresh:disabled { opacity: 0.5; cursor: default; }
   .mcrm-empty { font-size: 19px; color: rgba(42,32,19,0.5); padding: 40px 0; }
   .mcrm-empty.mcrm-err { color: #b4564e; }
-  .mcrm-list { display: flex; flex-direction: column; gap: 18px; }
-  .mcrm-card {
-    display: flex; align-items: center; justify-content: space-between; gap: 24px;
-    background: rgba(255,255,255,0.62); border: 1px solid rgba(201,160,94,0.28); border-radius: 20px;
-    padding: 26px 34px; box-shadow: 0 8px 30px rgba(60,44,18,0.06);
+  /* Horizontal scroll strip of customer cards (client's screenshot layout). */
+  .mcrm-strip {
+    display: flex; flex-direction: row; gap: 22px;
+    overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
+    padding: 6px 2px 26px; scroll-snap-type: x proximity;
+    scrollbar-color: rgba(201,160,94,0.5) transparent;
   }
-  .mcrm-card.is-attended { opacity: 0.78; }
-  .mcrm-name { font-family: 'Cormorant Garamond','Cinzel',serif; font-weight: 600; font-size: clamp(24px,2.6vw,34px); color: #1c150c; }
-  .mcrm-meta { display: flex; align-items: center; gap: 16px; margin-top: 8px; flex-wrap: wrap; }
-  .mcrm-phone { font-size: 17px; color: rgba(42,32,19,0.72); letter-spacing: 0.08em; }
-  .mcrm-chip { font: 600 12px/1 'JetBrains Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #7a5d28;
-    background: rgba(201,160,94,0.16); border-radius: 999px; padding: 8px 14px; }
-  .mcrm-owner { font-size: 15px; color: rgba(42,32,19,0.5); }
-  .mcrm-card-right { display: flex; align-items: center; gap: 20px; flex-shrink: 0; }
-  .mcrm-status { display: inline-flex; align-items: center; gap: 9px; font: 600 13px/1 'JetBrains Mono', monospace; letter-spacing: 0.1em; text-transform: uppercase; }
+  .mcrm-strip::-webkit-scrollbar { height: 10px; }
+  .mcrm-strip::-webkit-scrollbar-thumb { background: rgba(201,160,94,0.45); border-radius: 999px; }
+  .mcrm-strip::-webkit-scrollbar-track { background: transparent; }
+  .mcrm-card {
+    flex: 0 0 auto; width: 340px; scroll-snap-align: start;
+    display: flex; flex-direction: column; gap: 12px;
+    background: rgba(255,255,255,0.66); border: 1px solid rgba(201,160,94,0.28); border-radius: 22px;
+    padding: 26px 30px; box-shadow: 0 8px 30px rgba(60,44,18,0.06);
+  }
+  .mcrm-card.is-attended { opacity: 0.82; }
+  .mcrm-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .mcrm-name { font-family: 'Cormorant Garamond','Cinzel',serif; font-weight: 600; font-size: clamp(26px,2.4vw,32px); color: #1c150c; line-height: 1.05; }
+  .mcrm-phone { font-size: 16px; color: rgba(42,32,19,0.72); letter-spacing: 0.08em; }
+  .mcrm-chip { font: 600 11px/1 'JetBrains Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #7a5d28;
+    background: rgba(201,160,94,0.16); border-radius: 999px; padding: 7px 12px; }
+  .mcrm-owner { font-size: 14px; color: rgba(42,32,19,0.5); }
+  .mcrm-card-foot { margin-top: 8px; }
+  .mcrm-status { display: inline-flex; align-items: center; gap: 8px; font: 600 12px/1 'JetBrains Mono', monospace; letter-spacing: 0.1em; text-transform: uppercase; }
   .mcrm-status.attended { color: #4a8b52; }
   .mcrm-status.awaiting { color: rgba(42,32,19,0.5); }
-  .mcrm-tick { font-size: 16px; }
+  .mcrm-tick { font-size: 15px; }
   .mcrm-dot { width: 9px; height: 9px; border-radius: 50%; background: #c9a05e; box-shadow: 0 0 0 0 rgba(201,160,94,0.6); animation: mcrmPulse 1.8s ease-out infinite; }
   @keyframes mcrmPulse { 0%{box-shadow:0 0 0 0 rgba(201,160,94,0.55)} 100%{box-shadow:0 0 0 12px rgba(201,160,94,0)} }
   .mcrm-start {
-    appearance: none; cursor: pointer; border: none; color: #1a130a;
+    appearance: none; cursor: pointer; border: none; color: #1a130a; width: 100%;
     font: 700 13px/1 'JetBrains Mono', monospace; letter-spacing: 0.12em; text-transform: uppercase; padding: 15px 26px; border-radius: 999px;
     background: linear-gradient(180deg,#ead7a8 0%,#c9a05e 100%); box-shadow: 0 10px 26px rgba(201,160,94,0.3), inset 0 1px 0 rgba(255,255,255,0.5);
   }
   .mcrm-start:active { transform: scale(0.96); }
+  .mcrm-start:disabled { opacity: 0.6; cursor: default; }
+  .mcrm-start-alt { background: rgba(255,255,255,0.7); color: #6a5326; border: 1px solid rgba(201,160,94,0.45); box-shadow: none; }
 
   /* Floating studio bar */
   .sbar { position: fixed; left: 18px; bottom: 60px; z-index: 100041; display: flex; gap: 10px; }
@@ -313,6 +369,8 @@
   .sbar-btn:hover { background: rgba(10,10,10,0.88); }
   .sbar-ic { font-size: 13px; opacity: 0.85; }
   .sbar-end { color: #1a130a; background: linear-gradient(180deg,#ead7a8 0%,#c9a05e 100%); border-color: transparent; box-shadow: 0 8px 22px rgba(201,160,94,0.3); }
+  .sbar-lock { color: rgba(250,246,232,0.82); }
+  .sbar-lock:hover { color: #faf6e8; }
 
   /* End-session modal */
   .esm-overlay { position: fixed; inset: 0; z-index: 100060; display: flex; align-items: center; justify-content: center;

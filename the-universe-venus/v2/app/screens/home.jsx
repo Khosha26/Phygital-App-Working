@@ -161,18 +161,33 @@ function Home() {
   const labelFS = Math.round(27 + dens * 4);
   const hotR = Math.round(CIRCLE_R * circleScale);
 
-  // ── Hidden Sales-Desk mini-CRM. Triple-tapping the centre circle (3 taps
-  //    within ~600ms) toggles it open. The centre circle has no single-tap
-  //    action of its own, so a lone tap is harmlessly absorbed by the counter.
+  // ── Hidden mini-CRM entry. Triple-tapping the centre Universe logo (3 taps
+  //    within ~600ms) opens the presenter mini-CRM (today's walk-ins). Because
+  //    that list is sensitive customer data, a valid presenter PIN is required
+  //    first: if none is stored this shows the on-brand passcode gate, then
+  //    routes to the #/minicrm screen; a stored presenter opens it directly.
+  //    The centre circle has no single-tap action of its own, so a lone tap is
+  //    harmlessly absorbed by the counter.
   const [crmOpen, setCrmOpen] = React.useState(false);
+  const [gateOpen, setGateOpen] = React.useState(false);
   const tapRef = React.useRef({ n: 0, timer: null });
+  // Open the mini-CRM (SalesDesk). If a valid presenter PIN is already stored
+  // this session, open directly; otherwise show the passcode gate first (the
+  // walk-in list is sensitive customer data).
+  const openMiniCrm = () => {
+    if (window.UNI_PRESENTER && window.UNI_PRESENTER.signedIn()) {
+      setCrmOpen(true);
+    } else {
+      setGateOpen(true);
+    }
+  };
   const handleCenterTap = () => {
     const s = tapRef.current;
     s.n += 1;
     if (s.timer) clearTimeout(s.timer);
     if (s.n >= 3) {
       s.n = 0;
-      setCrmOpen(o => !o);
+      openMiniCrm();
       return;
     }
     s.timer = setTimeout(() => { s.n = 0; }, 600);
@@ -468,8 +483,18 @@ function Home() {
       })}
       </div>{/* === END CLUSTER WRAPPER === */}
 
-      {/* === HIDDEN SALES-DESK CONSOLE (mini-CRM) === */}
+      {/* === MINI-CRM CONSOLE (SalesDesk) — opens on triple-click of the centre
+          U logo, once a presenter PIN has unlocked it === */}
       {crmOpen && <SalesDesk onClose={() => setCrmOpen(false)}/>}
+
+      {/* === PRESENTER PASSCODE GATE — shown on triple-click when no valid
+          presenter is stored; on success reveals the mini-CRM console === */}
+      {gateOpen && window.PresenterPasscodeGate && (
+        <window.PresenterPasscodeGate
+          onSuccess={() => { setGateOpen(false); setCrmOpen(true); }}
+          onCancel={() => setGateOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -1574,18 +1599,127 @@ function SdReportsList({ history, onOpen, onClose }) {
   );
 }
 
+// ── Live walk-in wiring for the mini-CRM (SalesDesk) ─────────────────────────
+// The LIVE FLOOR strip + WALK-INS·TODAY counts come from the relay's today's-
+// GRE-walk-ins feed. The relay returns { id, name, phone(masked), stage, owner,
+// attended }; we keep the polished profile/recommendation panels populated from
+// the seeded demo template while OVERRIDING every identity field (real lead id
+// for the claim, real name, masked phone, live status) with the live row.
+const SD_RELAY = 'https://universegre.venusprojects.co.in';
+function sdInitials(name) {
+  const p = String(name || '').replace(/^\s*(mr|mrs|ms|dr|m\/s)\.?\s+/i, '').trim().split(/\s+/).filter(Boolean);
+  const a = (p[0] || '')[0] || '';
+  const b = (p[1] || '')[0] || '';
+  return ((a + b) || 'G').toUpperCase();
+}
+function sdAgo(iso) {
+  const t = iso ? new Date(iso).getTime() : 0;
+  if (!t) return 'today';
+  const m = Math.max(0, Math.round((Date.now() - t) / 60000));
+  if (m < 1) return 'just now';
+  if (m < 60) return m + ' min ago';
+  const h = Math.floor(m / 60);
+  return h + (h > 1 ? ' hrs ago' : ' hr ago');
+}
+function sdBuildLiveData(rows) {
+  const templates = (window.SALES_DESK && window.SALES_DESK.walkIns) || [];
+  const baseStages = (window.SALES_DESK && window.SALES_DESK.stages) || [];
+  const walkIns = rows.map((r, i) => {
+    const tpl = templates[i % Math.max(1, templates.length)] || {};
+    const attended = !!r.attended;
+    return {
+      ...tpl,
+      leadId: r.id,                                  // real lead id → claim-by-id
+      id: 'TU-' + String(r.id || '').replace(/-/g, '').slice(0, 8).toUpperCase(),
+      name: r.name || 'Walk-in guest',
+      initials: sdInitials(r.name),
+      phone: r.phone || tpl.phone || '—',            // already masked by the relay
+      stage: attended ? 'withsales' : 'awaiting',
+      ago: sdAgo(r.created_at),
+      agent: r.owner ? r.owner.name : (attended ? 'With sales' : null),
+      session: attended ? 'Attended today' : 'Awaiting sales',
+    };
+  });
+  const liveNow = rows.filter((r) => r.attended).length;
+  const counts = {};
+  walkIns.forEach((w) => { counts[w.stage] = (counts[w.stage] || 0) + 1; });
+  const stages = baseStages.map((s) => ({ ...s, count: s.key === 'all' ? walkIns.length : (counts[s.key] || 0) }));
+  return {
+    stats: { walkInsToday: walkIns.length, liveNow, awaitingSales: walkIns.length - liveNow },
+    stages,
+    walkIns,
+  };
+}
+
 function SalesDesk({ onClose }) {
-  const data = window.SALES_DESK;
   const sess = useUniSession();                 // live journey store (re-renders on change)
   const PANEL_W = CRM_PANEL_W;                   // 60% panel — keeps the centre logo visible on the right
+  const [liveData, setLiveData] = React.useState(null);
+  const [starting, setStarting] = React.useState(false);
+  const [startErr, setStartErr] = React.useState('');
+  const data = liveData || window.SALES_DESK;    // live once loaded; seeded skeleton meanwhile
   const [filter, setFilter] = React.useState('all');
   const [query, setQuery] = React.useState('');
-  const [activeId, setActiveId] = React.useState(data.walkIns[0].id); // Rohan Jain
+  const [activeId, setActiveId] = React.useState(data.walkIns[0].id);
   const [view, setView] = React.useState(null);  // null | 'wrapup' | 'report' | 'reports'
   const [report, setReport] = React.useState(null);
   // 1-second tick so the live journey timer/stat cards advance
   const [, tick] = React.useState(0);
   React.useEffect(() => { const iv = setInterval(() => tick(x => x + 1), 1000); return () => clearInterval(iv); }, []);
+
+  // Pull today's GRE walk-ins from the relay (auto-refreshing, matches the
+  // "AUTO-REFRESHING" indicator). Requires the presenter PIN unlocked at the gate.
+  React.useEffect(() => {
+    let alive = true;
+    async function loadLive() {
+      const pc = window.UNI_PRESENTER ? window.UNI_PRESENTER.passcode() : '';
+      if (!pc) return;
+      try {
+        const res = await fetch(SD_RELAY + '/api/studio/walkins?passcode=' + encodeURIComponent(pc));
+        const d = await res.json();
+        if (alive && d && d.ok && Array.isArray(d.walkins) && d.walkins.length) {
+          setLiveData(sdBuildLiveData(d.walkins));
+        }
+      } catch (e) { /* keep the last-known list on a transient failure */ }
+    }
+    loadLive();
+    const iv = setInterval(loadLive, 20000);
+    return () => { alive = false; clearInterval(iv); };
+  }, []);
+
+  // START JOURNEY WITH <NAME> — selecting a walk-in + starting IS the link to
+  // the salesperson (no typed phone). Claim the real lead by id via the relay,
+  // then begin the tracked session and hand the personalised home to the guest.
+  async function startJourney(w) {
+    const leadId = w && (w.leadId || w.id);
+    const cust = { id: leadId, name: w.name, initials: w.initials };
+    const isUuid = /^[0-9a-fA-F-]{20,40}$/.test(String(leadId || ''));
+    if (!isUuid) { // seeded skeleton (no live row yet) — never block the demo
+      window.UNI_SESSION.start(cust); onClose(); return;
+    }
+    if (starting) return;
+    setStarting(true); setStartErr('');
+    const pc = window.UNI_PRESENTER ? window.UNI_PRESENTER.passcode() : '';
+    try {
+      const res = await fetch(SD_RELAY + '/api/studio/claim-by-id', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passcode: pc, lead_id: leadId }),
+      });
+      const d = await res.json();
+      if (d && d.ok) {
+        const claimed = { id: d.lead_id || leadId, name: d.lead_name || w.name, initials: w.initials };
+        window.UNI_SESSION.setCustomer(claimed);
+        window.UNI_SESSION.start(claimed);
+        onClose();
+      } else {
+        setStartErr(d && d.error === 'invalid_passcode' ? 'PIN expired — reopen the console.' : 'Couldn’t start the journey. Try again.');
+        setStarting(false);
+      }
+    } catch (e) {
+      setStartErr('Couldn’t reach the studio service.');
+      setStarting(false);
+    }
+  }
   const live = sess.isActive();
   const liveCust = sess.getCustomer();
   const liveRecord = (live && liveCust) ? (data.walkIns.find(w => w.id === liveCust.id) || liveCust) : null;
@@ -1732,7 +1866,7 @@ function SalesDesk({ onClose }) {
             {list.map(w => {
               const on = w.id === activeId; const st = sdStage(w.stage);
               return (
-                <button key={w.id} onClick={()=>{ setActiveId(w.id); window.UNI_SESSION.setCustomer(w); }} style={{
+                <button key={w.id} onClick={()=>{ setActiveId(w.id); setStartErr(''); }} style={{
                   flex:'0 0 auto', width:206, textAlign:'left', cursor:'pointer',
                   display:'flex', flexDirection:'column', gap:11, padding:'15px 16px', borderRadius:16,
                   background: on ? 'rgba(255,255,255,0.96)' : 'rgba(255,255,255,0.5)',
@@ -1844,14 +1978,16 @@ function SalesDesk({ onClose }) {
               ))}
             </div>
           </div>
-          {/* primary CTA — begins a tracked journey, then hands the
-              personalised home to the customer (closes the console). */}
-          <button onClick={()=>{ window.UNI_SESSION.start(active); onClose(); }} className="mono" style={{
-            flex:'0 0 auto', cursor:'pointer', width:'100%',
+          {/* primary CTA — CLAIMS this walk-in's real lead to the presenter
+              (POST /api/studio/claim-by-id), begins the tracked journey, then
+              hands the personalised home to the customer (closes the console). */}
+          {startErr && <div className="mono" style={{flex:'0 0 auto', color:'var(--venus-red)', fontSize:13, letterSpacing:'0.04em', textAlign:'center', marginTop:-6}}>{startErr}</div>}
+          <button onClick={()=>startJourney(active)} disabled={starting} className="mono" style={{
+            flex:'0 0 auto', cursor: starting ? 'default' : 'pointer', width:'100%', opacity: starting ? 0.7 : 1,
             background:'linear-gradient(135deg, var(--gold), var(--gold-deep))', border:'1px solid var(--gold-deep)',
             borderRadius:15, padding:'18px', fontSize:15, letterSpacing:'0.18em', color:'#2a1d05', fontWeight:600,
             boxShadow:'0 12px 28px rgba(176,138,63,0.30)',
-          }}>START JOURNEY WITH {lastName.toUpperCase()} →</button>
+          }}>{starting ? 'STARTING…' : `START JOURNEY WITH ${lastName.toUpperCase()} →`}</button>
         </div>
 
         {/* RIGHT — GRE interest + recommended matches (scrolls within) */}
