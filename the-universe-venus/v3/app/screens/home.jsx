@@ -127,6 +127,9 @@ const CIRCLE_R  = 200;     // centre circle holds the U monogram
 // circle (right 40%) stays visible as the "centre button" while it's open.
 const CRM_PANEL_W = 1536;  // 60% of 2560
 const CRM_PAD     = 56;
+// Live GRE relay base. Absolute so it works both before cutover (CORS allows the
+// studio origin) and after (same origin). Feeds the Sales Desk gate + walk-ins.
+const SD_API = 'https://universegre.venusprojects.co.in';
 // Pixel delta between explore-CX (1280) and home-RIGHT_CX (1880) — used to
 // glide the cluster from the explore-centre position to the home-right
 // position when arriving via the from-explore handoff.
@@ -1225,6 +1228,57 @@ function sdStage(key) {
   return stages.find(s => s.key === key) || { key, label: key, dot: 'var(--gold)' };
 }
 
+// ── LIVE data mapping (GRE relay → Sales-Desk card shape) ───────────────────
+// The relay's /api/studio/walkins returns lean rows { id, name, phone (masked),
+// stage, created_at, owner:{id,name}, attended }. The desk renders richer fields
+// (GRE interest, recommended units, journey) that the relay doesn't carry — those
+// keep placeholder values so the existing UI renders unchanged and never crashes.
+function sdInitials(name) {
+  const parts = String(name || '').trim().split(/[\s/]+/).filter(Boolean);
+  if (!parts.length) return '—';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+function sdAgo(iso) {
+  if (!iso) return '';
+  const t = Date.parse(iso); if (isNaN(t)) return '';
+  const mins = Math.round((Date.now() - t) / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return mins + ' min ago';
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return hrs + ' hr ago';
+  return Math.round(hrs / 24) + ' d ago';
+}
+function sdMapWalkin(w) {
+  const name = w.name || 'Walk-in';
+  const attended = !!w.attended;
+  const stage = attended ? 'withsales' : 'awaiting';   // map attended → status chip
+  const owner = (w.owner && w.owner.name) ? String(w.owner.name).trim() : null;
+  return {
+    id: w.id,                    // = CRM lead_id (used by claim-by-id)
+    name,
+    initials: sdInitials(name),
+    stage,
+    config: '—',
+    budget: '—',
+    intent: 'GRE walk-in',
+    agent: owner,                // real: assigned owner from the CRM
+    ago: sdAgo(w.created_at),
+    phone: w.phone || '—',       // masked by the relay
+    email: '—',
+    matchScore: '—',
+    session: attended ? 'Attended' : 'Awaiting sales',
+    prefs: {                     // GRE interest not carried by the relay yet
+      typology: '—', sqft: '—', budget: '—', purpose: '—', timeline: '—',
+      family: '—', source: 'GRE walk-in', mustHaves: [],
+    },
+    matches: [],                 // recommended units not carried by the relay yet
+    journey: [],
+    _stageRaw: w.stage || null,
+    _createdAt: w.created_at || null,
+  };
+}
+
 function SdMiniIcon({ type }) {
   const c = { fill:'none', stroke:'currentColor', strokeWidth:1.7, strokeLinecap:'round', strokeLinejoin:'round' };
   if (type === 'phone') return <svg viewBox="0 0 24 24" width="100%" height="100%"><path {...c} d="M6.5 4h3l1.5 4-2 1.5a11 11 0 0 0 5 5l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A16 16 0 0 1 4.5 6.2 2 2 0 0 1 6.5 4Z"/></svg>;
@@ -1583,19 +1637,11 @@ function SdReportsList({ history, onOpen, onClose }) {
 
 // ============================================================================
 // AgentCodeGate — 4-digit salesperson sign-in shown BEFORE the mini-CRM opens.
-// Each salesperson has a personal code; entering it "connects" the console to
-// that agent (name shown in the CRM header, persisted to localStorage).
-// ⚠ Replace CRM_AGENTS with the real roster. Set CRM_STRICT=true to reject
-//    unknown codes; false = any 4-digit works (labelled "Agent ####").
+// Each salesperson has a personal passcode; entering it validates against the
+// live GRE relay (POST /api/studio/validate) which resolves the CRM user. On ok
+// the console "connects" to that agent { code, name, user_id } (name shown in the
+// CRM header, persisted to localStorage); on failure the pad shakes and clears.
 // ============================================================================
-const CRM_AGENTS = {
-  '1024': 'Meera K.',
-  '2048': 'Raj Patel',
-  '4096': 'Aisha Khan',
-  '7280': 'Karan N.',
-  '1111': 'Demo Agent',
-};
-const CRM_STRICT = false;
 
 function AgentCodeGate({ onCancel, onSignIn }) {
   const [code, setCode] = React.useState('');
@@ -1610,14 +1656,24 @@ function AgentCodeGate({ onCancel, onSignIn }) {
     }
   }, []);
 
-  const submit = (full) => {
+  const submit = async (full) => {
     if (busyRef.current) return;
-    const name = CRM_AGENTS[full];
-    if (!name && CRM_STRICT) { setErr(true); setTimeout(() => { setErr(false); setCode(''); }, 650); return; }
     busyRef.current = true;
-    const ag = { code: full, name: name || ('Agent ' + full) };
-    try { localStorage.setItem('universe-agent', JSON.stringify(ag)); } catch (e) {}
-    setTimeout(() => onSignIn(ag), 280);
+    try {
+      const r = await fetch(SD_API + '/api/studio/validate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passcode: full }),
+      });
+      const j = await r.json();
+      if (j && j.ok) {
+        const ag = { code: full, name: j.name || ('Agent ' + full), user_id: j.user_id || null };
+        try { localStorage.setItem('universe-agent', JSON.stringify(ag)); } catch (e) {}
+        setTimeout(() => onSignIn(ag), 200);
+        return;
+      }
+    } catch (e) { /* network / parse error → treat as rejected */ }
+    busyRef.current = false;
+    setErr(true); setTimeout(() => { setErr(false); setCode(''); }, 650);
   };
   const press = (d) => {
     if (busyRef.current || code.length >= 4) return;
@@ -1679,30 +1735,65 @@ function AgentCodeGate({ onCancel, onSignIn }) {
 }
 
 function SalesDesk({ onClose, agent }) {
-  const data = window.SALES_DESK;
+  const data = window.SALES_DESK;               // static stage descriptors only
   const sess = useUniSession();                 // live journey store (re-renders on change)
   const PANEL_W = CRM_PANEL_W;                   // 60% panel — keeps the centre logo visible on the right
   const [filter, setFilter] = React.useState('all');
   const [query, setQuery] = React.useState('');
-  const [activeId, setActiveId] = React.useState(data.walkIns[0].id); // Rohan Jain
+  const [walkIns, setWalkIns] = React.useState([]);  // LIVE walk-ins (GRE relay)
+  const [loaded, setLoaded] = React.useState(false); // first fetch settled?
+  const [activeId, setActiveId] = React.useState(null);
   const [view, setView] = React.useState(null);  // null | 'wrapup' | 'report' | 'reports'
   const [report, setReport] = React.useState(null);
   // 1-second tick so the live journey timer/stat cards advance
   const [, tick] = React.useState(0);
   React.useEffect(() => { const iv = setInterval(() => tick(x => x + 1), 1000); return () => clearInterval(iv); }, []);
+
+  // ── LIVE walk-ins: fetch on desk-open, then auto-refresh every ~20s ─────────
+  React.useEffect(() => {
+    let alive = true;
+    const code = (agent && agent.code) || '';
+    const load = () => {
+      fetch(SD_API + '/api/studio/walkins?passcode=' + encodeURIComponent(code))
+        .then(r => r.json())
+        .then(j => {
+          if (!alive) return;
+          const mapped = (j && j.ok && Array.isArray(j.walkins)) ? j.walkins.map(sdMapWalkin) : [];
+          setWalkIns(mapped);
+          setLoaded(true);
+          setActiveId(id => (id && mapped.some(w => w.id === id)) ? id : (mapped[0] ? mapped[0].id : null));
+        })
+        .catch(() => { if (alive) setLoaded(true); });
+    };
+    load();
+    const iv = setInterval(load, 20000);
+    return () => { alive = false; clearInterval(iv); };
+  }, [agent]);
+
   const live = sess.isActive();
   const liveCust = sess.getCustomer();
-  const liveRecord = (live && liveCust) ? (data.walkIns.find(w => w.id === liveCust.id) || liveCust) : null;
+  const liveRecord = (live && liveCust) ? (walkIns.find(w => w.id === liveCust.id) || liveCust) : null;
+
+  // Today's headline counts + stage-filter counts, derived from the live list.
+  const stats = {
+    walkInsToday: walkIns.length,
+    liveNow:      walkIns.filter(w => w.stage === 'withsales').length,
+    awaitingSales:walkIns.filter(w => w.stage === 'awaiting').length,
+  };
+  const stages = data.stages.map(s => ({
+    ...s,
+    count: s.key === 'all' ? walkIns.length : walkIns.filter(w => w.stage === s.key).length,
+  }));
 
   const q = query.trim().toLowerCase();
-  const list = data.walkIns.filter(w => {
+  const list = walkIns.filter(w => {
     if (filter !== 'all' && w.stage !== filter) return false;
     if (!q) return true;
     return [w.name, w.phone, w.config, w.intent, w.budget, w.id, (w.agent||'')]
       .join(' ').toLowerCase().includes(q);
   });
-  const active = data.walkIns.find(w => w.id === activeId) || data.walkIns[0];
-  const lastName = active.name.split(' ').slice(-1)[0];
+  const active = walkIns.find(w => w.id === activeId) || walkIns[0] || null;
+  const lastName = active ? active.name.split(' ').slice(-1)[0] : '';
 
   const card = {
     background:'rgba(255,253,249,0.74)',
@@ -1787,7 +1878,28 @@ function SalesDesk({ onClose, agent }) {
       <div style={{position:'absolute', top:150, left:'50%', transform:'translateX(-50%)', width:170, height:3,
         borderRadius:2, background:'linear-gradient(90deg, transparent, var(--gold) 30%, var(--gold) 70%, transparent)', opacity:0.9}}/>
 
-      {!live && (<React.Fragment>
+      {/* Empty / loading state — no live walk-ins yet today. */}
+      {!live && !active && (
+        <div style={{position:'absolute', top:188, left:CRM_PAD, right:CRM_PAD, bottom:44,
+          display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', gap:14}}>
+          <div style={{width:96, height:96, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center',
+            background:'rgba(201,160,94,0.10)', border:'1px solid var(--gold-soft)', color:'var(--gold-deep)'}}>
+            <span style={{width:44, height:44}}><SdMiniIcon type="users"/></span>
+          </div>
+          <div className="serif" style={{fontSize:40, fontWeight:300, color:'var(--ink)'}}>
+            {loaded ? 'No walk-ins yet today' : 'Loading walk-ins…'}
+          </div>
+          <div className="serif" style={{fontSize:20, fontStyle:'italic', color:'var(--graphite)', maxWidth:560}}>
+            {loaded ? 'New GRE reception walk-ins will appear here automatically as they arrive.' : 'Fetching today’s reception list from the floor.'}
+          </div>
+          {loaded && <div className="mono" style={{marginTop:6, display:'flex', alignItems:'center', gap:9, fontSize:11, letterSpacing:'0.18em', color:'var(--slate)'}}>
+            AUTO-REFRESHING
+            <span style={{width:7, height:7, borderRadius:'50%', background:'#7bb661', boxShadow:'0 0 8px rgba(123,182,97,0.8)', animation:'locLive 1.6s ease-in-out infinite'}}/>
+          </div>}
+        </div>
+      )}
+
+      {!live && active && (<React.Fragment>
       {/* ════════════════════════════════════════════════════════════════
           FULL HEADER · three sections:
             §1 walk-ins-today metadata + stage filter
@@ -1801,9 +1913,9 @@ function SalesDesk({ onClose, agent }) {
           <div className="mono" style={{...eyebrow, fontSize:12, letterSpacing:'0.22em', color:'var(--gold-deep)'}}>WALK-INS · TODAY</div>
           <div style={{display:'flex', alignItems:'flex-end', gap:24, marginTop:18}}>
             {[
-              { v:data.stats.walkInsToday, k:'TOTAL',   c:'var(--ink)' },
-              { v:data.stats.liveNow,      k:'LIVE',    c:'var(--gold-deep)' },
-              { v:data.stats.awaitingSales,k:'WAITING', c:'var(--venus-red)' },
+              { v:stats.walkInsToday, k:'TOTAL',   c:'var(--ink)' },
+              { v:stats.liveNow,      k:'LIVE',    c:'var(--gold-deep)' },
+              { v:stats.awaitingSales,k:'WAITING', c:'var(--venus-red)' },
             ].map((s,i) => (
               <div key={i} style={{display:'flex', flexDirection:'column'}}>
                 <div className="serif" style={{fontSize:50, fontWeight:300, lineHeight:0.8, color:s.c}}>{s.v}</div>
@@ -1813,7 +1925,7 @@ function SalesDesk({ onClose, agent }) {
           </div>
           {/* compact stage filter — sized to keep 3 per row, 2 rows */}
           <div style={{display:'flex', flexWrap:'wrap', gap:6, marginTop:'auto'}}>
-            {data.stages.filter(s => s.key==='all' || s.count>0).map(s => {
+            {stages.filter(s => s.key==='all' || s.count>0).map(s => {
               const on = filter === s.key;
               return (
                 <button key={s.key} onClick={()=>setFilter(s.key)} style={{
@@ -1958,7 +2070,20 @@ function SalesDesk({ onClose, agent }) {
           </div>
           {/* primary CTA — begins a tracked journey, then hands the
               personalised home to the customer (closes the console). */}
-          <button onClick={()=>{ window.UNI_SESSION.start(active); onClose(); }} className="mono" style={{
+          <button onClick={()=>{
+            // Claim this walk-in (lead) for the connected agent on the live CRM,
+            // then hand the personalised home to the customer. Best-effort: the
+            // journey still starts even if the claim call fails, so the floor is
+            // never stranded on a network hiccup.
+            const code = (agent && agent.code) || '';
+            try {
+              fetch(SD_API + '/api/studio/claim-by-id', {
+                method:'POST', headers:{ 'Content-Type':'application/json' },
+                body: JSON.stringify({ passcode: code, lead_id: active.id }),
+              }).catch(()=>{});
+            } catch (e) {}
+            window.UNI_SESSION.start(active); onClose();
+          }} className="mono" style={{
             flex:'0 0 auto', cursor:'pointer', width:'100%',
             background:'linear-gradient(135deg, var(--gold), var(--gold-deep))', border:'1px solid var(--gold-deep)',
             borderRadius:15, padding:'18px', fontSize:15, letterSpacing:'0.18em', color:'#2a1d05', fontWeight:600,
