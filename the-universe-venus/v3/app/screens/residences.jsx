@@ -15,7 +15,24 @@
 // every column gets its own independent zoom/pan.
 
 // ── Largest home in the project — drives the sqft comparison bars. ──────────
-const MAX_SQFT = TYPOLOGIES.reduce((m, t) => Math.max(m, t.sqft), 0); // 4689.98
+// Spans BOTH the block-level set and the finer per-type set so the bar scale is
+// identical whether you compare "by Block" or "by Type" (4689.98 E&F penthouse).
+const MAX_SQFT = [...TYPOLOGIES, ...(typeof TYPES !== 'undefined' ? TYPES : [])]
+  .reduce((m, t) => Math.max(m, t.sqft), 0); // 4689.98
+
+// Live-area resolver — prefer the CRM RERA carpet for a type's representative
+// unit (keeps the size sync consistent with the floor plate); fall back to the
+// BLOCK_SPECS carpet when the inventory feed isn't loaded. Never crashes.
+function liveTypology(ty) {
+  if (!ty) return ty;
+  try {
+    if (ty.repUnit && typeof window !== 'undefined' && typeof window.unitCrmRecord === 'function') {
+      const rec = window.unitCrmRecord(ty.repUnit);
+      if (rec && rec.area_sqft) return { ...ty, sqft: rec.area_sqft };
+    }
+  } catch (e) { /* inventory not ready → use static sqft */ }
+  return ty;
+}
 
 // ════════════════════════════════════════════════════════════════════════
 //  PlanViewer — self-contained zoom-pan floor-plan viewer (reused per column)
@@ -384,10 +401,22 @@ function AddColumn({ onAdd }) {
 function Residences() {
   const t = useLoop();
   const [route] = useRoute();
+  useInventory();   // re-render when the live CRM feed loads → per-type areas refresh
 
   // Canvas-height density: 0 on 16:10 tablet (1600) → 1 on iPad Pro 4:3 (1920).
   const CH = (typeof window !== 'undefined' && window.UNIVERSE_CANVAS && window.UNIVERSE_CANVAS.H) || 1600;
   const dens = Math.max(clamp((CH - 1600) / 320), (typeof window!=="undefined" && window.UNIVERSE_CANVAS && window.UNIVERSE_CANVAS.dens) || 0);
+
+  // ── grouping: "Block" = one representative plan per block-pair (6);
+  //             "Type"  = every distinct unit type per block (11). ────────────
+  const [groupBy, setGroupBy] = React.useState('block');        // 'block' | 'type'
+  const LIST = groupBy === 'type' ? TYPES : TYPOLOGIES;
+  const listRef = React.useRef(LIST);
+  listRef.current = LIST;
+  // Look up in the ACTIVE set first (codes can repeat across sets, e.g. EF-PENT).
+  const byCode = (c) => listRef.current.find(ty => ty.code === c) ||
+                        [...TYPOLOGIES, ...TYPES].find(ty => ty.code === c);
+  const live = (c) => liveTypology(byCode(c));   // resolve → live CRM carpet area
 
   // Initial typology from route (tower id → its block pair), else first.
   const initialCode = (() => {
@@ -413,7 +442,24 @@ function Residences() {
   const [focusCode, setFocusCode] = React.useState(initialCode);
   const [maxHint, setMaxHint] = React.useState(false);          // brief "max 3" flash
 
-  const byCode = (c) => TYPOLOGIES.find(ty => ty.code === c);
+  // Switch grouping — remap the current selection/focus to the new set so the
+  // stage never goes blank. We map by block-pair (same pair → its first entry).
+  const switchGroup = (g) => {
+    if (g === groupBy) return;
+    const nextList = g === 'type' ? TYPES : TYPOLOGIES;
+    const remap = (code) => {
+      const cur = [...TYPOLOGIES, ...TYPES].find(x => x.code === code);
+      const hit = cur && (nextList.find(x => x.pair === cur.pair) || nextList[0]);
+      return (hit || nextList[0]).code;
+    };
+    setSelected(prev => {
+      const mapped = [];
+      prev.forEach(c => { const m = remap(c); if (!mapped.includes(m)) mapped.push(m); });
+      return mapped.length ? mapped.slice(0, MAX_COMPARE) : [nextList[0].code];
+    });
+    setFocusCode(fc => remap(fc));
+    setGroupBy(g);
+  };
 
   // Rail tap behaviour depends on mode.
   const pick = (code) => {
@@ -433,10 +479,10 @@ function Residences() {
     });
   };
 
-  // "+ Add plan" — append the next typology not yet being compared (up to 3).
+  // "+ Add plan" — append the next entry (from the active set) not yet compared.
   const addPlan = () => setSelected(prev => {
     if (prev.length >= MAX_COMPARE) return prev;
-    const next = TYPOLOGIES.find(ty => !prev.includes(ty.code));
+    const next = listRef.current.find(ty => !prev.includes(ty.code));
     return next ? [...prev, next.code] : prev;
   });
 
@@ -450,8 +496,18 @@ function Residences() {
   const isActive = (code) => mode === 'focus' ? focusCode === code : selected.includes(code);
   const slotOf = (code) => selected.indexOf(code); // 0 / 1 / 2 / -1
 
-  const cols = selected.map(byCode).filter(Boolean);   // 1–3 chosen typologies
+  const cols = selected.map(live).filter(Boolean);     // 1–3 chosen (live areas)
   const compact = cols.length === 3;                   // tighten type at 3-up
+
+  // Rail grouped by block-pair (works for both Block & Type sets) so ~11 type
+  // buttons read as tidy per-block clusters instead of one long ribbon.
+  const groups = [];
+  LIST.forEach(ty => {
+    let g = groups.find(x => x.pair === ty.pair);
+    if (!g) { g = { pair: ty.pair, items: [] }; groups.push(g); }
+    g.items.push(ty);
+  });
+  const railExtra = groupBy === 'type' ? 70 : 0;   // give the fuller Type rail room
   const showEmpty = cols.length < MAX_COMPARE && cols.length >= 1; // trailing prompt slot
   // 1 chosen → show its column + an empty prompt (2 tracks).
   // 2 chosen → two columns + an empty prompt (3 tracks).
@@ -480,38 +536,65 @@ function Residences() {
         ))}
       </div>
 
-      {/* ── selection rail (the 6 typologies) ── */}
-      <div style={{ position: 'absolute', top: 300, left: 76, right: 76, display: 'flex', gap: 11, alignItems: 'center', flexWrap: 'wrap', zIndex: 5 }}>
-        {TYPOLOGIES.map(ty => {
-          const active = isActive(ty.code);
-          const slot = slotOf(ty.code);
-          return (
-            <button key={ty.code} onClick={() => pick(ty.code)} className="mono" style={{
-              padding: `${Math.round(14+dens*4)}px ${Math.round(22+dens*3)}px`, borderRadius: 105,
-              border: '1px solid ' + (active ? 'var(--gold-deep)' : 'var(--line)'),
-              background: active ? 'linear-gradient(180deg, var(--tile-light) 0%, var(--tile) 100%)' : 'var(--ivory-2)',
-              color: active ? 'var(--on-tile)' : 'var(--ink)',
-              fontSize: Math.round(14 + dens*2), letterSpacing: '0.16em', textTransform: 'uppercase', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 11,
-              fontWeight: active ? 700 : 500,
-              boxShadow: active ? '0 8px 19px rgba(50,32,12,0.18)' : 'none',
+      {/* ── grouping toggle (Compare by: Block / Type) ── top-left ── */}
+      <div style={{ position: 'absolute', top: 250, left: 76, display: 'flex', alignItems: 'center', gap: 14, zIndex: 6 }}>
+        <span className="mono" style={{ fontSize: Math.round(12 + dens*2), letterSpacing: '0.24em', color: 'var(--slate)', opacity: 0.8 }}>COMPARE BY</span>
+        <div style={{ display: 'flex', gap: 0, padding: 5, borderRadius: 105, background: 'var(--ivory-2)', border: '1px solid var(--line)' }}>
+          {[['block', 'BLOCK'], ['type', 'TYPE']].map(([g, label]) => (
+            <button key={g} onClick={() => switchGroup(g)} className="mono" style={{
+              padding: `${Math.round(13+dens*5)}px ${Math.round(24+dens*7)}px`, borderRadius: 105, border: 'none', cursor: 'pointer',
+              fontSize: Math.round(14 + dens*3), letterSpacing: '0.2em',
+              background: groupBy === g ? 'linear-gradient(180deg, var(--gold) 0%, var(--gold-deep) 100%)' : 'transparent',
+              color: groupBy === g ? '#1a130a' : 'var(--slate)',
+              fontWeight: groupBy === g ? 700 : 500,
+              boxShadow: groupBy === g ? '0 6px 14px rgba(176,138,63,0.35)' : 'none',
               transition: 'all 240ms cubic-bezier(0.22,1,0.36,1)',
-            }}>
-              {/* slot badge in compare mode */}
-              {mode === 'compare' && slot >= 0 && (
-                <span style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--gold-deep)', color: '#1a130a', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{slot + 1}</span>
-              )}
-              <span style={{ opacity: 0.7 }}>{ty.pair}</span>
-              <span style={{ opacity: 0.35 }}>·</span>
-              <span>{ty.name.replace('4 BHK · ', '').replace('Penthouse · ', 'PH · ')}</span>
-              <span style={{ opacity: 0.45, fontSize: 12 }}>{Math.round(ty.sqft)}</span>
-            </button>
-          );
-        })}
+            }}>{label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── selection rail — grouped by block-pair ── */}
+      <div style={{ position: 'absolute', top: 300, left: 76, right: 76, display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap', rowGap: 16, zIndex: 5 }}>
+        {groups.map(g => (
+          <div key={g.pair} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div className="mono" style={{ fontSize: Math.round(11 + dens*2), letterSpacing: '0.28em', color: 'var(--gold-deep)', opacity: 0.85, paddingLeft: 6 }}>{g.pair.replace('&', ' & ')}</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {g.items.map(ty => {
+                const active = isActive(ty.code);
+                const slot = slotOf(ty.code);
+                const short = groupBy === 'type'
+                  ? ty.tag
+                  : (ty.name.toLowerCase().includes('penthouse') ? 'Penthouse' : '4 BHK');
+                const sqft = Math.round(liveTypology(ty).sqft);
+                return (
+                  <button key={ty.code} onClick={() => pick(ty.code)} className="mono" style={{
+                    padding: `${Math.round(13+dens*4)}px ${Math.round(19+dens*3)}px`, borderRadius: 105,
+                    border: '1px solid ' + (active ? 'var(--gold-deep)' : 'var(--line)'),
+                    background: active ? 'linear-gradient(180deg, var(--tile-light) 0%, var(--tile) 100%)' : 'var(--ivory-2)',
+                    color: active ? 'var(--on-tile)' : 'var(--ink)',
+                    fontSize: Math.round(14 + dens*2), letterSpacing: '0.14em', textTransform: 'uppercase', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    fontWeight: active ? 700 : 500,
+                    boxShadow: active ? '0 8px 19px rgba(50,32,12,0.18)' : 'none',
+                    transition: 'all 240ms cubic-bezier(0.22,1,0.36,1)',
+                  }}>
+                    {/* slot badge in compare mode */}
+                    {mode === 'compare' && slot >= 0 && (
+                      <span style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--gold-deep)', color: '#1a130a', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{slot + 1}</span>
+                    )}
+                    <span>{short}</span>
+                    <span style={{ opacity: 0.45, fontSize: 12 }}>{sqft}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* ── selection hint ── */}
-      <div className="mono" style={{ position: 'absolute', top: 372, left: 78, fontSize: Math.round(12 + dens*2), letterSpacing: '0.22em', zIndex: 5, display: 'flex', alignItems: 'center', gap: 14 }}>
+      <div className="mono" style={{ position: 'absolute', top: 372 + railExtra, left: 78, fontSize: Math.round(12 + dens*2), letterSpacing: '0.22em', zIndex: 5, display: 'flex', alignItems: 'center', gap: 14 }}>
         <span style={{ color: 'var(--slate)', opacity: 0.75 }}>
           {mode === 'compare'
             ? `SELECT UP TO THREE PLANS TO COMPARE SIDE BY SIDE · ${selected.length}/${MAX_COMPARE} CHOSEN`
@@ -529,7 +612,7 @@ function Residences() {
       </div>
 
       {/* ── stage ── */}
-      <div style={{ position: 'absolute', top: 410, left: 76, right: 76, bottom: 76 }}>
+      <div style={{ position: 'absolute', top: 410 + railExtra, left: 76, right: 76, bottom: 76 }}>
         {mode === 'compare' ? (
           <div style={{
             display: 'grid',
@@ -556,9 +639,9 @@ function Residences() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: '1.75fr 1fr', gap: 50, height: '100%' }}>
             {/* big single viewer */}
-            <PlanViewer typology={byCode(focusCode)} big={true} />
+            <PlanViewer typology={live(focusCode)} big={true} />
             {/* spec + room schedule + CTA */}
-            <FocusSpec typology={byCode(focusCode)} t={t} dens={dens} />
+            <FocusSpec typology={live(focusCode)} t={t} dens={dens} />
           </div>
         )}
       </div>
@@ -568,7 +651,7 @@ function Residences() {
 
 // Right-hand panel for FOCUS mode — fuller spec + room schedule + CTA.
 function FocusSpec({ typology, t, dens = 0 }) {
-  const rooms = parseRooms(typology.code);
+  const rooms = parseRooms(typology.roomsCode || typology.code);
   const isPent = typology.name.toLowerCase().includes('penthouse');
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: Math.round(20 + dens*8), overflow: 'hidden', minHeight: 0 }}>

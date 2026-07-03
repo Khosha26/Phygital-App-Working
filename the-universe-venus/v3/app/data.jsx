@@ -384,6 +384,31 @@ const TYPOLOGIES = [
 // PLACEHOLDER prices from DUMMY_RATE (replace with Venus list; set DUMMY_RATE=null for "Price on request").
 TYPOLOGIES.forEach(t => { t.price = DUMMY_RATE ? Math.round(t.sqft * DUMMY_RATE) : null; });
 
+// ─── TYPES (finer comparison — each block's distinct unit TYPES) ────────────
+// The Residences screen can compare "by Type" instead of "by Block": every
+// distinct plan a block-pair offers becomes individually selectable, using the
+// matching RERA plate image + its REAL per-type carpet from BLOCK_SPECS. Only
+// types that have a real plan image are listed (E&F Type 2 shares the pos-4
+// drawing with the penthouse, so it's folded into the penthouse entry).
+//   · sqft     = BLOCK_SPECS carpet (fallback; live CRM area preferred at render)
+//   · plan     = the block/position RERA plate in assets/plans/
+//   · repUnit  = a representative unit code (tower+floor+pos) → live CRM area
+//   · roomsCode= which block room-schedule to show in Single-plan (Focus) mode
+const TYPES = [
+  { code:'AB-T1',  pair:'A&B', name:'Type 1 · A & B',     tag:'Type 1',     sqft:1547.22, bhk:4, price:null, plan:'assets/plans/unit-block-AB-type-1-4.jpg', repUnit:'A-1001', roomsCode:'AB-4BHK' },
+  { code:'AB-T2',  pair:'A&B', name:'Type 2 · A & B',     tag:'Type 2',     sqft:1545.93, bhk:4, price:null, plan:'assets/plans/unit-block-AB-type-2-3.jpg', repUnit:'A-1002', roomsCode:'AB-4BHK' },
+  { code:'CD-T1',  pair:'C&D', name:'Type 1 · C & D',     tag:'Type 1',     sqft:2071.96, bhk:4, price:null, plan:'assets/plans/unit-block-CD-type-1.jpg',   repUnit:'C-1001', roomsCode:'CD-4BHK' },
+  { code:'CD-T2',  pair:'C&D', name:'Type 2 · C & D',     tag:'Type 2',     sqft:1755.07, bhk:4, price:null, plan:'assets/plans/unit-block-CD-type-2.jpg',   repUnit:'C-1002', roomsCode:'CD-4BHK' },
+  { code:'EF-T1',  pair:'E&F', name:'Type 1 · E & F',     tag:'Type 1',     sqft:2507.26, bhk:4, price:null, plan:'assets/plans/unit-block-EF-type-1-2.jpg', repUnit:'E-1001', roomsCode:'EF-4BHK' },
+  { code:'EF-T3',  pair:'E&F', name:'Type 3 · E & F',     tag:'Type 3',     sqft:2465.00, bhk:4, price:null, plan:'assets/plans/unit-block-EF-type-3.jpg',   repUnit:'E-1003', roomsCode:'EF-4BHK' },
+  { code:'EF-PENT',pair:'E&F', name:'Penthouse · E & F',  tag:'Penthouse',  sqft:4689.98, bhk:4, price:null, plan:'assets/plans/unit-block-EF-type-4.jpg',   repUnit:'E-2001', roomsCode:'EF-PENT' },
+  { code:'GH-T1',  pair:'G&H', name:'Type 1 · G & H',     tag:'Type 1',     sqft:2071.10, bhk:4, price:null, plan:'assets/plans/unit-block-G-type-1-4.jpg',  repUnit:'G-1001', roomsCode:'GH-4BHK' },
+  { code:'GH-T2',  pair:'G&H', name:'Type 2 · G & H',     tag:'Type 2',     sqft:1772.94, bhk:4, price:null, plan:'assets/plans/unit-block-G-type-2-3.jpg',  repUnit:'G-1002', roomsCode:'GH-4BHK' },
+  { code:'IJ-T1',  pair:'I&J', name:'Type 1 · I & J',     tag:'Type 1',     sqft:2082.73, bhk:4, price:null, plan:'assets/plans/unit-block-IJ-type-1.jpg',   repUnit:'I-1001', roomsCode:'IJ-4BHK' },
+  { code:'IJ-T1B', pair:'I&J', name:'Type 1b · I & J',    tag:'Type 1b',    sqft:1776.17, bhk:4, price:null, plan:'assets/plans/unit-block-IJ-type-1b.jpg',  repUnit:'I-1002', roomsCode:'IJ-4BHK' },
+];
+TYPES.forEach(t => { t.price = DUMMY_RATE ? Math.round(t.sqft * DUMMY_RATE) : null; });
+
 // ─── PRICE SHEET (basic, transparent build-up) ─────────────────────────────
 // unitPriceSheet(unit) → a simple cost breakdown for the Unit Detail screen.
 // All rates PLACEHOLDER (replace with the Venus price list when received).
