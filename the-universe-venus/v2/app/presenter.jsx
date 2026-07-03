@@ -79,7 +79,9 @@
         let data = null;
         try { data = await res.json(); } catch (e) { data = null; }
         if (data && data.ok) {
-          const info = { name: data.claimed_by, leadId: data.lead_id, leadName: data.lead_name, stage: data.stage, claimedAt: Date.now() };
+          // Persist the PIN so the mini-CRM ("Today at The Universe") can reuse
+          // it to load walk-ins, claim more guests and end sessions without re-asking.
+          const info = { name: data.claimed_by, passcode: p, leadId: data.lead_id, leadName: data.lead_name, stage: data.stage, claimedAt: Date.now() };
           savePresenter(info);
           setSuccessInfo(info);
           setStatus('success');

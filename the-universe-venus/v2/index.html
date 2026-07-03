@@ -265,6 +265,7 @@ img { -webkit-user-drag: none; user-select: none; }
 <script type="text/babel" src="app/screens/tools.jsx"></script>
 <script type="text/babel" src="app/screens/booking.jsx"></script>
 <script type="text/babel" src="app/screens/inventory.jsx"></script>
+<script type="text/babel" src="app/screens/minicrm.jsx"></script>
 <script type="text/babel" src="app/screens/_dock.jsx"></script>
 <script type="text/babel" src="app/screens/_tools-float.jsx"></script>
 <script type="text/babel" src="app/screens/saver.jsx"></script>
@@ -301,6 +302,7 @@ function App() {
   else if (shown.path === 'tools')      Screen = Tools;
   else if (shown.path === 'inventory')  Screen = Inventory;
   else if (shown.path === 'booking')    Screen = Booking;
+  else if (shown.path === 'minicrm')    Screen = MiniCRM;
 
   // Surround colour = the active screen's own base background, so the
   // letterbox area on off-ratio displays blends seamlessly (no visible bars,
@@ -386,6 +388,7 @@ function App() {
         <FloatingTools/>
       </div>
       {saverOn && <ScreenSaver onDismiss={() => setSaverOn(false)}/>}
+      <StudioBar/>
     </div>
   );
 }
