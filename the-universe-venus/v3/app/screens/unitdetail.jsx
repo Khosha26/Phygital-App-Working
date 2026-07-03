@@ -12,6 +12,7 @@ function UnitDetail() {
   const t = useLoop();
   const e = clamp(t/0.5);
   const [route] = useRoute();
+  const invV = useInventory();   // re-render when live CRM inventory (area/status) refreshes
 
   // Canvas-height density: 0 on 16:10 tablet (1600) → 1 on iPad Pro 4:3 (1920).
   const CH = (typeof window !== 'undefined' && window.UNIVERSE_CANVAS && window.UNIVERSE_CANVAS.H) || 1600;
@@ -25,6 +26,11 @@ function UnitDetail() {
   const unit = (tower && Number.isFinite(floor))
     ? buildUnits(towerId, floor).find(u => u.no === unitNo)
     : null;
+
+  // REAL RERA carpet area from the live CRM feed (varies by floor); plate-data
+  // (unit.sqft from BLOCK_SPECS) is only a fallback while loading / if unmapped.
+  const _crmRec = unit ? unitCrmRecord(unit.no) : null;
+  const unitArea = (_crmRec && _crmRec.area_sqft) || (unit && unit.sqft) || null;
 
   // ── zoom-pan state (ported verbatim) ─────────────────────────
   const [zoom, setZoom] = React.useState(1);
@@ -229,7 +235,7 @@ function UnitDetail() {
 
           {/* spec grid */}
           <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'0 22px', marginTop:Math.round(24+dens*14), borderTop:'1px solid var(--line)', paddingTop:6}}>
-            <DetailCell label="RERA Carpet" value={fmtSqft(unit.sqft)} dens={dens}/>
+            <DetailCell label="RERA Carpet" value={fmtSqft(unitArea)} dens={dens}/>
             <DetailCell label="Unit Type" value={unit.type} dens={dens}/>
             <DetailCell label="Facing" value={unit.facing} dens={dens}/>
             <DetailCell label="Tower" value={`${tower.name} · ${tower.pair}`} dens={dens}/>

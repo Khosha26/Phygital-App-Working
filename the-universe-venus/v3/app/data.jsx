@@ -339,9 +339,14 @@ function buildUnits(towerId, floor){
   const slots = isPH ? spec.ph : spec.slots;
   return slots.map(s => {
     const no = `${tower.id}-${floor}${String(s.pos).padStart(2,'0')}`;
+    // REAL RERA carpet area from the live CRM feed — authoritative and VARIES BY
+    // FLOOR (e.g. E-1003 = 2465). BLOCK_SPECS sqft is only a fallback while the
+    // feed is loading or for a unit not present in it. Same resolver as status.
+    const rec = unitCrmRecord(no);
+    const realSqft = (rec && rec.area_sqft) ? rec.area_sqft : s.sqft;
     return {
       id: no, no, tower: tower.id, towerName: tower.name, pair: tower.pair,
-      floor, pos: s.pos, type: s.type, sqft: s.sqft, isPenthouse: isPH,
+      floor, pos: s.pos, type: s.type, sqft: realSqft, planSqft: s.sqft, isPenthouse: isPH,
       bhk: '4 BHK', facing: tower.view,          // facing PLACEHOLDER (tower-level)
       status: unitCrmStatus(no),                 // REAL availability from the CRM feed
       price: DUMMY_RATE ? Math.round(s.sqft * DUMMY_RATE) : null,  // PLACEHOLDER

@@ -121,6 +121,28 @@ function FloorPlate() {
     return s;
   }, [blockIds.join(''), floor, invV]);
 
+  // RERA CARPET AREA rows for the CURRENTLY SELECTED FLOOR — real areas from the
+  // live CRM feed (so upper floors show their larger sizes, not one stack
+  // constant). Built from the pair's representative block; falls back to the
+  // static plate-data table while the feed loads or if any unit is unmapped.
+  const floorTable = React.useMemo(() => {
+    if (!pdata || !pdata.table || !pdata.table.length) return [];
+    const staticRows = pdata.table.map(r => ({ unitRange: r.unitRange, rera: r.rera }));
+    const repBlock = blockIds[0];
+    if (!repBlock || !Number.isFinite(floor)) return staticRows;
+    const flUnits = buildUnits(repBlock, floor).slice().sort((a, b) => a.pos - b.pos);
+    const real = flUnits.map(u => {
+      const rec = unitCrmRecord(u.no);
+      if (!rec || !rec.area_sqft) return null;              // not in feed → no real row
+      const pp = pdata.perPosition && pdata.perPosition[u.pos];
+      const label = (u.no.split('-')[1]) || (pp && pp.unitRangeLabel) || u.no;
+      return { unitRange: label, rera: rec.area_sqft };
+    }).filter(Boolean);
+    // Only swap in the real per-floor table when we have a real area for EVERY
+    // unit on the floor; otherwise keep the trusted static table (never blank).
+    return (real.length > 0 && real.length === flUnits.length) ? real : staticRows;
+  }, [blockIds.join(''), floor, invV]);
+
   if (!tower || !Number.isFinite(floor)) {
     return (
       <div style={{position:'absolute', inset:0, background:'transparent', display:'flex', alignItems:'center', justifyContent:'center'}}>
@@ -261,7 +283,9 @@ function FloorPlate() {
                   const u = buildUnits(id, floor).find(x => x.pos === it.num);
                   const st = u ? (STATUS[u.status] || STATUS.sold) : STATUS.available;
                   const sold = u && u.status === 'sold';
-                  const rera = (pdata && pdata.perPosition && pdata.perPosition[it.num] && pdata.perPosition[it.num].rera) || (u && u.sqft) || null;
+                  // REAL per-unit CRM carpet area wins (u.sqft is CRM-backed via
+                  // buildUnits, varies by floor); plate-data rera is only a fallback.
+                  const rera = (u && u.sqft) || (pdata && pdata.perPosition && pdata.perPosition[it.num] && pdata.perPosition[it.num].rera) || null;
                   // anchor the pill to this zone's outer corner so it never covers the plan centre
                   const pillPos = { position:'absolute' };
                   if (z.ax === 'left') pillPos.left = 16; else pillPos.right = 16;
@@ -385,10 +409,10 @@ function FloorPlate() {
                   <div className="mono" style={{padding:'15px 22px', fontSize:20, letterSpacing:'0.06em', fontWeight:600, color:'#fff7e8', borderRight:'1px solid rgba(255,255,255,0.22)'}}>UNIT NUMBER</div>
                   <div className="mono" style={{padding:'15px 22px', fontSize:20, letterSpacing:'0.06em', fontWeight:600, color:'#fff7e8', textAlign:'right'}}>RERA CA · SQ.FT</div>
                 </div>
-                {pdata.table.map((r, ri) => (
+                {floorTable.map((r, ri) => (
                   <div key={ri} style={{display:'grid', gridTemplateColumns:'1.35fr 1fr', alignItems:'center', borderTop:'1px solid rgba(176,138,63,0.22)', background: ri%2 ? 'rgba(255,255,255,0.42)' : 'rgba(255,250,240,0.18)'}}>
                     <div className="serif" style={{padding:'18px 22px', fontSize:26, fontWeight:500, color:'var(--ink)', borderRight:'1px solid rgba(176,138,63,0.18)', lineHeight:1.25}}>{r.unitRange}</div>
-                    <div className="serif" style={{padding:'18px 22px', fontSize:28, fontWeight:600, color:'var(--gold-deep)', textAlign:'right', fontVariantNumeric:'tabular-nums'}}>{Number(r.rera).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
+                    <div className="serif" style={{padding:'18px 22px', fontSize:28, fontWeight:600, color:'var(--gold-deep)', textAlign:'right', fontVariantNumeric:'tabular-nums'}}>{Number.isInteger(Number(r.rera)) ? Number(r.rera).toLocaleString('en-IN') : Number(r.rera).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
                   </div>
                 ))}
               </div>
