@@ -247,6 +247,7 @@ img { -webkit-user-drag: none; user-select: none; }
 <script type="text/babel" src="app/utils.jsx"></script>
 <script type="text/babel" src="app/fx.jsx"></script>
 <script type="text/babel" src="app/session.jsx"></script>
+<script type="text/babel" src="app/presenter.jsx"></script>
 <script type="text/babel" src="app/screens/_header.jsx"></script>
 <script type="text/babel" src="app/screens/splash.jsx"></script>
 <script type="text/babel" src="app/screens/home.jsx"></script>
@@ -388,7 +389,7 @@ function App() {
     </div>
   );
 }
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+ReactDOM.createRoot(document.getElementById('root')).render(<PresenterGate><App/></PresenterGate>);
 </script>
 
 <!-- RealDesk analytics — offline-durable usage tracking (IndexedDB buffer, syncs when online) -->
