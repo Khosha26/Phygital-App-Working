@@ -76,6 +76,9 @@ function FloatingTools() {
   const zTop = React.useRef(131);
 
   const open = React.useCallback((tool) => {
+    // Pricing / EMI tools are hidden in this build — never open a price window.
+    return;
+    /* eslint-disable no-unreachable */
     if (tool !== 'price' && tool !== 'emi') return;
     setWins(prev => {
       const next = { ...prev };

@@ -93,9 +93,8 @@ function FloatingDock() {
     window.addEventListener('pointerup', onUp);
   };
 
+  // Pricing / EMI shortcuts are intentionally omitted in this build (pricing hidden).
   const items = [
-    { key:'price', label:'Pricing',  glyph:'₹',          onClick:() => { setOpen(false); window.dispatchEvent(new CustomEvent('uni-open-tool', { detail:{ tool:'price' } })); } },
-    { key:'emi',   label:'EMI',       icon:DockGlyph.emi, onClick:() => { setOpen(false); window.dispatchEvent(new CustomEvent('uni-open-tool', { detail:{ tool:'emi' } })); } },
     { key:'pen',   label:'Annotate',  icon:DockGlyph.pen, onClick:() => { setOpen(false); setAnnot(a => !a); } },
   ];
 
@@ -114,7 +113,7 @@ function FloatingDock() {
       <div style={{ position:'absolute', left:pos.x, top:pos.y, width:0, height:0, zIndex:95 }}>
         {/* shortcut bloom */}
         {items.map((it, i) => {
-          const ang = base + (i - 1) * SPREAD;
+          const ang = base + (i - (items.length - 1) / 2) * SPREAD;
           const R = 138 + i * 4;
           const dx = Math.cos(ang) * R, dy = -Math.sin(ang) * R;
           return (

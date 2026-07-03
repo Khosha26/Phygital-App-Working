@@ -1044,7 +1044,7 @@ const UIcons = {
         <line x1="22" y1="42" x2="78" y2="42"/>
       </g>
       <text x="50" y="64" fontSize="22" fill="currentColor" textAnchor="middle"
-        fontFamily="Cormorant Garamond, serif" fontWeight="500">₹</text>
+        fontFamily="Cormorant Garamond, serif" fontWeight="500">=</text>
       <g {...Glow({strokeWidth: 1})}>
         <line x1="30" y1="36" x2="30" y2={hovered ? 28 : 32} style={{transition:'y2 420ms'}}/>
         <line x1="36" y1="36" x2="36" y2={hovered ? 30 : 34} style={{transition:'y2 460ms'}}/>
@@ -2103,12 +2103,11 @@ function SalesDesk({ onClose, agent }) {
               </div>
               <div className="mono" style={{fontSize:12.5, letterSpacing:'0.18em', color:'var(--slate)'}}>INTENT · {active.intent.toUpperCase()}</div>
             </div>
-            {/* the three headline interest points — each with a glyph */}
-            <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:16, marginTop:22}}>
+            {/* the headline interest points — each with a glyph (budget hidden) */}
+            <div style={{display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:16, marginTop:22}}>
               {[
                 ['BHK / TYPOLOGY', active.prefs.typology, 'building'],
                 ['SIZE SOUGHT',    active.prefs.sqft,     'ruler'],
-                ['BUDGET',         active.prefs.budget,   'rupee'],
               ].map(([k,v,ic]) => (
                 <div key={k} style={{padding:'18px 20px', borderRadius:16, background:'rgba(201,160,94,0.10)', border:'1px solid var(--gold-soft)'}}>
                   <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8}}>
@@ -2168,7 +2167,6 @@ function SalesDesk({ onClose, agent }) {
                     <div className="serif" style={{fontSize:20, lineHeight:1.1}}>{u.tower} · {u.floor} · {u.bhk}</div>
                     <div style={{fontSize:14.5, color:'var(--graphite)', marginTop:3}}>{u.view} · {u.sqft}</div>
                   </div>
-                  <div className="serif" style={{fontSize:24, color:'var(--gold-deep)', flex:'0 0 auto'}}>{u.price}</div>
                   <div style={{flex:'0 0 auto', display:'flex', flexDirection:'column', alignItems:'center', gap:1,
                     padding:'7px 13px', borderRadius:12, minWidth:64,
                     background:'rgba(123,182,97,0.14)', border:'1px solid rgba(123,182,97,0.38)'}}>

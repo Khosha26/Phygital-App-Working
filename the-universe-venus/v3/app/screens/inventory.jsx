@@ -69,11 +69,12 @@ function Inventory(){
   const t = useLoop();
   const [hover, setHover] = React.useState(null);   // tower id
   const [filter, setFilter] = React.useState('all'); // all | available
+  const invV = useInventory();                       // re-render when live CRM availability refreshes
 
-  // per-tower availability (real, from the placeholder status hash on real units)
+  // per-tower availability — REAL, from the live CRM inventory feed (data.jsx).
   const sums = React.useMemo(() => {
     const m = {}; TOWERS.forEach(tw => { m[tw.id] = towerSummary(tw.id); }); return m;
-  }, []);
+  }, [invV]);
   const totals = React.useMemo(() => TOWERS.reduce((a,tw)=>{
     const s=sums[tw.id]; a.available+=s.available; a.booked+=s.booked; a.blocked+=s.blocked; a.sold+=s.sold; a.hold+=s.hold; a.total+=s.total; return a;
   }, {available:0,booked:0,blocked:0,sold:0,hold:0,total:0}), [sums]);

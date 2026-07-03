@@ -52,6 +52,7 @@ function FloorSelect() {
   const [route] = useRoute();
   const [hoverFloor, setHoverFloor] = React.useState(null);
   const [asc, setAsc] = React.useState(false);   // sort direction (default: top floor first)
+  const invV = useInventory();                    // re-render when live CRM availability refreshes
 
   const towerId = route.params && route.params[0];
   const tower = TOWERS.find(tw => tw.id === towerId);
@@ -69,7 +70,7 @@ function FloorSelect() {
       const total = units.length;
       return { ...fl, avail, hold, total, soldCount: total - avail - hold };
     });
-  }, [towerId, tower]);
+  }, [towerId, tower, invV]);
 
   if (!tower) {
     return (

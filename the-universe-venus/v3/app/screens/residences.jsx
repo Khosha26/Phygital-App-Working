@@ -325,11 +325,11 @@ function SpecBlock({ typology, t, delay, compact, dens = 0 }) {
         {[
           ['CONFIGURATION', `${typology.bhk} BHK`],
           ['BLOCK', `Block ${typology.pair}`],
-          ['PRICE', formatINR(typology.price)],
+          ['TYPE', typology.tag],
         ].map(([k, v], i) => (
           <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, padding: `${rowPadY}px 2px`, borderBottom: '1px solid var(--line-soft)' }}>
             <div className="mono" style={{ fontSize: Math.round((compact ? 11 : 12) + d*3), letterSpacing: '0.24em', color: 'var(--slate)', whiteSpace: 'nowrap' }}>{k}</div>
-            <div className="serif" style={{ fontSize: rowVal, color: k === 'PRICE' && typology.price == null ? 'var(--slate)' : 'var(--ink)', fontStyle: k === 'PRICE' && typology.price == null ? 'italic' : 'normal', textAlign: 'right' }}>{v}</div>
+            <div className="serif" style={{ fontSize: rowVal, color: 'var(--ink)', textAlign: 'right' }}>{v}</div>
           </div>
         ))}
       </div>

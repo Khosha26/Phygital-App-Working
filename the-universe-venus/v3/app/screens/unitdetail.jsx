@@ -136,7 +136,6 @@ function UnitDetail() {
   const sold = unit.status === 'sold';
   const available = unit.status === 'available';
   const cta = available ? 'Enquire / Book' : sold ? 'Enquire similar' : 'Enquire · Join waitlist';
-  const sheet = unitPriceSheet(unit);
 
   return (
     <div style={{position:'absolute', inset:0, background:'transparent', color:'var(--ink)', overflow:'hidden'}}>
@@ -238,26 +237,17 @@ function UnitDetail() {
             <DetailCell label="Config" value="4 BHK" dens={dens}/>
           </div>
 
-          {/* PRICE SHEET */}
-          <div style={{marginTop:Math.round(24+dens*14), borderRadius:18, overflow:'hidden', border:'1px solid var(--line)', background:'rgba(255,255,255,0.6)', backdropFilter:'blur(6px)'}}>
-            <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:`${Math.round(15+dens*4)}px 22px`, borderBottom:'1px solid var(--line)', background:'rgba(201,160,94,0.07)'}}>
-              <span className="mono" style={{fontSize:Math.round(13+dens*3), letterSpacing:'0.26em', color:'var(--gold-deep)'}}>INDICATIVE COST SHEET</span>
-              <span className="mono" style={{fontSize:Math.round(12.5+dens*2), letterSpacing:'0.14em', color:'var(--slate)'}}>{formatINR(sheet.rate)}/SQ.FT</span>
-            </div>
-            <div style={{padding:'6px 22px'}}>
-              <PriceRow label="Base price" sub={`${formatINR(sheet.rate)}/sq.ft × ${fmtSqft(sheet.sqft)}`} value={formatINR(sheet.base)} dens={dens}/>
-              <PriceRow label="Floor rise" sub={`Premium for the ${flLabel.toLowerCase()}`} value={formatINR(sheet.floorRise)} dens={dens}/>
-              <PriceRow label="Preferred-location" sub={unit.isPenthouse ? 'Penthouse PLC · 5%' : 'Corner / view PLC · 2%'} value={formatINR(sheet.plc)} dens={dens}/>
-              <PriceRow label="Subtotal" value={formatINR(sheet.subtotal)} strong dens={dens}/>
-              <PriceRow label="GST" sub="5% · under-construction" value={formatINR(sheet.gst)} dens={dens}/>
-              <PriceRow label="Stamp + Registration" sub="Gujarat ≈ 4.9%" value={formatINR(sheet.reg)} dens={dens}/>
-            </div>
-            <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:`${Math.round(18+dens*6)}px 22px`, borderTop:'1px solid var(--line)', background:'linear-gradient(180deg, rgba(201,160,94,0.10), rgba(201,160,94,0.04))'}}>
+          {/* AVAILABILITY — real, live from the CRM (replaces the price sheet) */}
+          <div style={{marginTop:Math.round(24+dens*14), borderRadius:18, overflow:'hidden', border:`1px solid ${st.line}`, background:st.soft, backdropFilter:'blur(6px)'}}>
+            <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:`${Math.round(18+dens*6)}px 22px`}}>
               <div>
-                <div className="mono" style={{fontSize:Math.round(13+dens*3), letterSpacing:'0.26em', color:'var(--slate)'}}>ALL-IN TOTAL</div>
-                <div className="mono" style={{fontSize:Math.round(11.5+dens*2), letterSpacing:'0.12em', color:'var(--muted)', marginTop:4}}>INDICATIVE · TAXES INCLUDED</div>
+                <div className="mono" style={{fontSize:Math.round(13+dens*3), letterSpacing:'0.26em', color:'var(--slate)'}}>AVAILABILITY</div>
+                <div className="mono" style={{fontSize:Math.round(11.5+dens*2), letterSpacing:'0.12em', color:'var(--muted)', marginTop:4}}>LIVE · UPDATED FROM SALES CRM</div>
               </div>
-              <div className="serif" style={{fontSize:Math.round(46+dens*10), fontWeight:300, color:'var(--gold-deep)', letterSpacing:'-0.01em', lineHeight:1}}>{formatINR(sheet.total)}</div>
+              <div style={{display:'inline-flex', alignItems:'center', gap:12}}>
+                <span style={{width:14, height:14, borderRadius:'50%', background:st.dot}}/>
+                <div className="serif" style={{fontSize:Math.round(40+dens*8), fontWeight:300, color:st.color, letterSpacing:'-0.01em', lineHeight:1}}>{available ? 'Available' : st.label}</div>
+              </div>
             </div>
           </div>
 

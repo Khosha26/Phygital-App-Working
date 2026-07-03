@@ -209,12 +209,105 @@ const STATUS = {
 STATUS.hold = STATUS.blocked;   // legacy alias — any old 'hold' reference maps to Blocked
 
 function _hash(str){ let h=2166136261; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619);} return (h>>>0); }
+// LEGACY placeholder (no longer used for the floor plate — kept for reference).
+// Real availability now comes from the CRM (see LIVE INVENTORY below).
 function unitStatus(unitId){
   const r = _hash(unitId) % 100;
   if (r < 62) return 'available';
   if (r < 78) return 'booked';
   if (r < 87) return 'blocked';
   return 'sold';
+}
+
+// ─── LIVE CRM INVENTORY (real availability sync) ───────────────────────────
+// Availability is pulled LIVE from the GRE relay, keyed by unit_code (e.g.
+// "A-1001"). The studio synthesises the very same codes in buildUnits()
+// (`${tower}-${floor}${pos:02d}`), so it's a direct lookup — no mapping needed.
+// Refreshed on load + every 60s, so a CRM block/sold reflects on the floor.
+const INVENTORY_ENDPOINT = 'https://universegre.venusprojects.co.in/api/studio/inventory';
+if (typeof window !== 'undefined') {
+  window.UNI_INVENTORY = window.UNI_INVENTORY || { ready:false, units:{}, byWFP:{}, summary:null, version:0, error:false };
+}
+// CRM status → studio STATUS key. blocked/on_hold/sold all read as unavailable.
+function _mapCrmStatus(s){
+  if (s === 'available') return 'available';
+  if (s === 'sold')      return 'sold';
+  if (s === 'on_hold')   return 'booked';   // held → shown as "Booked" (unavailable)
+  return 'blocked';                          // blocked (+ any unknown) → Blocked
+}
+// Resolve a studio unit code to its CRM record. Almost all codes match the CRM
+// unit_code 1:1 (e.g. "A-1001"). A handful of E/F/G/H penthouses are coded with
+// a different floor-prefix in the CRM (studio "E-2001" ↔ CRM "E-2101", both real
+// floor 20), so we fall back to a wing+floor+position index built from the feed.
+function _resolveCrmRecord(unitCode){
+  const inv = (typeof window !== 'undefined') ? window.UNI_INVENTORY : null;
+  if (!inv || !inv.ready || !inv.units) return null;
+  const key = String(unitCode).toUpperCase();
+  let rec = inv.units[unitCode] || inv.units[key];
+  if (rec) return rec;
+  // fallback: wing + floor + position (derived from the studio code)
+  const m = key.match(/^([A-Z]+)-(\d+)$/);
+  if (m && inv.byWFP) {
+    const wing = m[1];
+    const digits = m[2];
+    const pos = parseInt(digits.slice(-2), 10);
+    const floor = parseInt(digits.slice(0, -2) || digits, 10);
+    rec = inv.byWFP[`${wing}-${floor}-${pos}`];
+    if (rec) return rec;
+  }
+  return null;
+}
+// Effective REAL status for a studio unit code. When the feed hasn't loaded yet
+// or the unit isn't in the feed, degrade to 'available' — never a fake "sold",
+// never a crash.
+function unitCrmStatus(unitCode){
+  const rec = _resolveCrmRecord(unitCode);
+  if (rec) return rec.available ? 'available' : _mapCrmStatus(rec.status);
+  return 'available';
+}
+// Raw CRM record for a unit code (for showing real typology / area / wing).
+function unitCrmRecord(unitCode){
+  return _resolveCrmRecord(unitCode);
+}
+function refreshInventory(){
+  if (typeof fetch === 'undefined') return;
+  fetch(INVENTORY_ENDPOINT, { cache:'no-store' })
+    .then(r => r.ok ? r.json() : null)
+    .then(d => {
+      if (d && d.ok && d.units) {
+        // secondary index: wing-floor-position → record (tolerates code-prefix quirks)
+        const byWFP = {};
+        Object.keys(d.units).forEach(code => {
+          const rec = d.units[code];
+          if (!rec) return;
+          const mm = String(code).toUpperCase().match(/(\d+)$/);
+          const pos = mm ? parseInt(mm[1].slice(-2), 10) : null;
+          if (rec.wing != null && rec.floor != null && pos != null) {
+            byWFP[`${rec.wing}-${rec.floor}-${pos}`] = rec;
+          }
+        });
+        const prevV = (window.UNI_INVENTORY && window.UNI_INVENTORY.version) || 0;
+        window.UNI_INVENTORY = { ready:true, units:d.units, byWFP, summary:d.summary||null, version:prevV+1, error:false };
+        try { window.dispatchEvent(new CustomEvent('uni-inventory')); } catch(e){}
+      }
+    })
+    .catch(() => { if (window.UNI_INVENTORY) window.UNI_INVENTORY.error = true; });
+}
+if (typeof window !== 'undefined') {
+  refreshInventory();
+  setInterval(refreshInventory, 60000);
+}
+// React hook: re-renders a screen whenever the live inventory refreshes, so
+// memoised availability recomputes. Returns a version counter for memo deps.
+function useInventory(){
+  const [v, setV] = React.useState((typeof window !== 'undefined' && window.UNI_INVENTORY && window.UNI_INVENTORY.version) || 0);
+  React.useEffect(() => {
+    const on = () => setV((window.UNI_INVENTORY && window.UNI_INVENTORY.version) || 0);
+    window.addEventListener('uni-inventory', on);
+    on();
+    return () => window.removeEventListener('uni-inventory', on);
+  }, []);
+  return v;
 }
 
 // Floor number → display label
@@ -250,7 +343,7 @@ function buildUnits(towerId, floor){
       id: no, no, tower: tower.id, towerName: tower.name, pair: tower.pair,
       floor, pos: s.pos, type: s.type, sqft: s.sqft, isPenthouse: isPH,
       bhk: '4 BHK', facing: tower.view,          // facing PLACEHOLDER (tower-level)
-      status: unitStatus(no),
+      status: unitCrmStatus(no),                 // REAL availability from the CRM feed
       price: DUMMY_RATE ? Math.round(s.sqft * DUMMY_RATE) : null,  // PLACEHOLDER
       plan: planImg(tower.pair, s.pos, isPH),     // real assets/plans/*.jpg
     };
@@ -581,6 +674,10 @@ window.buildFloors = buildFloors;
 window.buildUnits = buildUnits;
 window.towerSummary = towerSummary;
 window.unitStatus = unitStatus;
+window.unitCrmStatus = unitCrmStatus;
+window.unitCrmRecord = unitCrmRecord;
+window.useInventory = useInventory;
+window.refreshInventory = refreshInventory;
 window.floorLabel = floorLabel;
 window.LOCATION_ADVANTAGES = LOCATION_ADVANTAGES;
 window.MAP_VIEW = MAP_VIEW;

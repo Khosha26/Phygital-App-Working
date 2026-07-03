@@ -87,6 +87,7 @@ function FloorPlate() {
   const [route] = useRoute();
   const [sel, setSel] = React.useState(null);      // selected block id
   const [hoverB, setHoverB] = React.useState(null); // hovered block id
+  const invV = useInventory();                      // re-render when live CRM availability refreshes
 
   const towerId = route.params && route.params[0];
   const floor = route.params && parseInt(route.params[1], 10);
@@ -118,7 +119,7 @@ function FloorPlate() {
     blockIds.forEach(b => buildUnits(b, floor).forEach(u => { s[u.status] = (s[u.status]||0) + 1; }));
     s.hold = s.booked + s.blocked;   // back-compat alias
     return s;
-  }, [blockIds.join(''), floor]);
+  }, [blockIds.join(''), floor, invV]);
 
   if (!tower || !Number.isFinite(floor)) {
     return (

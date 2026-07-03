@@ -364,7 +364,7 @@ function StepCustomer({ customer, setCustomer, dens = 0 }) {
           Tell us a little about <em style={{fontStyle:'italic', color:'var(--gold-deep)'}}>you.</em>
         </div>
         <div style={{fontSize:dlerp(d,25,31), color:'var(--graphite)', lineHeight:1.5}}>
-          We use this information to personalise your visit, your cost sheet, and your home-loan options.
+          We use this information to personalise your visit and prepare the right residences for you.
         </div>
         <div style={{display:'flex', flexDirection:'column', gap:13, padding:dlerp(d,25,32)+'px '+dlerp(d,29,34)+'px', background:'var(--ivory-2)', border:'1px solid var(--line)', borderRadius:15}}>
           <div className="mono" style={{fontSize:dlerp(d,17,18), letterSpacing:'0.3em', color:'var(--gold-deep)'}}>YOUR PRIVACY</div>
@@ -443,8 +443,8 @@ function StepResidence({ pick, setPick, fireBurst, dens = 0 }) {
           </div>
           <div style={{display:'flex', gap:dlerp(d,32,44), marginTop:dlerp(d,21,28), flexWrap:'wrap'}}>
             <div>
-              <div className="mono" style={{fontSize:dlerp(d,17,17), letterSpacing:'0.28em', color:'rgba(250,246,232,0.55)'}}>TICKET</div>
-              <div className="serif" style={{fontSize:dlerp(d,27,33), marginTop:4}}>{ty ? formatINR(ty.price,{decimals:2}) : '—'}</div>
+              <div className="mono" style={{fontSize:dlerp(d,17,17), letterSpacing:'0.28em', color:'rgba(250,246,232,0.55)'}}>CARPET</div>
+              <div className="serif" style={{fontSize:dlerp(d,27,33), marginTop:4}}>{ty ? fmtSqft(ty.sqft) : '—'}</div>
             </div>
             <div>
               <div className="mono" style={{fontSize:dlerp(d,17,17), letterSpacing:'0.28em', color:'rgba(250,246,232,0.55)'}}>AVAILABLE</div>
@@ -462,7 +462,7 @@ function StepResidence({ pick, setPick, fireBurst, dens = 0 }) {
         <div>
           <div className="mono" style={{fontSize:dlerp(d,17,18), letterSpacing:'0.28em', color:'var(--slate)'}}>TYPOLOGY</div>
           <select style={{width:'100%', marginTop:11, fontSize:dlerp(d,24,30), minHeight:dlerp(d,76,92)}} value={pick.block} onChange={e=>setPick({...pick, block:e.target.value})}>
-            {TYPOLOGIES.map(x => <option key={x.code} value={x.code}>{x.name} ({formatINR(x.price,{decimals:2})})</option>)}
+            {TYPOLOGIES.map(x => <option key={x.code} value={x.code}>{x.name} · {fmtSqft(x.sqft)}</option>)}
           </select>
         </div>
         <div>
