@@ -1,0 +1,16 @@
+# Build output (the deploy repo already versions this — don't duplicate in source mirror)
+deploy/
+
+# Backups / originals / dev scratch
+_build-docs/
+_massing3d/
+assets/masterplan/plans_orig/
+sw.original.js
+shell_check.mjs
+
+# Standard
+node_modules/
+.env
+*.log
+.DS_Store
+tmp/
