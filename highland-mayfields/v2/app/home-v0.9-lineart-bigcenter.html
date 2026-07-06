@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Highland Mayfields — The Estate</title>
+
+<!-- ============================================================
+     HIGHLAND MAYFIELDS · HOME — "The Plaques" (v0.7)
+     Nav built from the client's gold-framed plaque set (image ref, used as-is):
+       · centre  = THE VILLAS ornate gold-frame plaque (winged-lion crest)
+       · 7 PLAQUES = octagonal-cut dark tiles w/ gold frame + baked icon/copy,
+                     in a 3-row grid around the centre.
+       Each tile = the ACTUAL sliced PNG (assets/plaques/*.png), no recreation.
+       · ENTRANCE = tiles BLOOM OUT FROM THE CENTRE (ring-staggered, expoOut).
+     Brand BIRDS: 4 gold line-art songbirds glide in the backdrop (animatable
+     SVG, wing-flap + flight paths) — a quiet brand motif behind the content.
+     Runs standalone AND inside the intro iframe (parent posts 'hm:enter').
+     ============================================================ -->
+<link rel="stylesheet" href="styles/brand.css">
+
+<style>
+/* ==================================================================
+   1 · STAGE
+================================================================== */
+.stage-col{ position:absolute; inset:0; z-index:3; display:flex; flex-direction:column;
+  padding: clamp(.8rem,2vh,1.8rem) var(--pad-stage) clamp(.65rem,1.5vh,1.2rem); pointer-events:none; }
+.stage-col > *{ pointer-events:auto; }
+
+/* ==================================================================
+   2 · BACKDROP
+================================================================== */
+.backdrop{ position:absolute; inset:0; z-index:0; overflow:hidden;
+  background:radial-gradient(130% 120% at 50% 40%,
+    color-mix(in srgb, var(--hm-espresso) 86%, #2c211d) 0%, var(--hm-espresso) 46%, var(--hm-espresso-2) 100%); }
+.lattice{ position:absolute; inset:-2%; z-index:0; pointer-events:none;
+  background-image:var(--hm-lattice); background-size:clamp(78px,9vw,128px); opacity:.07; mix-blend-mode:screen;
+  -webkit-mask-image:radial-gradient(120% 110% at 50% 44%, black 12%, transparent 86%);
+          mask-image:radial-gradient(120% 110% at 50% 44%, black 12%, transparent 86%); }
+.verts{ position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.4;
+  background-image:linear-gradient(90deg, var(--hairline-soft) 1px, transparent 1px); background-size:25% 100%;
+  -webkit-mask-image:linear-gradient(to bottom, transparent, black 16%, black 74%, transparent 96%);
+          mask-image:linear-gradient(to bottom, transparent, black 16%, black 74%, transparent 96%); }
+.glow{ position:absolute; left:50%; top:50%; z-index:0; width:min(56vw,680px); height:min(56vw,680px);
+  transform:translate(-50%,-50%); pointer-events:none; opacity:0;
+  background:radial-gradient(circle at 50% 50%,
+     color-mix(in srgb, var(--hm-gold) 22%, transparent) 0%,
+     color-mix(in srgb, var(--hm-gold) 7%, transparent) 34%, transparent 66%);
+  transition:opacity 1.9s var(--ease-soft); }
+.glow.on{ opacity:1; }
+.grain{ position:absolute; inset:0; z-index:2; pointer-events:none; opacity:.045; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size:200px 200px; }
+
+/* ---- ARCHITECTURE LINE-ART (the project's drawing, full-screen background) ---- */
+.towers{ position:absolute; inset:0; z-index:0; pointer-events:none; opacity:0;
+  transition:opacity 3s var(--ease-soft); will-change:transform,opacity; }
+.towers img{ display:block; width:100%; height:100%; object-fit:cover; object-position:center bottom; }
+.towers.on{ opacity:.92; animation:towers-drift 40s ease-in-out infinite; }
+@keyframes towers-drift{ 0%,100%{ transform:scale(1.04);} 50%{ transform:scale(1.09);} }
+
+/* ---- SHINE (slow soft light drifting across the scene) ---- */
+.shine{ position:absolute; inset:-25%; z-index:0; pointer-events:none; opacity:0; mix-blend-mode:screen;
+  background:radial-gradient(40% 52% at 32% 24%, color-mix(in srgb, var(--hm-gold) 18%, transparent), transparent 72%);
+  transition:opacity 2.6s var(--ease-soft); }
+.shine.on{ opacity:1; animation:shine-drift 24s ease-in-out infinite; }
+@keyframes shine-drift{ 0%{ transform:translate(-7%,-4%);} 50%{ transform:translate(11%,7%);} 100%{ transform:translate(-7%,-4%);} }
+
+/* ---- FLOATING PARTICLES (light motes) ---- */
+.motes{ position:absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden;
+  opacity:0; transition:opacity 2.6s var(--ease-soft); }
+.motes.on{ opacity:1; }
+.mote{ position:absolute; bottom:-4%; border-radius:50%; will-change:transform,opacity; opacity:0;
+  background:radial-gradient(circle, rgba(228,204,154,.95), rgba(201,168,110,.28) 55%, transparent 72%);
+  filter:blur(.4px); animation:mote-rise var(--mdur,22s) linear infinite; animation-delay:var(--mdelay,0s); }
+@keyframes mote-rise{
+  0%{ transform:translate(0,0) scale(.7); opacity:0; }
+  12%{ opacity:var(--mop,.5); }
+  50%{ transform:translate(var(--mx,20px),-54vh) scale(1); }
+  86%{ opacity:var(--mop,.5); }
+  100%{ transform:translate(calc(var(--mx,20px) * -0.6),-106vh) scale(.82); opacity:0; } }
+
+/* ==================================================================
+   3 · TOP BAR
+================================================================== */
+.topbar{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:1rem; width:100%; }
+.topbar .loc{ justify-self:start; opacity:0; } .topbar .brand{ justify-self:center; opacity:0; }
+.topbar .tools{ justify-self:end; display:flex; align-items:center; gap:clamp(.4rem,1vw,.9rem); opacity:0; }
+.loc-line{ display:flex; align-items:center; gap:.7em; }
+.loc-line .tick{ width:24px; height:1px; background:var(--accent); opacity:.6; }
+.lockup{ height:clamp(30px,4vh,48px); width:auto; display:block;
+  filter:drop-shadow(0 2px 12px color-mix(in srgb, var(--hm-espresso-2) 70%, transparent)); }
+.lockup-fallback{ display:none; font-family:var(--font-display); font-weight:700;
+  font-size:clamp(1rem,2vw,1.5rem); color:var(--ink); letter-spacing:.16em; text-transform:uppercase; white-space:nowrap; }
+.tool-btn{ min-height:44px; display:inline-flex; align-items:center; gap:.6em; padding:.6em 1em;
+  background:transparent; border:0; cursor:pointer; color:var(--ink-dim); font-family:var(--font-label); font-weight:300;
+  font-size:var(--t-micro); letter-spacing:var(--track-wide); text-transform:uppercase;
+  -webkit-tap-highlight-color:transparent; transition:color .35s var(--ease-soft); }
+.tool-btn .gi{ width:15px; height:15px; }
+.tool-btn .gi *{ fill:none; stroke:var(--accent); stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
+@media (hover:hover){ .tool-btn:hover{ color:var(--ink); } }
+.divider{ width:1px; height:20px; background:var(--hairline); opacity:.7; }
+.enquire{ min-height:44px; padding:.75em 1.4em; font-size:var(--t-micro); letter-spacing:var(--track-wide); }
+
+/* ==================================================================
+   4 · HERO
+================================================================== */
+.hero{ text-align:center; margin-top:clamp(.3rem,1vh,.9rem); opacity:0; }
+.hero .ticks{ margin:0 auto clamp(.4rem,1vh,.8rem); }
+.hero .kicker{ display:block; }
+.hero .tagline{ margin:.45em 0 0; font-family:var(--font-body); font-style:italic; font-weight:300;
+  font-size:var(--t-sub); color:var(--ink); letter-spacing:.015em; }
+
+/* ==================================================================
+   5 · CROWN — the lotus mandala
+================================================================== */
+.crown-wrap{ flex:1 1 auto; min-height:0; width:100%; position:relative; }
+.crown{ position:absolute; inset:0; }
+.svg-defs{ position:absolute; width:0; height:0; overflow:hidden; }
+
+.fit{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(var(--fit,1));
+  transform-origin:center center; }
+#mandala{ position:relative; width:1280px; height:960px; }
+@keyframes mandala-breathe{ 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.006);} }
+#mandala.bloomed{ animation:mandala-breathe 7.5s ease-in-out infinite; }
+
+/* lotus pieces — the actual sliced PNGs from the brand reference (used as-is) */
+.petal{ position:absolute; background:none; border:0; padding:0; margin:0; cursor:pointer;
+  transform:translate(0,0) scale(1); transform-origin:50% 50%; backface-visibility:hidden;
+  will-change:transform,opacity; -webkit-tap-highlight-color:transparent; }
+.petal-img{ display:block; width:100%; height:100%; pointer-events:none; -webkit-user-drag:none; user-select:none;
+  transition:transform .5s cubic-bezier(.2,.9,.25,1), filter .45s var(--ease-soft);
+  filter:drop-shadow(0 12px 20px rgba(0,0,0,.55)); }
+.petal.center{ z-index:6; }
+@media (hover:hover){
+  .petal:hover{ z-index:8; }
+  .petal:hover .petal-img{ transform:translateY(-10px) scale(1.04);
+    filter:drop-shadow(0 20px 30px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(172,140,85,.5)); }
+}
+.petal:focus-visible{ outline:none; z-index:8; }
+.petal:focus-visible .petal-img{ transform:translateY(-10px) scale(1.04);
+  filter:drop-shadow(0 20px 30px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(172,140,85,.5)); }
+.petal.feature .petal-img{ filter:drop-shadow(0 12px 20px rgba(0,0,0,.55)) drop-shadow(0 0 14px rgba(184,156,109,.4)); }
+.petal.center.bloomed-in .petal-img{ animation:jewel-breathe 6s ease-in-out infinite; }
+@keyframes jewel-breathe{ 0%,100%{ filter:drop-shadow(0 12px 22px rgba(0,0,0,.6)); }
+  50%{ filter:drop-shadow(0 12px 22px rgba(0,0,0,.6)) drop-shadow(0 0 26px rgba(172,140,85,.42)); } }
+/* idle attract — petals breathe gold */
+@keyframes petal-attract{ 0%,100%{ filter:drop-shadow(0 12px 20px rgba(0,0,0,.55)); }
+  50%{ filter:drop-shadow(0 12px 20px rgba(0,0,0,.55)) drop-shadow(0 0 16px rgba(172,140,85,.38)); } }
+.crown.attract .petal:not(.feature):not(.center) .petal-img{ animation:petal-attract 3.4s var(--ease-soft) infinite; }
+
+/* ==================================================================
+   7 · FOOTER
+================================================================== */
+.footer{ width:100%; margin-top:clamp(.3rem,.8vh,.7rem); opacity:0; }
+.footer .rule{ height:1px; width:100%; background:var(--hairline-soft); margin-bottom:clamp(.35rem,.8vh,.6rem); }
+.footer .row{ display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+.footer .mono{ display:flex; align-items:center; gap:.8em; }
+.footer .hm{ width:26px; height:26px; border:1px solid var(--hairline); border-radius:50%; display:grid; place-items:center;
+  font-family:var(--font-label); font-weight:400; font-size:9px; letter-spacing:.05em; color:var(--accent-soft); }
+.footer .sig, .footer .rera{ font-family:var(--font-label); font-weight:300; font-size:var(--t-micro);
+  letter-spacing:var(--track-wide); text-transform:uppercase; color:var(--ink-dim); }
+.footer .sig{ color:var(--accent-soft); }
+
+@keyframes hm-rise{ from{ opacity:0; transform:translateY(14px);} to{ opacity:1; transform:translateY(0);} }
+.lit{ animation:hm-rise var(--dur-reveal) var(--ease-settle) forwards; }
+
+/* ==================================================================
+   9 · VEIL + lattice wipe
+================================================================== */
+.section-veil{ position:absolute; inset:0; z-index:40; display:none; background:var(--bg-deep); color:var(--ink);
+  align-items:center; justify-content:center; text-align:center; }
+.section-veil.show{ display:flex; }
+.section-veil .inner{ opacity:0; transform:translateY(14px); }
+.section-veil.show .inner{ animation:hm-rise 1s var(--ease-settle) .35s forwards; }
+.section-veil .crest{ width:clamp(50px,7vw,84px); height:auto; opacity:.92; margin:0 auto 1.3rem; display:block;
+  filter:drop-shadow(0 4px 14px color-mix(in srgb,var(--hm-espresso-2) 70%, transparent)); }
+.section-veil .eyebrow-sm{ display:block; margin-bottom:1rem; }
+.section-veil .big{ font-family:var(--font-display); font-weight:300; line-height:1.04; font-size:var(--t-hero);
+  color:var(--ink); margin:0; letter-spacing:.01em; }
+.section-veil .soon{ display:block; margin-top:.5em; font-size:.3em; color:var(--ink-dim); font-style:italic; letter-spacing:.04em; }
+.section-veil .back{ margin-top:1.5rem; gap:.8em; }
+.wipe{ position:absolute; inset:0; z-index:60; pointer-events:none; opacity:0;
+  background-image:var(--hm-lattice); background-size:clamp(78px,9vw,128px);
+  -webkit-mask-image:linear-gradient(105deg,transparent 0,black 45%,black 55%,transparent 100%);
+          mask-image:linear-gradient(105deg,transparent 0,black 45%,black 55%,transparent 100%);
+  -webkit-mask-size:260% 100%; mask-size:260% 100%; -webkit-mask-position:-130% 0; mask-position:-130% 0; }
+.wipe.run{ animation:hm-wipe 1.05s var(--ease-settle) forwards; }
+@keyframes hm-wipe{ 0%{ opacity:.8; -webkit-mask-position:-130% 0; mask-position:-130% 0; }
+  100%{ opacity:0; -webkit-mask-position:230% 0; mask-position:230% 0; } }
+
+/* ==================================================================
+   10 · REDUCED MOTION
+================================================================== */
+@media (prefers-reduced-motion:reduce){
+  .mote{ animation:none !important; display:none; }
+  .shine.on,.towers.on{ animation:none !important; }
+  #mandala.bloomed{ animation:none; } .petal-img{ transition:none; }
+  .petal.center.bloomed-in .petal-img{ animation:none !important; }
+  .crown.attract .petal .petal-img{ animation:none !important; }
+}
+</style>
+</head>
+
+<body>
+<main class="hm-stage" role="application" aria-label="Highland Mayfields — The Estate">
+
+  <!-- ===== shared SVG defs ===== -->
+  <svg class="svg-defs" aria-hidden="true" focusable="false">
+    <defs>
+      <!-- bird golds -->
+      <linearGradient id="goldStroke" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#cfb88d"/><stop offset=".5" stop-color="#ac8c55"/><stop offset="1" stop-color="#7e6336"/>
+      </linearGradient>
+      <linearGradient id="goldFill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="rgba(245,241,235,.055)"/><stop offset="1" stop-color="rgba(245,241,235,.02)"/>
+      </linearGradient>
+      <!-- petal glass -->
+      <clipPath id="petalClip" clipPathUnits="userSpaceOnUse">
+        <path d="M100,14 C152,34 192,96 186,170 C181,232 138,272 100,286 C62,272 19,232 14,170 C8,96 48,34 100,14 Z"/>
+      </clipPath>
+      <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#2c211c"/><stop offset=".34" stop-color="#16110d"/><stop offset="1" stop-color="#080a05"/>
+      </linearGradient>
+      <radialGradient id="sheen" cx=".5" cy=".34" r=".62">
+        <stop offset="0" stop-color="#5a4326" stop-opacity=".42"/><stop offset=".5" stop-color="#2a2014" stop-opacity=".10"/><stop offset="1" stop-color="#000" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#cdb487" stop-opacity=".30"/><stop offset=".4" stop-color="#cdb487" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="cglass" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#33271f"/><stop offset=".4" stop-color="#191310"/><stop offset="1" stop-color="#0a0c06"/>
+      </linearGradient>
+      <radialGradient id="csheen" cx=".5" cy=".30" r=".7">
+        <stop offset="0" stop-color="#6b4f2c" stop-opacity=".42"/><stop offset=".55" stop-color="#2e2214" stop-opacity=".10"/><stop offset="1" stop-color="#000" stop-opacity="0"/>
+      </radialGradient>
+      <filter id="petalShadow" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000" flood-opacity="0.55"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- ===== BACKDROP ===== -->
+  <div class="backdrop" id="backdrop">
+    <div class="towers" id="towers" aria-hidden="true"><img src="assets/bg-lineart.png" alt=""></div>
+    <div class="lattice"></div>
+    <div class="verts"></div>
+    <div class="shine" id="shine"></div>
+    <div class="glow" id="glow"></div>
+    <div class="motes" id="motes" aria-hidden="true"></div>
+    <div class="grain"></div>
+  </div>
+
+  <!-- ===== CONTENT ===== -->
+  <div class="stage-col">
+
+    <header class="topbar">
+      <div class="loc"><div class="loc-line">
+        <span class="tick" aria-hidden="true"></span>
+        <span class="hm-eyebrow">Sector 118 · Airport Road · Mohali</span>
+      </div></div>
+      <div class="brand">
+        <img class="lockup" id="lockup" src="assets/logo-lockup-light.png" alt="Highland Mayfields" width="2000" height="765">
+        <span class="lockup-fallback" id="lockupFallback">Highland&nbsp;Mayfields</span>
+      </div>
+      <div class="tools">
+        <button class="tool-btn" id="groupBtn" type="button">
+          <svg class="gi" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4v2H4V7l8-4zM6 9v8M10 9v8M14 9v8M18 9v8M4 19h16"/></svg>
+          The Group
+        </button>
+        <span class="divider" aria-hidden="true"></span>
+        <button class="hm-enter enquire" id="enquire" type="button">Enquire</button>
+      </div>
+    </header>
+
+    <section class="hero" id="hero">
+      <div class="hm-ticks ticks" aria-hidden="true"><span></span><span></span></div>
+      <span class="kicker hm-eyebrow">The Highland Group · Since 1993</span>
+      <p class="tagline" id="tagline">Excellence has an address</p>
+    </section>
+
+    <nav class="crown-wrap" aria-label="Estate sections">
+      <div class="crown is-arc" id="crown">
+        <div class="fit" id="fit">
+          <div id="mandala"><!-- lotus pieces injected --></div>
+        </div>
+      </div>
+    </nav>
+
+    <footer class="footer" id="footer">
+      <div class="rule"></div>
+      <div class="row">
+        <div class="mono"><span class="hm" aria-hidden="true">HM</span><span class="sig">Special Edition Residences · Sector 118, Mohali</span></div>
+        <span class="rera">RERA · PBRERA-SAS80-PR1041</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ===== VEIL ===== -->
+  <div class="section-veil" id="veil" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="inner">
+      <img class="crest" id="veilCrest" src="assets/logo-crest.png" alt="" aria-hidden="true">
+      <span class="eyebrow-sm hm-eyebrow" id="veilEyebrow">Highland Mayfields</span>
+      <h2 class="big" id="veilTitle">The Section<span class="soon">arriving soon</span></h2>
+      <div class="hm-plumb" style="margin:1.7rem auto;" aria-hidden="true"></div>
+      <button class="hm-enter back" id="veilBack" type="button"><span aria-hidden="true">&larr;</span> Return to the Estate</button>
+    </div>
+  </div>
+
+  <div class="wipe" id="wipe" aria-hidden="true"></div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const $=(s,r=document)=>r.querySelector(s);
+
+  /* ============ FLOATING LIGHT MOTES ============ */
+  const motesLayer=$('#motes');
+  const MOTES=26;
+  for(let i=0;i<MOTES;i++){
+    const m=document.createElement('span'); m.className='mote';
+    const sz=(2+Math.random()*5.5).toFixed(1);
+    m.style.left=(Math.random()*100).toFixed(2)+'%';
+    m.style.width=sz+'px'; m.style.height=sz+'px';
+    m.style.setProperty('--mdur',(15+Math.random()*17).toFixed(1)+'s');
+    m.style.setProperty('--mdelay',(-Math.random()*22).toFixed(1)+'s');
+    m.style.setProperty('--mx',(Math.random()*70-35).toFixed(0)+'px');
+    m.style.setProperty('--mop',(0.18+Math.random()*0.5).toFixed(2));
+    motesLayer.appendChild(m);
+  }
+
+  /* ============ PLAQUES — the brand's gold-framed tiles, sliced from the image ============ */
+  /* Geometry from the reference image (1448×1086, exactly 4:3); each piece is the
+     actual PNG slice, placed at its true centre + size and used as-is. */
+  const MW=1280, MH=960;
+  const PIECES=[
+    { key:'residences', cx:0.50932, cy:0.26335, w:0.20994, h:0.23481, t:'Residences',  s:'Homes of stature',      ring:1 },
+    { key:'inventory',  cx:0.23826, cy:0.47882, w:0.19820, h:0.25138, t:'Inventory',   s:'Limited residences',    ring:1, feature:true },
+    { key:'landscape',  cx:0.75207, cy:0.47882, w:0.23688, h:0.24954, t:'Landscape',   s:'A sanctuary of nature', ring:1 },
+    { key:'address',    cx:0.30387, cy:0.29006, w:0.19406, h:0.25691, t:'The Address', s:'Sector 118',            ring:2 },
+    { key:'pearl',      cx:0.71892, cy:0.28683, w:0.20925, h:0.25230, t:'The Pearl',   s:'Eighty-five amenities', ring:2 },
+    { key:'masterplan', cx:0.33529, cy:0.71363, w:0.19337, h:0.26980, t:'Masterplan',  s:'The eight towers',      ring:3 },
+    { key:'gallery',    cx:0.68163, cy:0.70948, w:0.19130, h:0.27808, t:'Gallery',     s:'In light & detail',     ring:3 },
+  ];
+  const VILLAS={ key:'villas', cx:0.50587, cy:0.50645, w:0.35014, h:0.34355, t:'The Villas', s:'Special Edition · 54' };  // +30% vs v0.8
+
+  const NAVMAP={}; [...PIECES, VILLAS].forEach(p=>NAVMAP[p.key]={nm:p.t, sb:p.s});
+  NAVMAP.enquire={nm:'Enquire', sb:'Speak with us'}; NAVMAP.group={nm:'The Highland Group', sb:'Since 1993 · Mohali'};
+
+  const mandala=$('#mandala');
+  const ox=VILLAS.cx*MW, oy=VILLAS.cy*MH;   // convergence origin = centre of The Villas
+  function makePiece(p){
+    const btn=document.createElement('button'); btn.type='button';
+    btn.className='petal'+(p.feature?' feature':'')+(p.key==='villas'?' center':'');
+    btn.dataset.key=p.key;
+    btn.setAttribute('aria-label',`${p.t} — ${p.s}`);
+    const w=p.w*MW, h=p.h*MH;
+    btn.style.cssText=`left:${(p.cx*MW-w/2).toFixed(1)}px; top:${(p.cy*MH-h/2).toFixed(1)}px; width:${w.toFixed(1)}px; height:${h.toFixed(1)}px;`;
+    btn.innerHTML=`<img class="petal-img" src="assets/plaques/${p.key}.png" alt="" draggable="false">`;
+    mandala.appendChild(btn);
+    return btn;
+  }
+  const slots=[];
+  PIECES.forEach(p=>{ const el=makePiece(p); slots.push({ el, dx:ox-p.cx*MW, dy:oy-p.cy*MH, ring:p.ring }); });
+  const centerEl=makePiece(VILLAS);   // appended last → on top
+  const allHit=[...slots.map(s=>s.el), centerEl];
+
+  /* asset fallbacks */
+  const lockup=$('#lockup'); lockup.addEventListener('error',()=>{ lockup.style.display='none'; $('#lockupFallback').style.display='inline-block'; });
+  const veilCrest=$('#veilCrest'); veilCrest.addEventListener('error',()=>veilCrest.style.display='none');
+
+  /* ---------------- FIT (scale mandala into the crown box) ---------------- */
+  const crown=$('#crown');
+  function fit(){
+    const w=crown.clientWidth, h=crown.clientHeight; if(!w||!h) return;
+    const f=Math.min((w*0.99)/MW, (h*0.99)/MH, 1.22) * 0.5;   // 50% — smaller buttons
+    document.documentElement.style.setProperty('--fit', f.toFixed(4));
+  }
+
+  /* ---------------- INTERACTION ---------------- */
+  allHit.forEach(el=>{ el.addEventListener('click',()=>navigate(el.dataset.key)); });
+
+  /* ---------------- NAVIGATION ---------------- */
+  const veil=$('#veil'), wipe=$('#wipe'), veilTitle=$('#veilTitle'), veilEyebrow=$('#veilEyebrow');
+  function runWipe(){ wipe.classList.remove('run'); void wipe.offsetWidth; wipe.classList.add('run'); }
+  function openVeil(eyebrow,title){ runWipe(); setTimeout(()=>{ veilEyebrow.textContent=eyebrow;
+    veilTitle.innerHTML=`${title}<span class="soon">arriving soon</span>`; veil.classList.add('show');
+    veil.setAttribute('aria-hidden','false'); $('#veilBack').focus({preventScroll:true}); },360); }
+  function navigate(key){ poke(); const n=NAVMAP[key];
+    window.dispatchEvent(new CustomEvent('hm:navigate',{detail:{key}}));
+    openVeil(`Highland Mayfields${n&&n.sb?' · '+n.sb:''}`, n?n.nm:'The Section'); }
+  function closeVeil(){ runWipe(); setTimeout(()=>{ veil.classList.remove('show'); veil.setAttribute('aria-hidden','true'); },360); }
+  $('#veilBack').addEventListener('click',closeVeil);
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&veil.classList.contains('show')) closeVeil(); });
+  $('#enquire').addEventListener('click',()=>{ poke(); window.dispatchEvent(new CustomEvent('hm:navigate',{detail:{key:'enquire'}})); openVeil('Speak with us','Enquire'); });
+  $('#groupBtn').addEventListener('click',()=>{ poke(); window.dispatchEvent(new CustomEvent('hm:navigate',{detail:{key:'group'}})); openVeil('Since 1993 · Mohali','The Highland Group'); });
+
+  /* ---------------- BLOOM (petals emerge from centre) ---------------- */
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const EASE='cubic-bezier(.2,.86,.3,1)', POP='cubic-bezier(.2,1.1,.3,1)';
+  let anims=[];
+  function playBloom(){
+    anims.forEach(a=>a.cancel()); anims=[]; mandala.classList.remove('bloomed'); centerEl.classList.remove('bloomed-in');
+    if(reduce){
+      centerEl.style.transform='translate(0,0) scale(1)';
+      centerEl.animate([{opacity:0},{opacity:1}],{duration:500,fill:'both'});
+      slots.forEach(s=>{ s.el.style.transform='translate(0,0) scale(1)';
+        anims.push(s.el.animate([{opacity:0},{opacity:1}],{duration:600,fill:'both'})); });
+      mandala.classList.add('bloomed'); centerEl.classList.add('bloomed-in'); return;
+    }
+    /* The Villas blooms first, in place */
+    centerEl.style.transform='translate(0,0) scale(1)';
+    anims.push(centerEl.animate(
+      [{transform:'scale(.18)',opacity:0},{transform:'scale(1.06)',opacity:1,offset:.7},{transform:'scale(1)',opacity:1}],
+      {duration:860, easing:POP, fill:'both'}));
+    /* each petal emerges FROM the centre (its own slice flies out to its slot) */
+    const baseDelay=430, ringGap=185, DUR=1360;
+    slots.forEach(s=>{ s.el.style.transform='translate(0,0) scale(1)';
+      const delay=baseDelay + s.ring*ringGap;
+      anims.push(s.el.animate(
+        [{transform:`translate(${s.dx.toFixed(1)}px,${s.dy.toFixed(1)}px) scale(.07)`, opacity:0, offset:0},
+         {transform:`translate(${(s.dx*0.9).toFixed(1)}px,${(s.dy*0.9).toFixed(1)}px) scale(.12)`, opacity:.9, offset:.08},
+         {transform:'translate(0px,0px) scale(1)', opacity:1, offset:1}],
+        {delay, duration:DUR, easing:EASE, fill:'both'})); });
+    const total=baseDelay + 3*ringGap + DUR;
+    setTimeout(()=>{ mandala.classList.add('bloomed'); centerEl.classList.add('bloomed-in'); }, total);
+  }
+
+  /* ---------------- CHOREOGRAPHY ---------------- */
+  let played=false;
+  function lift(el,delay){ if(el){ el.style.animationDelay=delay+'ms'; el.classList.add('lit'); } }
+  function choreograph(){
+    if(played) return; played=true; fit();
+    lift($('.topbar .brand'),60); lift($('.topbar .loc'),240); lift($('.topbar .tools'),380);
+    lift($('#hero'),520); lift($('#footer'),2100);
+    $('#towers').classList.add('on'); $('#shine').classList.add('on'); $('#glow').classList.add('on');
+    setTimeout(()=>$('#motes').classList.add('on'),200);
+    playBloom();
+    setTimeout(poke,3400);
+  }
+
+  /* ---------------- IDLE ATTRACT ---------------- */
+  let idle=0; function poke(){ crown.classList.remove('attract'); clearTimeout(idle);
+    idle=setTimeout(()=>{ if(!veil.classList.contains('show')) crown.classList.add('attract'); },12000); }
+  ['pointerdown','pointermove','keydown','wheel','touchstart'].forEach(ev=>window.addEventListener(ev,poke,{passive:true}));
+
+  /* ---------------- BOOT ---------------- */
+  let rt=0; window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(fit,120); },{passive:true});
+  function boot(){
+    fit();
+    const inIframe=window.parent && window.parent!==window;
+    window.addEventListener('message',e=>{ if(e&&e.data==='hm:enter') choreograph(); });
+    try{ window.parent && window.parent.postMessage('hm:home-ready','*'); }catch(_){}
+    if(inIframe) setTimeout(choreograph,9000); else setTimeout(choreograph,250);
+  }
+  if(document.readyState==='complete'||document.readyState==='interactive') boot();
+  else window.addEventListener('DOMContentLoaded',boot);
+})();
+</script>
+</body>
+</html>
