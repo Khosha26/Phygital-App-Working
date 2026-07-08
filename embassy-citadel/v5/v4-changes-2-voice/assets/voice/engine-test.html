@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ECVoiceEngine test</title>
+  <style>body{font:14px/1.5 monospace;padding:20px}#out{white-space:pre-wrap}</style>
+</head>
+<body>
+  <h1>ECVoiceEngine test</h1>
+  <div id="out"></div>
+  <script src="engine.js"></script>
+  <script>
+    window.__results = [];
+    window.__partials = [];
+    window.__states = [];
+    window.__t0 = performance.now();
+
+    var out = document.getElementById('out');
+    function log(line) {
+      out.textContent += '[' + ((performance.now() - window.__t0) / 1000).toFixed(1) + 's] ' + line + '\n';
+      console.log('[test] ' + line);
+    }
+
+    ECVoiceEngine.init({
+      vocabulary: ['open the gallery', 'show me the master plan', 'go home'],
+      onResult: function (text) {
+        window.__results.push(text);
+        log('RESULT: ' + text);
+      },
+      onPartial: function (text) {
+        window.__partials.push(text);
+        log('partial: ' + text);
+      },
+      onState: function (state) {
+        window.__states.push(state);
+        log('state: ' + state + ' (engine=' + ECVoiceEngine.engineName + ')');
+      }
+    }).then(function () {
+      window.__modelLoadMs = Math.round(performance.now() - window.__t0);
+      log('init done in ' + window.__modelLoadMs + 'ms, engine=' + ECVoiceEngine.engineName);
+      return ECVoiceEngine.start();
+    }).then(function () {
+      log('started');
+    }).catch(function (e) {
+      window.__error = String(e);
+      log('ERROR: ' + e);
+    });
+  </script>
+</body>
+</html>

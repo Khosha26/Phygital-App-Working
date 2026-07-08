@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Embassy Citadel — Entry</title>
+
+<link rel="manifest" href="manifest.json" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Citadel" />
+<meta name="theme-color" content="#F4F2ED" />
+
+<link rel="preload" as="document" href="home.html" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --bone-50:   #F7F5EF;
+    --bone-100:  #F4F2ED;
+    --bone-200:  #E8E2D6;
+    --bone-300:  #D9CFB8;
+    --taupe-400: #A89B86;
+    --bronze-300:#D9B97A;
+    --bronze-400:#C9A567;
+    --bronze-500:#B89968;
+    --bronze-700:#6E5A37;
+    --onyx-800:  #2A2620;
+    --onyx-900:  #1A1814;
+    --onyx-950:  #0E0C09;
+    --onyx-990:  #050403;
+    --ink-light: #F4F2ED;
+    --accent-hot:#FFE6AA;
+    --rule:      rgba(110, 90, 55, 0.35);
+    --rule-soft: rgba(110, 90, 55, 0.18);
+  }
+  *, *::before, *::after { box-sizing:border-box; }
+  html, body {
+    margin:0; padding:0;
+    width:100%; height:100%;
+    color:var(--onyx-900);
+    font-family:'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    -webkit-user-select:none; user-select:none;
+    touch-action:manipulation;
+    overscroll-behavior:none;
+    overflow:hidden;
+    background:#0E0C09;
+  }
+
+  /* Fullscreen kiosk shell */
+  .kiosk {
+    position:fixed; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 45%, #F7F5EF 0%, #E8E2D6 50%, #C8BFA8 100%);
+  }
+
+  /* Subtle dust-mote grain layer for the bone background */
+  .kiosk::before {
+    content:'';
+    position:absolute; inset:0;
+    background-image:
+      radial-gradient(ellipse 50% 30% at 50% 25%, rgba(255,255,255,0.55), transparent 70%),
+      radial-gradient(circle at 20% 80%, rgba(110,90,55,0.06), transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(110,90,55,0.04), transparent 50%),
+      repeating-linear-gradient(180deg, rgba(0,0,0,0.018) 0 1px, transparent 1px 7px);
+    pointer-events:none;
+  }
+
+  /* Stage = 16:10 (matches home stage exactly so transitions line up) */
+  .stage {
+    position:relative;
+    width:min(100vw, calc(100vh * 1440 / 900));
+    height:min(100vh, calc(100vw * 900 / 1440));
+    display:grid;
+    grid-template-rows: 88px 1fr 80px;
+    overflow:hidden;
+    animation:stage-in 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes stage-in {
+    from { opacity:0; }
+    to   { opacity:1; }
+  }
+
+  /* ── Top bar: wordmark + monolith mark ──────────────────────── */
+  .topbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 clamp(28px, 4vw, 56px);
+    position:relative;
+    z-index:3;
+  }
+  .brand {
+    display:flex; align-items:center; gap:14px;
+  }
+  .brand-mark {
+    width:28px; height:28px;
+    color:var(--bronze-700);
+    flex-shrink:0;
+  }
+  .brand-mark svg { width:100%; height:100%; display:block; }
+  .brand-mark svg path { fill:none; stroke:currentColor; stroke-width:1.2; }
+  .brand-name {
+    font-family:'Cinzel', serif;
+    font-weight:500;
+    font-size:clamp(10px, 0.92vw, 14px);
+    letter-spacing:0.36em;
+    text-transform:uppercase;
+    color:var(--onyx-900);
+  }
+  .brand-name b {
+    font-weight:500;
+    color:var(--bronze-700);
+  }
+  .opus {
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-weight:300;
+    font-size:clamp(10px, 0.85vw, 13px);
+    letter-spacing:0.28em;
+    color:rgba(26,24,20,0.5);
+    text-transform:uppercase;
+  }
+  .topbar::after {
+    content:'';
+    position:absolute;
+    left:clamp(28px, 4vw, 56px); right:clamp(28px, 4vw, 56px);
+    bottom:0;
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--rule-soft) 18%, var(--rule) 50%, var(--rule-soft) 82%, transparent);
+  }
+
+  /* ── Center: the entry column ──────────────────────────────── */
+  .center {
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+    padding:32px 0;
+  }
+
+  /* The single onyx column — visually identical to home stratum 4 */
+  .plate {
+    position:relative;
+    width:clamp(220px, 22vw, 340px);
+    height:100%;
+    max-height:560px;
+    background:
+      linear-gradient(180deg, #2A2620 0%, #131009 55%, #050403 100%);
+    color:var(--bone-100);
+    display:flex; flex-direction:column; align-items:center;
+    padding:42px 22px 28px;
+    box-shadow:
+      0 36px 80px -16px rgba(20, 15, 5, 0.5),
+      0 2px 0 rgba(217,185,122,0.18),
+      inset 0 0 80px rgba(217,185,122,0.10);
+    overflow:hidden;
+    animation:plate-rise 1100ms cubic-bezier(0.22, 1, 0.36, 1) 200ms both;
+    transition:transform 720ms cubic-bezier(0.65, 0, 0.35, 1), filter 720ms ease;
+  }
+  @keyframes plate-rise {
+    from { opacity:0; transform:translateY(40px); }
+    to   { opacity:1; transform:translateY(0);    }
+  }
+
+  /* Brushed metal grain inside the plate */
+  .plate::before {
+    content:'';
+    position:absolute; inset:0;
+    background:
+      repeating-linear-gradient(180deg, rgba(255,235,200,0.025) 0 1px, transparent 1px 4px),
+      radial-gradient(ellipse 60% 40% at 50% 25%, rgba(217,185,122,0.18), transparent 70%);
+    pointer-events:none;
+    mix-blend-mode:overlay;
+  }
+
+  /* Bronze hairline edges — top + bottom */
+  .plate::after {
+    content:'';
+    position:absolute; top:0; left:6%; right:6%;
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--bronze-300) 18%, var(--accent-hot) 50%, var(--bronze-300) 82%, transparent);
+    opacity:0.85;
+  }
+  .plate-edge-bottom {
+    position:absolute; bottom:0; left:6%; right:6%;
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--bronze-300) 18%, var(--accent-hot) 50%, var(--bronze-300) 82%, transparent);
+    opacity:0.85;
+  }
+
+  /* Large monolith mark — etched inside the plate */
+  .monolith {
+    width:42%;
+    aspect-ratio:1/1;
+    margin-bottom:16px;
+    color:var(--bronze-300);
+    animation:monolith-glow 5.5s ease-in-out infinite;
+  }
+  .monolith svg { width:100%; height:100%; display:block; overflow:visible; }
+  .monolith svg path {
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.1;
+    stroke-linejoin:round;
+    filter:drop-shadow(0 0 10px rgba(217,185,122,0.45));
+  }
+  @keyframes monolith-glow {
+    0%, 100% { filter:drop-shadow(0 0 6px rgba(217,185,122,0.25)); }
+    50%      { filter:drop-shadow(0 0 18px rgba(255,230,170,0.55)); }
+  }
+
+  /* Stacked CITADEL letters — 7 letters, mirroring the 7-column home wall */
+  .stack {
+    font-family:'Cormorant Garamond', serif;
+    font-weight:500;
+    text-transform:uppercase;
+    color:var(--bone-100);
+    line-height:1.0;
+    letter-spacing:0.02em;
+    display:flex; flex-direction:column; align-items:center;
+    gap:1px;
+    margin:8px 0 14px;
+  }
+  .stack span {
+    font-size:clamp(18px, 1.9vw, 26px);
+    line-height:1.05;
+    opacity:0.94;
+    text-shadow:0 0 12px rgba(217,185,122,0.18);
+  }
+
+  /* Tiny rule below stack */
+  .stack + .rule-tiny {
+    width:36px; height:1px;
+    background:linear-gradient(90deg, transparent, var(--bronze-300), transparent);
+    margin:0 0 18px;
+    opacity:0.7;
+  }
+
+  /* Fingerprint hold target */
+  .fp {
+    position:relative;
+    width:62px; height:62px;
+    margin:auto 0 8px;
+    flex-shrink:0;
+  }
+
+  /* Outer breathing halo */
+  .fp-halo {
+    position:absolute; inset:-30%;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(217,185,122,0.45) 0%, rgba(217,185,122,0.12) 40%, transparent 72%);
+    animation:halo-breathe 3.6s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes halo-breathe {
+    0%, 100% { transform:scale(1);   opacity:0.55; }
+    50%      { transform:scale(1.10); opacity:0.95; }
+  }
+  .fp.is-pressed .fp-halo { animation:halo-pulse 0.6s ease-out infinite; }
+  @keyframes halo-pulse {
+    0%   { transform:scale(1.00); opacity:0.80; }
+    100% { transform:scale(1.22); opacity:1.00; }
+  }
+
+  /* Ring SVG — track + progress fill */
+  .fp-ring {
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    transform:rotate(-90deg);
+    pointer-events:none;
+  }
+  .fp-ring .track { stroke:rgba(255,240,210,0.18); stroke-width:1.4; fill:none; }
+  .fp-ring .fill  {
+    stroke:var(--accent-hot);
+    stroke-width:1.8; fill:none;
+    stroke-linecap:round;
+    stroke-dasharray:283;
+    stroke-dashoffset:283;
+    filter:drop-shadow(0 0 8px var(--bronze-300));
+    transition:stroke-dashoffset 1.2s linear;
+  }
+  .fp.is-charging .fp-ring .fill { stroke-dashoffset:0; }
+
+  /* The fingerprint glyph itself (concentric arcs) */
+  .fp-glyph {
+    position:absolute; inset:18%;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--bronze-300);
+    transition:color 320ms ease;
+  }
+  .fp-glyph svg { width:100%; height:100%; }
+  .fp-glyph svg path {
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.2;
+    stroke-linecap:round;
+    vector-effect:non-scaling-stroke;
+  }
+  .fp.is-pressed .fp-glyph { color:var(--accent-hot); }
+
+  /* Tap surface */
+  .fp-btn {
+    position:absolute; inset:-15%;
+    border:0;
+    border-radius:50%;
+    background:transparent;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    outline:none;
+  }
+  .fp-btn:focus-visible {
+    box-shadow:0 0 0 2px rgba(217,185,122,0.6);
+  }
+
+  /* Opus / serial line at plate bottom */
+  .plate-serial {
+    font-family:'Cinzel', serif;
+    font-weight:500;
+    font-size:clamp(9px, 0.7vw, 11px);
+    letter-spacing:0.36em;
+    color:var(--bronze-300);
+    margin-top:14px;
+    opacity:0.85;
+  }
+  .plate-serial::before, .plate-serial::after {
+    content:'';
+    display:inline-block;
+    width:16px; height:1px;
+    background:currentColor;
+    vertical-align:middle;
+    margin:0 10px;
+    opacity:0.55;
+  }
+
+  /* ── Bottom bar: tagline + hint ─────────────────────────────── */
+  .footbar {
+    display:grid;
+    grid-template-rows:auto auto;
+    gap:6px;
+    align-items:center;
+    justify-items:center;
+    padding:0 56px;
+    position:relative;
+    z-index:3;
+    animation:fade-up 900ms cubic-bezier(0.22, 1, 0.36, 1) 700ms both;
+  }
+  @keyframes fade-up {
+    from { opacity:0; transform:translateY(8px); }
+    to   { opacity:1; transform:none; }
+  }
+  .footbar::before {
+    content:'';
+    position:absolute;
+    left:clamp(28px, 4vw, 56px); right:clamp(28px, 4vw, 56px);
+    top:0;
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--rule-soft) 18%, var(--rule) 50%, var(--rule-soft) 82%, transparent);
+  }
+  .tagline {
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-weight:300;
+    font-size:clamp(13px, 1.3vw, 22px);
+    letter-spacing:0.34em;
+    color:var(--onyx-900);
+    text-transform:uppercase;
+    text-align:center;
+  }
+  .tagline::before, .tagline::after {
+    content:'';
+    display:inline-block;
+    width:32px; height:1px;
+    background:var(--bronze-700);
+    vertical-align:middle;
+    margin:0 18px;
+    opacity:0.5;
+  }
+  .hint {
+    font-family:'Cinzel', serif;
+    font-weight:400;
+    font-size:clamp(9px, 0.78vw, 11px);
+    letter-spacing:0.36em;
+    text-transform:uppercase;
+    color:var(--bronze-700);
+    text-align:center;
+    opacity:0;
+    animation:hint-breathe 3.2s ease-in-out 1600ms infinite;
+  }
+  .hint::before, .hint::after {
+    content:'';
+    display:inline-block;
+    width:18px; height:1px;
+    background:currentColor;
+    vertical-align:middle;
+    margin:0 14px;
+    opacity:0.7;
+  }
+  @keyframes hint-breathe {
+    0%, 100% { opacity:0.4; }
+    50%      { opacity:0.9; }
+  }
+
+  /* ── Veil for transition ─────────────────────────────────────── */
+  .veil {
+    position:fixed; inset:0;
+    background:
+      radial-gradient(circle at 50% 50%,
+        rgba(255,230,170,0.95) 0%,
+        rgba(184,153,104,0.85) 22%,
+        rgba(14,12,9,0) 62%
+      );
+    background-color:rgba(14,12,9,0);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 720ms cubic-bezier(0.65,0,0.35,1), background-color 720ms ease;
+    z-index:9999;
+  }
+  .veil.is-on {
+    opacity:1;
+    background-color:rgba(14,12,9,1);
+  }
+
+  /* Plate rises off-screen on fire (continuity with home column-rise) */
+  .plate.is-firing {
+    transform:translateY(-110%);
+    filter:brightness(1.25);
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .stage, .plate, .monolith, .fp-halo, .footbar, .hint { animation:none !important; }
+    .veil { transition:opacity 200ms, background-color 200ms; }
+  }
+
+  /* Safe-area padding */
+  @supports (padding: max(0px)) {
+    .kiosk { padding-left:max(0px, env(safe-area-inset-left)); padding-right:max(0px, env(safe-area-inset-right)); }
+  }
+</style>
+</head>
+
+<body>
+  <main class="kiosk" aria-label="Embassy Citadel — Touch and hold to enter">
+    <div class="stage">
+
+      <!-- Top bar -->
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32">
+              <path d="M16 5 L27 26 L5 26 Z" />
+              <path d="M16 11 L24 26 L8 26 Z" />
+              <path d="M16 17 L21 26 L11 26 Z" />
+            </svg>
+          </span>
+          <span class="brand-name">EMBASSY <b>CITADEL</b></span>
+        </div>
+        <div class="opus">Opus  ·  No. I</div>
+      </header>
+
+      <!-- Center: entry plate -->
+      <div class="center">
+        <div class="plate" id="plate">
+
+          <!-- Monolith mark -->
+          <div class="monolith" aria-hidden="true">
+            <svg viewBox="0 0 32 32">
+              <path d="M16 4 L28 27 L4 27 Z" />
+              <path d="M16 10 L25 27 L7 27 Z" />
+              <path d="M16 16 L22 27 L10 27 Z" />
+              <path d="M16 22 L19 27 L13 27 Z" />
+            </svg>
+          </div>
+
+          <!-- Stacked CITADEL -->
+          <div class="stack" aria-hidden="true">
+            <span>C</span><span>I</span><span>T</span><span>A</span><span>D</span><span>E</span><span>L</span>
+          </div>
+          <div class="rule-tiny" aria-hidden="true"></div>
+
+          <!-- Fingerprint hold target -->
+          <div class="fp" id="fp">
+            <div class="fp-halo"></div>
+            <svg class="fp-ring" viewBox="0 0 100 100" aria-hidden="true">
+              <circle class="track" cx="50" cy="50" r="45" />
+              <circle class="fill"  cx="50" cy="50" r="45" />
+            </svg>
+            <div class="fp-glyph" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <!-- concentric fingerprint arcs -->
+                <path d="M5.5 14.5 Q 12 6 18.5 14.5" />
+                <path d="M7 16.5 Q 12 9 17 16.5" />
+                <path d="M8.8 18 Q 12 12 15.2 18" />
+                <path d="M10.6 19 Q 12 15.5 13.4 19" />
+              </svg>
+            </div>
+            <button class="fp-btn" id="fpBtn" aria-label="Touch and hold to enter" type="button"></button>
+          </div>
+
+          <!-- Opus / serial -->
+          <div class="plate-serial">EMBASSY · WORLI</div>
+
+          <!-- Bottom edge -->
+          <span class="plate-edge-bottom" aria-hidden="true"></span>
+        </div>
+      </div>
+
+      <!-- Footer: tagline + hint -->
+      <footer class="footbar">
+        <div class="tagline">A WORLD UNTO ITSELF</div>
+        <div class="hint">Touch &amp; Hold to Enter</div>
+      </footer>
+    </div>
+  </main>
+
+  <div class="veil" id="veil" aria-hidden="true"></div>
+
+  <script>
+  (function () {
+    const HOLD_MS = 1200;
+    const fp     = document.getElementById('fp');
+    const fpBtn  = document.getElementById('fpBtn');
+    const plate  = document.getElementById('plate');
+    const veil   = document.getElementById('veil');
+
+    let holdTimer = null;
+    let isHolding = false;
+    let didFire   = false;
+
+    function startHold(e) {
+      if (didFire) return;
+      e && e.preventDefault();
+      isHolding = true;
+      fp.classList.add('is-pressed');
+      // Activate progress on next frame so the dashoffset transition runs cleanly
+      requestAnimationFrame(() => {
+        if (isHolding) fp.classList.add('is-charging');
+      });
+      holdTimer = setTimeout(complete, HOLD_MS);
+      try { navigator.vibrate && navigator.vibrate(8); } catch (_) {}
+    }
+    function endHold() {
+      if (didFire) return;
+      isHolding = false;
+      fp.classList.remove('is-pressed');
+      fp.classList.remove('is-charging');
+      clearTimeout(holdTimer);
+    }
+    function complete() {
+      didFire = true;
+      try { navigator.vibrate && navigator.vibrate([20, 60, 40]); } catch (_) {}
+      plate.classList.add('is-firing');
+      // Pre-warm next page
+      const link = document.createElement('link');
+      link.rel = 'prefetch'; link.as = 'document'; link.href = 'home.html';
+      document.head.appendChild(link);
+      // Veil fades after the plate begins rising
+      setTimeout(() => { veil.classList.add('is-on'); }, 260);
+      setTimeout(() => { window.location.href = 'home.html'; }, 880);
+    }
+
+    /* Pointer events */
+    fpBtn.addEventListener('pointerdown',   startHold);
+    fpBtn.addEventListener('pointerup',     endHold);
+    fpBtn.addEventListener('pointercancel', endHold);
+    fpBtn.addEventListener('pointerleave',  endHold);
+    fpBtn.addEventListener('contextmenu',   (e) => e.preventDefault());
+
+    /* Keyboard */
+    fpBtn.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && !isHolding) {
+        e.preventDefault(); startHold(e);
+      }
+    });
+    fpBtn.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') endHold();
+    });
+
+    /* Optional landscape lock */
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+      }
+    } catch (_) {}
+
+    /* Optional SW registration */
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  })();
+  </script>
+</body>
+</html>
