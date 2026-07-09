@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Embassy Citadel — Compass</title>
+
+<link rel="manifest" href="manifest.json" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Citadel" />
+<meta name="theme-color" content="#F4F2ED" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --bone-50:   #F7F5EF;
+    --bone-100:  #F4F2ED;
+    --bone-200:  #E8E2D6;
+    --bone-300:  #D9CFB8;
+    --taupe-400: #A89B86;
+    --bronze-200:#E8CFA1;
+    --bronze-300:#D9B97A;
+    --bronze-400:#C9A567;
+    --bronze-500:#B89968;
+    --bronze-600:#946F38;
+    --bronze-700:#6E5A37;
+    --bronze-800:#4A3D24;
+    --onyx-700:  #3A332A;
+    --onyx-800:  #2A2620;
+    --onyx-900:  #1A1814;
+    --accent-hot:#FFE6AA;
+
+    --rule:      rgba(110, 90, 55, 0.55);
+    --rule-soft: rgba(110, 90, 55, 0.22);
+  }
+
+  *, *::before, *::after { box-sizing:border-box; }
+  html, body {
+    margin:0; padding:0;
+    width:100%; height:100%;
+    background:#0E0C09;
+    color:var(--onyx-900);
+    font-family:'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    -webkit-user-select:none; user-select:none;
+    touch-action:manipulation;
+    overscroll-behavior:none;
+    overflow:hidden;
+  }
+
+  .kiosk {
+    position:fixed; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 50%, #F7F5EF 0%, #ECE4D2 55%, #D6CAB1 100%);
+  }
+  /* Subtle paper grain over the bone background */
+  .kiosk::before {
+    content:'';
+    position:absolute; inset:0;
+    background-image:
+      radial-gradient(ellipse 60% 30% at 50% 18%, rgba(255,255,255,0.45), transparent 70%),
+      radial-gradient(circle at 18% 78%, rgba(110,90,55,0.06), transparent 50%),
+      radial-gradient(circle at 82% 22%, rgba(110,90,55,0.05), transparent 50%),
+      repeating-linear-gradient(180deg, rgba(0,0,0,0.018) 0 1px, transparent 1px 7px);
+    pointer-events:none;
+  }
+
+  .stage {
+    position:relative;
+    width:min(100vw, calc(100vh * 1440 / 900));
+    height:min(100vh, calc(100vw * 900 / 1440));
+    display:grid;
+    grid-template-rows: 76px 1fr 64px;
+    overflow:hidden;
+    animation:stage-in 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes stage-in {
+    from { opacity:0; }
+    to   { opacity:1; }
+  }
+
+  /* ── Top bar ─────────────────────────────────────────────── */
+  .topbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 clamp(28px, 4vw, 56px);
+    position:relative;
+    z-index:5;
+    animation:slide-down 760ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
+  }
+  @keyframes slide-down { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:none; } }
+  .brand {
+    display:flex; align-items:center; gap:14px;
+  }
+  .brand-mark {
+    width:26px; height:26px;
+    color:var(--bronze-700);
+  }
+  .brand-mark svg { width:100%; height:100%; display:block; }
+  .brand-mark svg path { fill:none; stroke:currentColor; stroke-width:1.2; }
+  .brand-name {
+    font-family:'Cinzel', serif;
+    font-weight:500;
+    font-size:clamp(10px, 0.95vw, 14px);
+    letter-spacing:0.36em;
+    color:var(--onyx-900);
+    text-transform:uppercase;
+  }
+  .brand-name b { color:var(--bronze-700); font-weight:500; }
+
+  .tagline {
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-weight:300;
+    font-size:clamp(10px, 0.9vw, 14px);
+    letter-spacing:0.30em;
+    color:var(--bronze-700);
+    text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .tagline::before, .tagline::after {
+    content:'';
+    display:inline-block;
+    width:22px; height:1px;
+    background:var(--bronze-700);
+    vertical-align:middle;
+    margin:0 14px;
+    opacity:0.55;
+  }
+  .topbar::after {
+    content:'';
+    position:absolute;
+    left:clamp(28px, 4vw, 56px); right:clamp(28px, 4vw, 56px);
+    bottom:0;
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--rule-soft) 18%, var(--rule) 50%, var(--rule-soft) 82%, transparent);
+  }
+
+  /* ── Compass stage (the heart of the home screen) ────────── */
+  .compass {
+    position:relative;
+    width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    overflow:visible;
+  }
+
+  /* The brass disc — a single SVG that owns rings, ticks, studs, needle, brand */
+  .plate {
+    position:relative;
+    width:clamp(360px, 42vw, 520px);
+    aspect-ratio:1/1;
+    flex-shrink:0;
+    z-index:2;
+    /* drop shadow under disc to give it presence on bone */
+    filter:
+      drop-shadow(0 18px 32px rgba(74, 61, 36, 0.22))
+      drop-shadow(0 2px 0 rgba(255, 250, 235, 0.35));
+    animation:plate-rise 1100ms cubic-bezier(0.22, 1, 0.36, 1) 240ms both;
+  }
+  @keyframes plate-rise {
+    from { opacity:0; transform:translateY(18px) scale(0.96); }
+    to   { opacity:1; transform:translateY(0)    scale(1);    }
+  }
+  .plate svg { width:100%; height:100%; display:block; }
+
+  .plate .needle {
+    transform-origin:50% 50%;
+    transform:rotate(0deg);
+    transition:transform 1100ms cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .plate.is-locked .needle {
+    transition:transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* ── Label clusters arranged outside the disc ────────────── */
+  .marker {
+    position:absolute;
+    left:50%; top:50%;
+    margin:0; padding:0;
+    background:transparent;
+    border:0;
+    cursor:pointer;
+    outline:none;
+    -webkit-tap-highlight-color:transparent;
+    z-index:3;
+    color:var(--onyx-900);
+    text-align:left;
+    display:flex; align-items:center; gap:14px;
+    transition:transform 480ms cubic-bezier(0.22, 1, 0.36, 1), opacity 480ms ease;
+    --rot:0deg;
+    --r:clamp(220px, 26vw, 320px);
+    /* place the marker's anchor (its centre on the inner side) at radius --r */
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--rot))
+      translate(0, calc(-1 * var(--r)))
+      rotate(calc(-1 * var(--rot)));
+    animation:marker-in 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .marker[data-i="1"] { animation-delay:520ms; }
+  .marker[data-i="2"] { animation-delay:580ms; }
+  .marker[data-i="3"] { animation-delay:640ms; }
+  .marker[data-i="4"] { animation-delay:700ms; }
+  .marker[data-i="5"] { animation-delay:760ms; }
+  .marker[data-i="6"] { animation-delay:820ms; }
+  .marker[data-i="7"] { animation-delay:880ms; }
+  @keyframes marker-in {
+    from { opacity:0; }
+    to   { opacity:1; }
+  }
+
+  /* Quadrant-aware layout: marker mirrors itself so the bronze stud always sits
+     on the side closest to the disc, with the title flowing outward. */
+  .marker.q-right { flex-direction:row;         }
+  .marker.q-left  { flex-direction:row-reverse; text-align:right; }
+  .marker.q-top, .marker.q-bottom {
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap:8px;
+  }
+  .marker.q-bottom { flex-direction:column-reverse; }
+
+  /* Stud — small bronze button mark that anchors the marker to the disc edge */
+  .stud {
+    width:clamp(14px, 1.2vw, 20px);
+    height:clamp(14px, 1.2vw, 20px);
+    border-radius:50%;
+    background:
+      radial-gradient(circle at 30% 28%, #FFE6AA 0%, #D9B97A 28%, #8A6F3D 75%, #4A3D24 100%);
+    box-shadow:
+      0 0 0 1px rgba(74, 61, 36, 0.55),
+      0 0 12px rgba(217, 185, 122, 0.55),
+      inset 0 1px 0 rgba(255, 240, 200, 0.55);
+    flex-shrink:0;
+    transition:transform 320ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 320ms ease;
+  }
+  .marker:hover .stud, .marker:focus-visible .stud {
+    transform:scale(1.35);
+    box-shadow:
+      0 0 0 1px rgba(74, 61, 36, 0.8),
+      0 0 22px rgba(255, 230, 170, 0.9),
+      inset 0 1px 0 rgba(255, 250, 220, 0.85);
+  }
+
+  /* Label block: title (large serif) + kicker + numeral */
+  .label {
+    display:flex; flex-direction:column;
+    gap:3px;
+    line-height:1;
+  }
+  .marker.q-top    .label,
+  .marker.q-bottom .label { align-items:center; }
+  .marker.q-left   .label { align-items:flex-end; }
+  .marker.q-right  .label { align-items:flex-start; }
+
+  .label .numeral {
+    font-family:'Cinzel', serif;
+    font-weight:400;
+    font-size:clamp(8px, 0.65vw, 10px);
+    letter-spacing:0.36em;
+    color:var(--bronze-700);
+    opacity:0.7;
+    margin-bottom:2px;
+  }
+  .label .title {
+    font-family:'Cormorant Garamond', serif;
+    font-weight:500;
+    font-size:clamp(20px, 2.0vw, 32px);
+    letter-spacing:0.04em;
+    color:var(--onyx-900);
+    text-transform:uppercase;
+    line-height:1.0;
+    transition:color 280ms ease, transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .label .kicker {
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-weight:400;
+    font-size:clamp(10px, 0.88vw, 14px);
+    letter-spacing:0.10em;
+    color:var(--bronze-700);
+    margin-top:2px;
+    opacity:0.85;
+  }
+  .marker:hover .label .title, .marker:focus-visible .label .title {
+    color:var(--bronze-800);
+    transform:translateX(0) scale(1.04);
+  }
+  .marker.q-left:hover .label .title,
+  .marker.q-left:focus-visible .label .title { transform-origin:right center; }
+  .marker.q-right:hover .label .title,
+  .marker.q-right:focus-visible .label .title { transform-origin:left center; }
+
+  /* Pressed */
+  .marker:active .stud { transform:scale(1.15); }
+  .marker.is-firing .stud { transform:scale(2.2); opacity:0; transition:transform 700ms ease, opacity 700ms ease; }
+  .marker.is-firing .label { opacity:0; transition:opacity 360ms ease; }
+
+  /* ── Footer ──────────────────────────────────────────────── */
+  .footbar {
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    padding:0 clamp(28px, 4vw, 56px);
+    position:relative;
+    z-index:5;
+    animation:slide-up 760ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
+  }
+  @keyframes slide-up { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+  .footbar::before {
+    content:'';
+    position:absolute;
+    left:clamp(28px, 4vw, 56px); right:clamp(28px, 4vw, 56px);
+    top:0;
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--rule-soft) 18%, var(--rule) 50%, var(--rule-soft) 82%, transparent);
+  }
+  .location {
+    font-family:'Cinzel', serif;
+    font-weight:400;
+    font-size:clamp(9px, 0.78vw, 12px);
+    letter-spacing:0.36em;
+    color:var(--bronze-700);
+    text-transform:uppercase;
+    justify-self:start;
+  }
+  .curator {
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic; font-weight:300;
+    font-size:clamp(10px, 0.92vw, 13px);
+    letter-spacing:0.18em;
+    color:rgba(26,24,20,0.55);
+    justify-self:center;
+    text-transform:uppercase;
+  }
+  .controls { display:flex; gap:10px; justify-self:end; }
+  .ctl {
+    width:34px; height:34px;
+    border:1px solid rgba(110, 90, 55, 0.45);
+    background:linear-gradient(160deg, rgba(247,245,239,0.9), rgba(232,226,214,0.95));
+    color:var(--bronze-700);
+    border-radius:4px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:border-color 220ms ease, color 220ms ease, transform 220ms ease, box-shadow 220ms ease;
+    -webkit-tap-highlight-color:transparent;
+    outline:none;
+  }
+  .ctl:hover {
+    border-color:var(--bronze-600);
+    color:var(--bronze-800);
+    box-shadow:0 0 14px rgba(184, 153, 104, 0.35);
+    transform:translateY(-1px);
+  }
+  .ctl:active { transform:translateY(0) scale(0.96); }
+  .ctl svg { width:14px; height:14px; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; fill:none; }
+
+  /* ── Veil ─────────────────────────────────────────────────── */
+  .veil {
+    position:fixed; inset:0;
+    background:
+      radial-gradient(circle at var(--veil-x, 50%) var(--veil-y, 50%),
+        rgba(255,230,170,0.98) 0%,
+        rgba(217,185,122,0.92) 24%,
+        rgba(110,90,55,0.0) 62%
+      );
+    background-color:rgba(247,245,239,0);
+    opacity:0; pointer-events:none;
+    transition:opacity 540ms cubic-bezier(0.65, 0, 0.35, 1), background-color 540ms ease;
+    z-index:9999;
+  }
+  .veil.is-on {
+    opacity:1;
+    background-color:rgba(247,245,239,1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stage, .topbar, .footbar, .plate, .marker, .needle { animation:none !important; transition:none !important; }
+    .veil { transition:opacity 200ms; }
+  }
+  @supports (padding: max(0px)) {
+    .kiosk { padding-left:max(0px, env(safe-area-inset-left)); padding-right:max(0px, env(safe-area-inset-right)); }
+  }
+</style>
+</head>
+
+<body>
+  <main class="kiosk" aria-label="Embassy Citadel — Compass directory">
+    <div class="stage">
+
+      <!-- Top bar -->
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32">
+              <path d="M16 5 L27 26 L5 26 Z" />
+              <path d="M16 11 L24 26 L8 26 Z" />
+              <path d="M16 17 L21 26 L11 26 Z" />
+            </svg>
+          </span>
+          <span class="brand-name">EMBASSY <b>CITADEL</b></span>
+        </div>
+        <div class="tagline">A WORLD UNTO ITSELF</div>
+      </header>
+
+      <!-- Compass: brass plate + 7 markers around the rim -->
+      <section class="compass" id="compass" aria-label="Sections">
+
+        <div class="plate" id="plate" aria-hidden="true">
+          <svg viewBox="-100 -100 200 200" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="brassFace" cx="0.35" cy="0.30" r="0.85">
+                <stop offset="0%"  stop-color="#F2DBA8" />
+                <stop offset="30%" stop-color="#D9B97A" />
+                <stop offset="70%" stop-color="#A0823F" />
+                <stop offset="100%" stop-color="#6E5A37" />
+              </radialGradient>
+              <radialGradient id="brassFaceInner" cx="0.30" cy="0.25" r="0.7">
+                <stop offset="0%"  stop-color="#F4E1B2" />
+                <stop offset="60%" stop-color="#C9A567" />
+                <stop offset="100%" stop-color="#8A6F3D" />
+              </radialGradient>
+              <linearGradient id="needleGrad" x1="0" y1="-1" x2="0" y2="1">
+                <stop offset="0%"  stop-color="#FFE6AA" />
+                <stop offset="50%" stop-color="#C9A567" />
+                <stop offset="100%" stop-color="#6E5A37" />
+              </linearGradient>
+              <filter id="discShadow" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="1.4" />
+                <feOffset dx="0" dy="0.8" result="off" />
+                <feFlood flood-color="#3A2F1A" flood-opacity="0.5" />
+                <feComposite in2="off" operator="in" />
+                <feMerge>
+                  <feMergeNode />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+
+            <!-- Outer brass disc -->
+            <circle cx="0" cy="0" r="94" fill="url(#brassFace)" />
+            <!-- Beveled rim hairlines -->
+            <circle cx="0" cy="0" r="94"   fill="none" stroke="#6E5A37" stroke-width="0.8" />
+            <circle cx="0" cy="0" r="91.5" fill="none" stroke="#FFE6AA" stroke-width="0.4" opacity="0.55" />
+            <circle cx="0" cy="0" r="88"   fill="none" stroke="#4A3D24" stroke-width="0.5" opacity="0.65" />
+
+            <!-- Inscribed inner ring -->
+            <circle cx="0" cy="0" r="66" fill="none" stroke="#6E5A37" stroke-width="0.5" opacity="0.85" />
+            <circle cx="0" cy="0" r="64" fill="url(#brassFaceInner)" />
+            <circle cx="0" cy="0" r="64" fill="none" stroke="#4A3D24" stroke-width="0.4" opacity="0.6" />
+
+            <!-- 7 radial ticks (from r=66 to r=88) — main marks -->
+            <g id="ticks" stroke="#4A3D24" stroke-width="0.8" stroke-linecap="round" opacity="0.95"></g>
+            <!-- Tertiary minor ticks (every 5° between mains) -->
+            <g id="minorTicks" stroke="#6E5A37" stroke-width="0.3" stroke-linecap="round" opacity="0.6"></g>
+            <!-- Bronze studs at outer end of each main tick -->
+            <g id="studs" fill="#4A3D24"></g>
+
+            <!-- Centre cluster: monolith mark + CITADEL + rule + tagline -->
+            <g id="centerMark" font-family="Cinzel, serif">
+              <!-- Embassy monolith — 4 stacked triangle outlines -->
+              <g transform="translate(0, -20)" stroke="#4A3D24" stroke-width="0.6" fill="none" stroke-linejoin="round">
+                <path d="M0 -18 L14 8 L-14 8 Z" />
+                <path d="M0 -10 L10 8 L-10 8 Z" />
+                <path d="M0 -2  L6  8 L-6  8 Z" />
+              </g>
+              <!-- Wordmark -->
+              <text x="0" y="14" text-anchor="middle"
+                    font-size="6.5" font-weight="500"
+                    letter-spacing="2.8" fill="#3A2F1A">CITADEL</text>
+              <!-- Rule -->
+              <line x1="-14" y1="19" x2="14" y2="19" stroke="#6E5A37" stroke-width="0.4" opacity="0.7" />
+              <!-- Sub-line -->
+              <text x="0" y="27" text-anchor="middle"
+                    font-family="Cormorant Garamond, serif"
+                    font-style="italic" font-size="5"
+                    letter-spacing="1.6" fill="#6E5A37">Opus &middot; No. I</text>
+            </g>
+
+            <!-- Compass needle — thin asymmetric arrow, ID for JS rotation -->
+            <g class="needle" id="needle">
+              <!-- pointer (north, points up at idle) -->
+              <path d="M0 -52 L2.6 0 L-2.6 0 Z" fill="url(#needleGrad)" stroke="#6E5A37" stroke-width="0.3" />
+              <!-- counterweight (south) -->
+              <path d="M0 52 L1.6 0 L-1.6 0 Z" fill="#4A3D24" opacity="0.8" />
+              <!-- centre pivot disc -->
+              <circle cx="0" cy="0" r="3.4" fill="#2A2620" stroke="#6E5A37" stroke-width="0.4" />
+              <circle cx="0" cy="0" r="1.4" fill="#D9B97A" />
+            </g>
+          </svg>
+        </div>
+
+        <!-- 7 markers will be injected here -->
+      </section>
+
+      <!-- Footer -->
+      <footer class="footbar">
+        <div class="location">WORLI · MUMBAI</div>
+        <div class="curator">— THE FRANK CURATOR —</div>
+        <div class="controls">
+          <button class="ctl" id="ctlBack" aria-label="Back to entry" type="button">
+            <svg viewBox="0 0 24 24"><path d="M7 7 L17 17 M17 7 L7 17"/></svg>
+          </button>
+          <button class="ctl" id="ctlShortcut" aria-label="Quick index" type="button">
+            <svg viewBox="0 0 24 24">
+              <circle cx="7"  cy="7"  r="1.6" fill="currentColor" stroke="none"/>
+              <circle cx="17" cy="7"  r="1.6" fill="currentColor" stroke="none"/>
+              <circle cx="7"  cy="17" r="1.6" fill="currentColor" stroke="none"/>
+              <circle cx="17" cy="17" r="1.6" fill="currentColor" stroke="none"/>
+            </svg>
+          </button>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <div class="veil" id="veil" aria-hidden="true"></div>
+
+  <script>
+  (function () {
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+
+    /* ── 7 sections — clockwise from 12 o'clock ──────────────── */
+    const SECTIONS = [
+      { key:'gallery',    label:'GALLERY',    kicker:'Photography',       href:'../screen-02-gallery.html'     },
+      { key:'masterplan', label:'MASTERPLAN', kicker:'The Estate',        href:'../screen-03-masterplan.html'  },
+      { key:'floorplan',  label:'FLOORPLAN',  kicker:'Layouts',           href:'../screen-06-floor-plans.html' },
+      { key:'inventory',  label:'INVENTORY',  kicker:'Units & Pricing',   href:'../screen-05-inventory.html'   },
+      { key:'amenities',  label:'AMENITIES',  kicker:'A Considered Life', href:'../screen-04-amenities.html'   },
+      { key:'tools',      label:'TOOLS',      kicker:'Reckoners',         href:'../screen-08-tools.html'       },
+      { key:'about',      label:'ABOUT',      kicker:'The Frank Curator', href:'../screen-01-overview.html'    },
+    ];
+    const ROMAN = ['I','II','III','IV','V','VI','VII'];
+    const STEP  = 360 / SECTIONS.length;   /* 51.43° */
+
+    /* ── 1. Draw the disc's ticks + studs into the SVG ───────── */
+    const ticksG  = document.getElementById('ticks');
+    const minorG  = document.getElementById('minorTicks');
+    const studsG  = document.getElementById('studs');
+
+    // 7 main ticks + studs
+    for (let i = 0; i < SECTIONS.length; i++) {
+      const a = i * STEP - 90;                 // degrees, 0° at 3 o'clock (SVG)
+      const rad = a * Math.PI / 180;
+      const x1 = Math.cos(rad) * 66, y1 = Math.sin(rad) * 66;   // inner end
+      const x2 = Math.cos(rad) * 88, y2 = Math.sin(rad) * 88;   // outer end
+
+      const line = document.createElementNS(SVG_NS, 'line');
+      line.setAttribute('x1', x1.toFixed(2)); line.setAttribute('y1', y1.toFixed(2));
+      line.setAttribute('x2', x2.toFixed(2)); line.setAttribute('y2', y2.toFixed(2));
+      line.setAttribute('data-i', String(i + 1));
+      ticksG.appendChild(line);
+
+      const stud = document.createElementNS(SVG_NS, 'circle');
+      const xs = Math.cos(rad) * 92, ys = Math.sin(rad) * 92;
+      stud.setAttribute('cx', xs.toFixed(2));
+      stud.setAttribute('cy', ys.toFixed(2));
+      stud.setAttribute('r', '1.4');
+      stud.setAttribute('data-i', String(i + 1));
+      studsG.appendChild(stud);
+
+      // small Roman numeral engraved just inside the outer rim
+      const t = document.createElementNS(SVG_NS, 'text');
+      const xt = Math.cos(rad) * 78, yt = Math.sin(rad) * 78;
+      t.setAttribute('x', xt.toFixed(2)); t.setAttribute('y', yt.toFixed(2));
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('dominant-baseline', 'central');
+      t.setAttribute('font-family', 'Cinzel, serif');
+      t.setAttribute('font-size', '5');
+      t.setAttribute('letter-spacing', '0.6');
+      t.setAttribute('fill', '#3A2F1A');
+      t.setAttribute('opacity', '0.85');
+      t.textContent = ROMAN[i];
+      studsG.appendChild(t);
+    }
+
+    // 36 minor ticks every 10° (skip where main ticks are)
+    for (let d = 0; d < 360; d += 10) {
+      // skip if too close to a main tick angle
+      const mainAngles = SECTIONS.map((_, i) => (i * STEP) % 360);
+      const isMain = mainAngles.some(m => Math.abs(((d - m) + 540) % 360 - 180) > 178);
+      if (isMain) continue;
+      const a = d - 90;
+      const rad = a * Math.PI / 180;
+      const x1 = Math.cos(rad) * 80, y1 = Math.sin(rad) * 80;
+      const x2 = Math.cos(rad) * 88, y2 = Math.sin(rad) * 88;
+      const line = document.createElementNS(SVG_NS, 'line');
+      line.setAttribute('x1', x1.toFixed(2)); line.setAttribute('y1', y1.toFixed(2));
+      line.setAttribute('x2', x2.toFixed(2)); line.setAttribute('y2', y2.toFixed(2));
+      minorG.appendChild(line);
+    }
+
+    /* ── 2. Build the 7 outer markers (label clusters + studs) ─ */
+    const compass = document.getElementById('compass');
+
+    function quadrantClass(theta) {
+      // theta in degrees, 0° = top (12 o'clock), clockwise
+      if (theta <  22.5 || theta > 337.5) return 'q-top';
+      if (theta < 157.5 && theta > 22.5)  return 'q-right';
+      if (theta < 202.5 && theta > 157.5) return 'q-bottom';
+      return 'q-left';
+    }
+
+    SECTIONS.forEach((s, i) => {
+      const idx = i + 1;
+      const theta = i * STEP;
+
+      const m = document.createElement('button');
+      m.type = 'button';
+      m.className = `marker ${quadrantClass(theta)}`;
+      m.dataset.i = String(idx);
+      m.dataset.key = s.key;
+      m.style.setProperty('--rot', theta.toFixed(2) + 'deg');
+      m.setAttribute('aria-label', `${s.label} — ${s.kicker}`);
+
+      const stud = document.createElement('span');
+      stud.className = 'stud';
+      m.appendChild(stud);
+
+      const label = document.createElement('span');
+      label.className = 'label';
+
+      const num = document.createElement('span');
+      num.className = 'numeral';
+      num.textContent = ROMAN[i] + ' · ' + String(idx).padStart(2, '0');
+      label.appendChild(num);
+
+      const title = document.createElement('span');
+      title.className = 'title';
+      title.textContent = s.label;
+      label.appendChild(title);
+
+      const kick = document.createElement('span');
+      kick.className = 'kicker';
+      kick.textContent = s.kicker;
+      label.appendChild(kick);
+
+      m.appendChild(label);
+      compass.appendChild(m);
+
+      /* Interaction */
+      m.addEventListener('pointerenter', () => pointNeedleAt(theta));
+      m.addEventListener('focus', () => pointNeedleAt(theta));
+      m.addEventListener('click', () => fire(m, s.href, theta));
+      m.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fire(m, s.href, theta); }
+      });
+    });
+
+    /* ── 3. Needle behaviour ─────────────────────────────────── */
+    const needle = document.getElementById('needle');
+    const plate  = document.getElementById('plate');
+    let idleAngle = 0;
+    let idleTimer = null;
+
+    function pointNeedleAt(theta) {
+      stopIdle();
+      needle.style.transform = `rotate(${theta}deg)`;
+    }
+    function startIdle() {
+      // Slowly sweep the needle through the 7 positions on idle
+      stopIdle();
+      idleTimer = setInterval(() => {
+        idleAngle = (idleAngle + STEP) % 360;
+        needle.style.transform = `rotate(${idleAngle}deg)`;
+      }, 3600);
+    }
+    function stopIdle() {
+      if (idleTimer) { clearInterval(idleTimer); idleTimer = null; }
+    }
+    // Start idle after entrance animations
+    setTimeout(startIdle, 2400);
+
+    /* ── 4. Fire transition ─────────────────────────────────── */
+    const veil = document.getElementById('veil');
+    function fire(btn, href, theta) {
+      stopIdle();
+      plate.classList.add('is-locked');
+      pointNeedleAt(theta);
+      try {
+        const rect = btn.getBoundingClientRect();
+        const x = (rect.left + rect.width / 2) / window.innerWidth * 100;
+        const y = (rect.top + rect.height / 2) / window.innerHeight * 100;
+        veil.style.setProperty('--veil-x', x.toFixed(2) + '%');
+        veil.style.setProperty('--veil-y', y.toFixed(2) + '%');
+      } catch (_) {}
+      btn.classList.add('is-firing');
+      setTimeout(() => { veil.classList.add('is-on'); }, 360);
+      setTimeout(() => { window.location.href = href; }, 900);
+    }
+
+    document.getElementById('ctlBack').addEventListener('click', () => {
+      veil.classList.add('is-on');
+      setTimeout(() => { window.location.href = 'intro.html'; }, 480);
+    });
+
+    /* Shortcut menu */
+    document.getElementById('ctlShortcut').addEventListener('click', () => {
+      let menu = document.getElementById('shortcutMenu');
+      if (menu) { menu.remove(); return; }
+      menu = document.createElement('div');
+      menu.id = 'shortcutMenu';
+      menu.style.cssText = `
+        position:absolute; right:clamp(28px, 4vw, 56px); bottom:80px;
+        background:linear-gradient(180deg, rgba(247,245,239,0.98), rgba(232,226,214,0.98));
+        color:#1A1814;
+        border:1px solid rgba(110, 90, 55, 0.45);
+        backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+        padding:14px 16px; border-radius:6px;
+        font-family:'Cinzel', serif; font-size:11px; letter-spacing:0.26em;
+        text-transform:uppercase; min-width:240px;
+        box-shadow:0 24px 64px rgba(74, 61, 36, 0.30);
+        z-index:8;
+      `;
+      const title = document.createElement('div');
+      title.style.cssText = 'font-family:\'Cormorant Garamond\', serif; font-style:italic; font-size:12px; letter-spacing:0.18em; color:#6E5A37; padding-bottom:10px; margin-bottom:8px; border-bottom:1px solid rgba(110, 90, 55, 0.22); text-transform:uppercase;';
+      title.textContent = '— Directory —';
+      menu.appendChild(title);
+      SECTIONS.forEach((s, i) => {
+        const a = document.createElement('a');
+        a.href = s.href;
+        a.style.cssText = 'display:flex; justify-content:space-between; padding:9px 4px; color:inherit; text-decoration:none; border-bottom:1px solid rgba(110, 90, 55, 0.10); transition:color 180ms ease, padding-left 220ms ease;';
+        const left = document.createElement('span'); left.textContent = `${ROMAN[i]}  ${s.label}`;
+        const right = document.createElement('span'); right.textContent = '→'; right.style.opacity = '0.45';
+        a.appendChild(left); a.appendChild(right);
+        a.addEventListener('mouseenter', () => { a.style.color = '#6E5A37'; a.style.paddingLeft = '10px'; });
+        a.addEventListener('mouseleave', () => { a.style.color = '#1A1814'; a.style.paddingLeft = '4px'; });
+        menu.appendChild(a);
+      });
+      document.querySelector('.stage').appendChild(menu);
+    });
+
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+      }
+    } catch (_) {}
+
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  })();
+  </script>
+</body>
+</html>

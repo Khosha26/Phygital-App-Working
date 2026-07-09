@@ -1,0 +1,106 @@
+/* Embassy Citadel — Brand tokens
+   Single source of truth for color, type, spacing, motion. */
+
+:root {
+  /* ── Palette ──────────────────────────────────────────────── */
+  --c-bone:        #F4F2ED;   /* primary background */
+  --c-warm-grey:   #DAD5CD;   /* surface elevation */
+  --c-onyx:        #010000;   /* primary text on bone */
+  --c-onyx-soft:   #1a1a1a;   /* secondary text */
+
+  --c-olive:       #9B9378;   /* secondary surface (campaign cover) */
+  --c-olive-deep:  #7d765f;
+  --c-taupe:       #C2B5A3;
+  --c-bronze:      #E07E27;   /* sparingly — underlines, accents */
+  --c-bronze-soft: #b06820;
+
+  /* Material gradients (CSS reproductions of black-metal & bronze) */
+  --grad-black-metal: linear-gradient(135deg, #0a0a0a 0%, #1f1f1f 35%, #2a2a2a 55%, #0e0e0e 100%);
+  --grad-bronze:      linear-gradient(135deg, #5e3a14 0%, #b07a2a 30%, #e5b561 50%, #8a5417 80%, #3c230a 100%);
+  --grad-leather:     linear-gradient(180deg, #a37857 0%, #8b613f 100%);
+
+  /* Translucency for layering on photography */
+  --bone-veil-90: rgba(244, 242, 237, 0.92);
+  --onyx-veil-70: rgba(1, 0, 0, 0.70);
+  --onyx-veil-40: rgba(1, 0, 0, 0.40);
+
+  /* ── Typography ───────────────────────────────────────────── */
+  /* Sans-serif throughout — Inter for both display and body */
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Fluid scale — anchored at 1600px viewport, scales up to 4K */
+  --fs-display-xl: clamp(4rem, 9vw, 13rem);   /* hero "A WORLD UNTO ITSELF" */
+  --fs-display-l:  clamp(2.75rem, 5.5vw, 7rem);
+  --fs-display-m:  clamp(1.75rem, 3vw, 4rem);
+  --fs-body-l:     clamp(1rem, 1.15vw, 1.5rem);
+  --fs-body:       clamp(0.875rem, 0.95vw, 1.25rem);
+  --fs-caption:    clamp(0.7rem, 0.7vw, 0.9rem);
+
+  --tracking-display: -0.02em;    /* tighter for Inter at display sizes */
+  --tracking-caption: 0.22em;     /* the brochure's wide-spaced caps */
+
+  /* ── Spacing (fluid) ──────────────────────────────────────── */
+  --sp-1:  clamp(0.25rem, 0.4vw, 0.5rem);
+  --sp-2:  clamp(0.5rem, 0.6vw, 0.75rem);
+  --sp-3:  clamp(0.75rem, 0.9vw, 1.25rem);
+  --sp-4:  clamp(1rem, 1.2vw, 1.75rem);
+  --sp-6:  clamp(1.5rem, 2vw, 3rem);
+  --sp-8:  clamp(2rem, 3vw, 4.5rem);
+  --sp-12: clamp(3rem, 4.5vw, 7rem);
+  --sp-16: clamp(4rem, 6vw, 10rem);
+
+  /* ── Motion ───────────────────────────────────────────────── */
+  --ease-entry:    cubic-bezier(0.22, 1, 0.36, 1);    /* gentle ease-out */
+  --ease-reactive: cubic-bezier(0.65, 0, 0.35, 1);    /* punchy in-out */
+  --dur-fast:   240ms;
+  --dur-base:   480ms;
+  --dur-slow:   880ms;
+  --dur-cinema: 1600ms;
+}
+
+/* ── Resets aligned to brand ───────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--c-bone);
+  color: var(--c-onyx);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+}
+
+/* Prevent text selection on the sales-suite (this is a kiosk, not a doc) */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+/* ── Type helpers ──────────────────────────────────────────── */
+.font-display { font-family: var(--font-display); font-weight: 300; letter-spacing: var(--tracking-display); }
+.font-body    { font-family: var(--font-body); }
+.caption      { font-size: var(--fs-caption); letter-spacing: var(--tracking-caption); text-transform: uppercase; }
+
+/* Bronze hairline underline used throughout brochure */
+.bronze-rule {
+  display: inline-block;
+  width: 3.5rem;
+  height: 1.5px;
+  background: var(--c-bronze);
+}
+
+/* ── Brand surfaces ────────────────────────────────────────── */
+.surface-bone   { background: var(--c-bone); color: var(--c-onyx); }
+.surface-olive  { background: var(--c-olive); color: var(--c-bone); }
+.surface-onyx   { background: var(--c-onyx); color: var(--c-bone); }
+.surface-metal  { background: var(--grad-black-metal); color: var(--c-bone); }
+.surface-bronze { background: var(--grad-bronze); color: var(--c-onyx); }
+
+/* ── Logo + iconography ────────────────────────────────────── */
+.logo-stack { /* the ▲ EMBASSY layered triangle icon */
+  display: inline-block;
+}

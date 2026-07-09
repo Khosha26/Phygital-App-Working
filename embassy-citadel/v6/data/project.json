@@ -1,0 +1,48 @@
+{
+  "name": "Embassy Citadel",
+  "tagline": "A WORLD UNTO ITSELF",
+  "subTagline": "Not just homes.",
+  "developer": "Embassy Group",
+  "location": {
+    "address": "Dr. Elijah Moses Road, Worli, Mumbai 400 018",
+    "neighbourhood": "Worli",
+    "city": "Mumbai",
+    "lat": 19.0144,
+    "lng": 72.8175
+  },
+  "vitals": {
+    "towerHeightMetres": 300,
+    "totalFloors": 79,
+    "totalTowers": 1,
+    "amenityLevels": 8,
+    "configurations": ["4 BHK", "5 BHK", "Sky Mansion"],
+    "reraNumber": "P51702679035",
+    "reraUrl": "https://maharera.maharashtra.gov.in"
+  },
+  "headlines": [
+    "THE WORLD OUTSIDE IS EXHAUSTING.",
+    "A CUT ABOVE WORLI.",
+    "ALL THE PLACES TO GO. WITHOUT GOING ANYWHERE.",
+    "AWAY FROM THE CHAOS.",
+    "THE WORLD CHANGES AT THE DOOR.",
+    "NATURE, ELEVATED.",
+    "YOUR PRIVATE HAVEN IN THE SKY.",
+    "THE BEST SEAT IN THE CITY.",
+    "WHERE THE SKYLINE IS AS WELL-DRESSED AS YOU."
+  ],
+  "story": {
+    "intro": "The city demands your time. Your patience. Your energy. Embassy Citadel is designed to give it all back.",
+    "positioning": "A self-contained world — not by isolation, but by design.",
+    "proof": "Rising over 300 metres, with curated amenities spanning eight levels. One definitive vertical landmark. Slender. Elegant. Distinguished not by excess, but by restraint."
+  },
+  "menu": [
+    { "id": "overview",   "label": "Project Overview",     "kicker": "01" },
+    { "id": "gallery",    "label": "Gallery",              "kicker": "02" },
+    { "id": "masterplan", "label": "Masterplan",           "kicker": "03" },
+    { "id": "amenities",  "label": "Amenities",            "kicker": "04" },
+    { "id": "inventory",  "label": "Inventory",            "kicker": "05" },
+    { "id": "floorplan",  "label": "Floor Plans",          "kicker": "06" },
+    { "id": "location",   "label": "Location Advantages",  "kicker": "07" },
+    { "id": "tools",      "label": "Tools",                "kicker": "08" }
+  ]
+}
