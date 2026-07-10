@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Embassy ONE — Sales Suite Flow Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500&family=Tangerine:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bone:#F4EEE2; --bone2:#EDE5D5; --paper:#FBF8F1; --ink:#2B2A26; --muted:#6E685B;
+    --brass:#B08D57; --brass2:#8A6E45; --sage:#9DA585; --twilight:#1C2730; --line:#D9CFBB;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  @page{ size:1600px 1100px; margin:0; }
+  html,body{background:var(--bone);}
+  body{
+    width:1600px; min-height:1100px; font-family:"Jost",sans-serif; color:var(--ink);
+    padding:54px 60px 40px; position:relative;
+    background:
+      radial-gradient(120% 80% at 80% -10%, rgba(176,141,87,.07), transparent 60%),
+      linear-gradient(180deg,#F6F1E6, #EFE7D6);
+  }
+  .frame{position:absolute; inset:22px; border:1px solid var(--brass); opacity:.5; pointer-events:none}
+  .corner{position:absolute; width:14px;height:14px;border:1px solid var(--brass2)}
+  .leaf{position:absolute; bottom:26px; right:34px; width:300px; opacity:.10}
+  /* header */
+  header{display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid var(--line); padding-bottom:18px; margin-bottom:26px}
+  .word{font-family:"Cormorant Garamond",serif; font-weight:600; font-size:42px; letter-spacing:.36em; color:var(--ink); line-height:1}
+  .sub{font-family:"Jost"; font-weight:300; font-size:12px; letter-spacing:.34em; color:var(--muted); margin-top:9px}
+  .script{font-family:"Tangerine",cursive; font-size:40px; color:var(--brass2); line-height:.7}
+  .doctitle{text-align:right}
+  .doctitle .t{font-family:"Cormorant Garamond",serif; font-style:italic; font-size:23px; color:var(--brass2)}
+  .doctitle .m{font-size:11px; letter-spacing:.28em; color:var(--muted); margin-top:6px}
+  /* home block */
+  .home{background:linear-gradient(110deg,#243038,#2f3e44); color:var(--paper); border-radius:4px; padding:20px 26px; margin-bottom:10px; position:relative; overflow:hidden; border:1px solid var(--brass2)}
+  .home::after{content:""; position:absolute; right:-40px; top:-30px; width:200px;height:200px;border-radius:50%;
+    background:radial-gradient(circle, rgba(214,180,120,.55), rgba(214,180,120,0) 70%)}
+  .home .k{font-size:10px; letter-spacing:.34em; color:#cdbf9e}
+  .home h2{font-family:"Cormorant Garamond",serif; font-weight:500; font-size:27px; letter-spacing:.04em; margin:3px 0 6px}
+  .home p{font-weight:300; font-size:13.5px; color:#e7ddc8; max-width:1080px; line-height:1.55}
+  .home .vis{font-size:11.5px; color:#bfb699; margin-top:9px; letter-spacing:.02em}
+  .home .vis b{color:#e9c98a; font-weight:500; letter-spacing:.12em}
+  .arrows{display:flex; justify-content:space-around; margin:6px 0 12px; color:var(--brass); font-size:18px}
+  /* columns */
+  .cols{display:grid; grid-template-columns:repeat(5,1fr); gap:14px}
+  .col{background:var(--paper); border:1px solid var(--line); border-top:2px solid var(--brass); border-radius:3px; padding:15px 15px 16px; display:flex; flex-direction:column}
+  .num{font-family:"Cormorant Garamond",serif; font-size:15px; color:var(--brass2); letter-spacing:.1em}
+  .col h3{font-family:"Cormorant Garamond",serif; font-weight:600; font-size:20px; letter-spacing:.13em; margin:1px 0 3px}
+  .col .role{font-size:10.5px; letter-spacing:.2em; color:var(--sage); text-transform:uppercase; margin-bottom:11px; font-weight:500}
+  .col .cap{font-weight:300; font-size:12px; color:var(--muted); line-height:1.5; margin-bottom:13px; min-height:54px}
+  .screens{list-style:none; border-top:1px solid var(--line); padding-top:11px}
+  .screens li{padding:7px 0; border-bottom:1px dotted var(--line)}
+  .screens .s{font-size:12.5px; font-weight:500; color:var(--ink); letter-spacing:.02em}
+  .screens .d{font-size:10.8px; font-weight:300; color:var(--muted); line-height:1.4; margin-top:2px}
+  .vis2{margin-top:auto; padding-top:11px}
+  .vis2 .h{font-size:9.5px; letter-spacing:.24em; color:var(--brass2); text-transform:uppercase}
+  .vis2 .b{font-size:11px; font-weight:300; color:#5c5648; line-height:1.45; margin-top:4px}
+  .badge{display:inline-block; font-size:9px; letter-spacing:.16em; color:var(--paper); background:var(--brass); padding:2px 7px; border-radius:10px; margin-left:6px; vertical-align:middle; font-weight:500}
+  /* footer */
+  footer{display:flex; justify-content:space-between; align-items:center; margin-top:18px; border-top:1px solid var(--line); padding-top:12px; font-size:10.5px; letter-spacing:.06em; color:var(--muted)}
+  footer b{color:var(--brass2); font-weight:500; letter-spacing:.18em}
+</style>
+</head>
+<body>
+  <div class="frame"></div>
+  <svg class="leaf" viewBox="0 0 200 320"><g fill="none" stroke="#9DA585" stroke-width="1">
+    <path d="M100 315 C100 200 60 90 30 10 M100 315 C100 200 140 90 170 10 M100 315 L100 20
+             M100 250 C70 210 50 150 40 80 M100 250 C130 210 150 150 160 80
+             M100 190 C80 165 68 130 60 95 M100 190 C120 165 132 130 140 95"/>
+  </g></svg>
+
+  <header>
+    <div>
+      <div class="word">EMBASSY ONE</div>
+      <div class="sub">THE RESIDENCES · BENGALURU &nbsp;·&nbsp; SALES SUITE — EXPERIENCE FLOW MAP</div>
+    </div>
+    <div class="doctitle">
+      <div class="t">the residences</div>
+      <div class="m">FREE SPATIAL EXPLORE · TAB / KIOSK / iPAD</div>
+    </div>
+  </header>
+
+  <div class="home">
+    <div class="k">HOME SCREEN · THE SPATIAL HUB</div>
+    <h2>“The Living Threshold”</h2>
+    <p>A full-bleed, living twilight scene — lush gardens, the glowing frosted-glass lantern, the tower beyond — that gently breathes and shifts between <b>DAY ↔ DUSK</b>. The buyer enters any world freely by touching one of five frosted-glass “lantern” buttons. No menus, no urgency — an invitation.</p>
+    <div class="vis">VISUALISING — &nbsp; living scene + breathing lantern · day/dusk toggle · <b>EMBASSY ONE</b> spaced-serif wordmark + script · 5 glass lantern nav buttons (sheen + brass underline) · agave-leaf motif</div>
+  </div>
+
+  <div class="arrows"><span>↓</span><span>↓</span><span>↓</span><span>↓</span><span>↓</span></div>
+
+  <div class="cols">
+    <!-- 01 -->
+    <div class="col">
+      <div class="num">01</div><h3>THE PLACE</h3>
+      <div class="role">Location & Provenance</div>
+      <div class="cap">The address as the product. Where the city’s most established enclaves meet — and the integrated Embassy ONE world around it.</div>
+      <ul class="screens">
+        <li><div class="s">The Address</div><div class="d">Confluence map — Sadashivanagar · Dollars Colony · Jayanagar. “Gateway to the North.”</div></li>
+        <li><div class="s">The Ecosystem</div><div class="d">8-acre Embassy ONE overview · Four Seasons adjacency. “Two acres of calm. Eight acres of life.”</div></li>
+      </ul>
+      <div class="vis2"><div class="h">Visualising</div><div class="b">Elegant line-art location map with tappable anchors; clean integrated-development overview.</div></div>
+    </div>
+    <!-- 02 -->
+    <div class="col">
+      <div class="num">02</div><h3>THE GROUNDS</h3>
+      <div class="role">Landscape & Amenities</div>
+      <div class="cap">The emotional centre — “landscaping as a living poem.” The Five Lanterns &amp; the seasons, gardens and amenities as an experience.</div>
+      <ul class="screens">
+        <li><div class="s">The Five Lanterns <span class="badge">HERO</span></div><div class="d">Interactive masterplan · day↔dusk · seasons (Winter · Spring · Summer · Autumn · Center).</div></li>
+        <li><div class="s">Gardens & Sanctuary</div><div class="d">Miyawaki forest · herb garden · pet’s park · evening garden.</div></li>
+        <li><div class="s">Amenities</div><div class="d">Pool pavilion · padel · half-court · yoga deck · banquet. “Everything within reach.”</div></li>
+      </ul>
+      <div class="vis2"><div class="h">Visualising</div><div class="b">Interactive garden map, glowing lantern nodes, seasonal colour shifts, day/night crossfade, render galleries.</div></div>
+    </div>
+    <!-- 03 -->
+    <div class="col">
+      <div class="num">03</div><h3>THE TOWER</h3>
+      <div class="role">The Architecture</div>
+      <div class="cap">“A vertical manor.” Thirty floors carrying the quiet authority of a great estate, translated into sky.</div>
+      <ul class="screens">
+        <li><div class="s">A Vertical Manor</div><div class="d">Architectural portrait + gentle ascent — gardens below, the city held at a distance above.</div></li>
+        <li><div class="s">Four Principles</div><div class="d">Light · Privacy · Materiality · Proportion. Two homes per floor; double-height entries.</div></li>
+      </ul>
+      <div class="vis2"><div class="h">Visualising</div><div class="b">Tower portrait, vertical green→sky transition, material details (stone · aged brass · timber).</div></div>
+    </div>
+    <!-- 04 -->
+    <div class="col">
+      <div class="num">04</div><h3>THE RESIDENCES</h3>
+      <div class="role">The Homes</div>
+      <div class="cap">“Generous, never excessive.” The only place substance appears — sizes, configurations, plans. <b>No prices, no availability.</b></div>
+      <ul class="screens">
+        <li><div class="s">Configuration Index</div><div class="d">3 / 4 / 5-bed · duplexes · recessed homes · penthouses (4,149 – 15,124 sq ft).</div></li>
+        <li><div class="s">Floor Stack</div><div class="d">60 homes · 2 per floor · explore by floor — orientation, not a checkout.</div></li>
+        <li><div class="s">Interiors & Plans</div><div class="d">ID-concept interior galleries + floor plans per configuration.</div></li>
+      </ul>
+      <div class="vis2"><div class="h">Visualising</div><div class="b">Quiet configuration selector, floor-stack explorer, floor plans + interior renders.</div></div>
+    </div>
+    <!-- 05 -->
+    <div class="col">
+      <div class="num">05</div><h3>THE SERVICE</h3>
+      <div class="role">Living Here & The Close</div>
+      <div class="cap">“A home that takes care of itself, so you can live in it.” Anticipatory care — and a private invitation, never a sales push.</div>
+      <ul class="screens">
+        <li><div class="s">The Service</div><div class="d">Embassy’s hospitality & lifestyle arm — present when wanted, unseen when not.</div></li>
+        <li><div class="s">The Invitation</div><div class="d">“Arrive.” Private viewing by appointment · relationship-lead contact.</div></li>
+      </ul>
+      <div class="vis2"><div class="h">Visualising</div><div class="b">One understated service moment; quiet close returning to the dusk tower.</div></div>
+    </div>
+  </div>
+
+  <footer>
+    <div>GLOBAL — &nbsp; near-hidden chapter index · brand watermark · last-position persists · responsive 16:9 kiosk / 16:10 Tab S7 / 4:3 iPad · touch-first</div>
+    <div><b>KHOSHA</b> &nbsp;·&nbsp; Embassy ONE Sales Suite &nbsp;·&nbsp; Flow v1</div>
+  </footer>
+</body>
+</html>
