@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Embassy ONE — Sales Suite Structure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500&family=Tangerine:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bone:#F4EEE2; --paper:#FBF8F1; --ink:#2B2A26; --muted:#6E685B; --faint:#948d7d;
+    --brass:#B08D57; --brass2:#8A6E45; --sage:#9DA585; --twilight:#1C2730; --line:#DAD0BC;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  @page{ size:1600px 1080px; margin:0; }
+  html,body{background:var(--bone);}
+  body{
+    width:1600px; min-height:1080px; font-family:"Jost",sans-serif; color:var(--ink);
+    padding:46px 54px 32px; position:relative;
+    background:radial-gradient(120% 80% at 82% -10%, rgba(176,141,87,.07), transparent 60%), linear-gradient(180deg,#F6F1E6,#EFE7D6);
+  }
+  .frame{position:absolute; inset:20px; border:1px solid var(--brass); opacity:.45; pointer-events:none}
+  .leaf{position:absolute; bottom:20px; right:28px; width:240px; opacity:.09}
+  header{display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid var(--line); padding-bottom:15px; margin-bottom:18px}
+  .word{font-family:"Cormorant Garamond",serif; font-weight:600; font-size:38px; letter-spacing:.34em; line-height:1}
+  .sub{font-family:"Jost"; font-weight:300; font-size:11px; letter-spacing:.30em; color:var(--muted); margin-top:8px}
+  .doctitle{text-align:right}
+  .doctitle .t{font-family:"Cormorant Garamond",serif; font-style:italic; font-size:22px; color:var(--brass2)}
+  .doctitle .m{font-size:10px; letter-spacing:.24em; color:var(--muted); margin-top:5px}
+  /* home */
+  .home{background:linear-gradient(110deg,#243038,#2f3e44); color:var(--paper); border-radius:4px; padding:14px 24px; margin-bottom:18px; position:relative; overflow:hidden; border:1px solid var(--brass2); display:flex; align-items:center; gap:26px}
+  .home::after{content:""; position:absolute; right:-30px; top:-40px; width:170px;height:170px;border-radius:50%; background:radial-gradient(circle, rgba(214,180,120,.5), rgba(214,180,120,0) 70%)}
+  .home .k{font-size:9.5px; letter-spacing:.32em; color:#cdbf9e}
+  .home h2{font-family:"Cormorant Garamond",serif; font-weight:500; font-size:23px; letter-spacing:.04em; margin:2px 0}
+  .home p{font-weight:300; font-size:12px; color:#e7ddc8; line-height:1.5; border-left:1px solid rgba(214,180,120,.4); padding-left:22px}
+  .home b{color:#e9c98a; font-weight:500; letter-spacing:.04em}
+  .flow{display:flex; justify-content:center; gap:8px; color:var(--brass); font-size:11px; letter-spacing:.2em; margin:-6px 0 14px; opacity:.8}
+  /* columns = the five worlds */
+  .cols{display:grid; grid-template-columns:repeat(5,1fr); gap:13px}
+  .col{background:var(--paper); border:1px solid var(--line); border-top:3px solid var(--brass); border-radius:4px; padding:15px 14px 16px; display:flex; flex-direction:column}
+  .col .lid{display:flex; align-items:baseline; gap:8px}
+  .col .n{font-family:"Cormorant Garamond",serif; font-size:17px; color:var(--brass2)}
+  .col h3{font-family:"Cormorant Garamond",serif; font-weight:600; font-size:20px; letter-spacing:.11em; margin:0}
+  .col .role{font-size:9.5px; letter-spacing:.18em; color:var(--sage); text-transform:uppercase; font-weight:500; margin:4px 0 12px}
+  .scr{border-top:1px solid var(--line); padding:10px 0 9px}
+  .scr:last-child{border-bottom:1px solid var(--line)}
+  .scr .nm{font-family:"Cormorant Garamond",serif; font-weight:600; font-size:15.5px; color:var(--ink); display:flex; align-items:center; gap:7px}
+  .scr .nm .star{color:var(--brass); font-size:11px}
+  .scr .reuse{font-size:8.5px; letter-spacing:.1em; color:var(--faint); text-transform:uppercase; border:1px solid var(--line); border-radius:8px; padding:1px 6px; font-family:"Jost"; font-weight:400}
+  .scr .d{font-size:10.6px; font-weight:300; color:var(--muted); line-height:1.42; margin-top:4px}
+  .scr .adapt{margin-top:6px; font-size:9.4px; line-height:1.34; color:#8a5a3a; background:#F3E7D5; border:1px solid #E3CBA8; border-radius:3px; padding:4px 6px}
+  .scr .adapt b{color:#7a4a2a}
+  footer{display:flex; justify-content:space-between; align-items:center; margin-top:16px; border-top:1px solid var(--line); padding-top:11px; font-size:10px; letter-spacing:.05em; color:var(--muted)}
+  footer b{color:var(--brass2); font-weight:500; letter-spacing:.14em}
+  .dropped{color:#9a8b74}
+  .dropped s{color:#bcae96}
+</style>
+</head>
+<body>
+  <div class="frame"></div>
+  <svg class="leaf" viewBox="0 0 200 320"><g fill="none" stroke="#9DA585" stroke-width="1">
+    <path d="M100 315 C100 200 60 90 30 10 M100 315 C100 200 140 90 170 10 M100 315 L100 20 M100 250 C70 210 50 150 40 80 M100 250 C130 210 150 150 160 80 M100 190 C80 165 68 130 60 95 M100 190 C120 165 132 130 140 95"/>
+  </g></svg>
+
+  <header>
+    <div>
+      <div class="word">EMBASSY ONE</div>
+      <div class="sub">THE RESIDENCES · BENGALURU &nbsp;·&nbsp; SALES SUITE — STRUCTURE (BUILT ON THE KHOSHA SALES-STUDIO SCAFFOLD)</div>
+    </div>
+    <div class="doctitle">
+      <div class="t">the residences</div>
+      <div class="m">FIVE WORLDS · FAMILIAR SCREEN NAMES, RE-CATEGORISED FOR EMBASSY ONE</div>
+    </div>
+  </header>
+
+  <div class="home">
+    <div>
+      <div class="k">HOME CONSTELLATION · THE HUB</div>
+      <h2>“The Living Threshold”</h2>
+    </div>
+    <p>The standard <b>home-constellation</b> pattern as a living twilight scene. Five “lantern” nodes — the <b>five worlds</b> below — are the navigation. Every inner screen reuses the shared <b>ScreenShell</b> (eyebrow + serif title + back). <b>DAY ↔ DUSK</b> ambient toggle · free spatial explore.</p>
+  </div>
+
+  <div class="flow">THE PLACE &nbsp;→&nbsp; THE GROUNDS &nbsp;→&nbsp; THE TOWER &nbsp;→&nbsp; THE RESIDENCES &nbsp;→&nbsp; THE SERVICE</div>
+
+  <div class="cols">
+    <!-- 01 THE PLACE -->
+    <div class="col">
+      <div class="lid"><span class="n">01</span><h3>THE PLACE</h3></div>
+      <div class="role">Provenance & Address</div>
+      <div class="scr">
+        <div class="nm">Project Overview <span class="reuse">projectover</span></div>
+        <div class="d">The idea — “an address with nothing to prove.” The 8-acre Embassy ONE ecosystem, Four Seasons adjacency, 60 residences, the six pillars.</div>
+      </div>
+      <div class="scr">
+        <div class="nm">Location <span class="reuse">location</span></div>
+        <div class="d">The confluence — Sadashivanagar · Dollars Colony · Jayanagar; anchors: Golf Course, Hebbal Lake, WTC, Four Seasons.</div>
+        <div class="adapt"><b>▸ Adapt:</b> elegant line-art geography — no cluttered distance chart.</div>
+      </div>
+    </div>
+
+    <!-- 02 THE GROUNDS -->
+    <div class="col">
+      <div class="lid"><span class="n">02</span><h3>THE GROUNDS</h3></div>
+      <div class="role">Landscape & Life</div>
+      <div class="scr">
+        <div class="nm">Master Plan <span class="star">★</span> <span class="reuse">masterplan</span></div>
+        <div class="d">The hero — the 2-acre garden as an experience. Five Lanterns / season hotspots (Winter·Spring·Summer·Monsoon·Autumn), day↔dusk crossfade.</div>
+      </div>
+      <div class="scr">
+        <div class="nm">Amenities <span class="reuse">amenities</span></div>
+        <div class="d">Pool pavilion · padel · half-court · yoga & meditation deck · banquet · Miyawaki forest · herb & pet gardens.</div>
+      </div>
+    </div>
+
+    <!-- 03 THE TOWER -->
+    <div class="col">
+      <div class="lid"><span class="n">03</span><h3>THE TOWER</h3></div>
+      <div class="role">Architecture & Visuals</div>
+      <div class="scr">
+        <div class="nm">The Tower <span class="reuse">≈ projectover</span></div>
+        <div class="d">“A vertical manor.” The four principles — Light · Privacy · Materiality · Proportion. Double-height entries, 2 homes per floor.</div>
+      </div>
+      <div class="scr">
+        <div class="nm">Gallery <span class="reuse">gallery</span></div>
+        <div class="d">The visual world — exteriors · landscape lanterns (day/night) · interiors (ID concept) · lifestyle. Render + lightbox.</div>
+      </div>
+    </div>
+
+    <!-- 04 THE RESIDENCES -->
+    <div class="col">
+      <div class="lid"><span class="n">04</span><h3>THE RESIDENCES</h3></div>
+      <div class="role">The Homes</div>
+      <div class="scr">
+        <div class="nm">Floor Plans <span class="reuse">floorplan</span></div>
+        <div class="d">Configurations — 2BR duplex · 3BR · +study/+media · 4BR(+study) · 4BR recessed · 5BR penthouse duplex. 4,149–15,124 sqft, orientation.</div>
+      </div>
+      <div class="scr">
+        <div class="nm">The Collection <span class="reuse">≈ inventory</span></div>
+        <div class="d">Orientation through the 60 homes — explore by floor & configuration (2 per floor, the stack).</div>
+        <div class="adapt"><b>▸ Adapt:</b> NO price, NO “sold/limited” pills, NO urgency. Orientation, not a checkout.</div>
+      </div>
+    </div>
+
+    <!-- 05 THE SERVICE -->
+    <div class="col">
+      <div class="lid"><span class="n">05</span><h3>THE SERVICE</h3></div>
+      <div class="role">The Standard & The Close</div>
+      <div class="scr">
+        <div class="nm">The Service <span class="reuse">✦ new</span></div>
+        <div class="d">Embassy’s proprietary hospitality & lifestyle arm — anticipatory, unseen. “A home that takes care of itself.”</div>
+      </div>
+      <div class="scr">
+        <div class="nm">The Invitation <span class="reuse">≈ booking</span></div>
+        <div class="d">The close — “Arrive.” Private viewing by appointment · quiet Expression of Interest · relationship-lead contact.</div>
+        <div class="adapt"><b>▸ Adapt:</b> NO price breakdown, NO payment plan, NO urgency. An invitation, not a transaction.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="dropped">DROPPED from standard scaffold (not part of this brand’s experience): &nbsp; <s>Email Sender</s> &nbsp; <s>GRE App</s> &nbsp; <s>Mini CRM</s></div>
+    <div><b>KHOSHA</b> &nbsp;·&nbsp; Embassy ONE Sales Suite &nbsp;·&nbsp; Structure v1 &nbsp;·&nbsp; 5 worlds · 9 screens · ScreenShell · PWA · Tab / Kiosk / iPad</div>
+  </footer>
+</body>
+</html>

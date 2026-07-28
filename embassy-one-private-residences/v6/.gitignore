@@ -1,0 +1,13 @@
+
+# stray deploy zips
+*.zip
+
+# build / QA scratch & output (regenerable — kept out of source control)
+_qa/
+_verify/
+_verify_*.png
+_deploy-versions/
+v1-snapshot/
+releases/
+.DS_Store
+node_modules/

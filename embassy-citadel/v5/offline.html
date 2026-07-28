@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#E07E27" />
+  <title>Embassy Citadel — Offline</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/brand/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bone:   #F4F2ED;
+      --onyx:   #1a1612;
+      --olive:  #6b6a5d;
+      --bronze: #E07E27;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--bone);
+      color: var(--onyx);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .stage {
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 32px;
+    }
+    .card {
+      max-width: 520px;
+      text-align: center;
+    }
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.42em;
+      text-transform: uppercase;
+      color: var(--olive);
+      margin: 0 0 28px;
+    }
+    .eyebrow::before,
+    .eyebrow::after {
+      content: '';
+      display: inline-block;
+      width: 28px;
+      height: 1px;
+      background: var(--bronze);
+      vertical-align: middle;
+      margin: 0 14px;
+      opacity: 0.65;
+    }
+    h1 {
+      font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+      font-weight: 300;
+      font-size: clamp(40px, 6vw, 64px);
+      line-height: 1.08;
+      letter-spacing: -0.01em;
+      margin: 0 0 22px;
+    }
+    h1 em {
+      font-style: italic;
+      color: var(--bronze);
+    }
+    p {
+      font-size: 15px;
+      line-height: 1.65;
+      color: rgba(26, 22, 18, 0.72);
+      max-width: 42ch;
+      margin: 0 auto 32px;
+    }
+    .retry {
+      appearance: none;
+      border: 1px solid var(--onyx);
+      background: transparent;
+      color: var(--onyx);
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      padding: 14px 32px;
+      cursor: pointer;
+      transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+    }
+    .retry:hover,
+    .retry:focus-visible {
+      background: var(--onyx);
+      color: var(--bone);
+      outline: none;
+    }
+    .status {
+      margin-top: 24px;
+      font-size: 11px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--olive);
+    }
+    .status.online {
+      color: var(--bronze);
+    }
+    .mark {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px;
+      letter-spacing: 0.38em;
+      text-transform: uppercase;
+      color: var(--olive);
+      margin-bottom: 44px;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="card">
+      <div class="mark">Embassy &middot; Citadel</div>
+      <p class="eyebrow">Offline</p>
+      <h1>The connection has <em>slipped away</em>.</h1>
+      <p>Your last cached presentation will load when the network returns. No data has been lost.</p>
+      <button class="retry" type="button" onclick="location.reload()">Try again</button>
+      <div class="status" id="status">Network &middot; Offline</div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var el = document.getElementById('status');
+      function update() {
+        if (navigator.onLine) {
+          el.textContent = 'Network · Online — reloading…';
+          el.classList.add('online');
+          setTimeout(function () { location.reload(); }, 600);
+        } else {
+          el.textContent = 'Network · Offline';
+          el.classList.remove('online');
+        }
+      }
+      window.addEventListener('online', update);
+      window.addEventListener('offline', update);
+      update();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Embassy Citadel — Tower (Interactive SVG)</title>
+
+<!-- Cormorant for display, Inter for labels -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;1,400&family=Inter:wght@300;400;500&display=swap"
+  rel="stylesheet"
+/>
+
+<!-- React + Babel via CDN (project convention) -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- Animation libs -->
+<script src="https://unpkg.com/animejs@3.2.2/lib/anime.min.js"></script>
+<script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
+
+<style>
+  :root {
+    --bone:     #F4F2ED;
+    --bone-2:   #ECE7DC;
+    --onyx:     #050505;
+    --onyx-2:   #111114;
+    --olive:    #9B9378;
+    --olive-2:  #6E6852;
+    --bronze:   #E07E27;
+    --bronze-2: #B96420;
+    --foil:     #E6C49C;
+    --twilight: #2a2240;
+    --ink:      #16151A;
+
+    /* sky stops (day) */
+    --sky-top-day:  #BBD3E6;
+    --sky-mid-day:  #E8E1D2;
+    --sky-bot-day:  #F2E3CE;
+
+    /* sky stops (dusk – default) */
+    --sky-top-dusk: #2a2240;
+    --sky-mid-dusk: #6E5C73;
+    --sky-bot-dusk: #D29770;
+
+    /* sky stops (night) */
+    --sky-top-night: #07080F;
+    --sky-mid-night: #0F1124;
+    --sky-bot-night: #1B1832;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bone);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    overflow: hidden;
+    height: 100%;
+  }
+
+  #root { height: 100vh; width: 100vw; }
+
+  /* Stage */
+  .stage {
+    position: relative;
+    height: 100vh;
+    width: 100vw;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(ellipse at 50% 30%, #F8F4EB 0%, #ECE6D9 60%, #DDD3BE 100%);
+    overflow: hidden;
+  }
+
+  .tower-wrap {
+    position: relative;
+    height: 94vh;
+    aspect-ratio: 3 / 5;
+    max-width: 92vw;
+    /* subtle inner shadow for stage depth */
+    filter: drop-shadow(0 30px 60px rgba(15,12,8,0.25));
+  }
+
+  svg.tower {
+    width: 100%;
+    height: 100%;
+    display: block;
+    user-select: none;
+  }
+
+  /* Tooltip card */
+  .tip {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(8,8,10,0.92);
+    color: var(--bone);
+    border: 1px solid rgba(230,196,156,0.35);
+    padding: 12px 14px;
+    min-width: 200px;
+    max-width: 260px;
+    z-index: 20;
+    opacity: 0;
+    transform: translateY(4px) scale(0.97);
+    transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1),
+                transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+    transform-origin: bottom center;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .tip.show { opacity: 1; transform: translateY(0) scale(1); }
+  .tip .floor-num {
+    font-family: 'Cormorant', serif;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--foil);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+  }
+  .tip .floor-label {
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(244,242,237,0.55);
+    margin-top: 6px;
+  }
+  .tip .floor-name {
+    font-family: 'Cormorant', serif;
+    font-size: 15px;
+    color: var(--bone);
+    margin-top: 2px;
+    font-style: italic;
+    font-weight: 300;
+  }
+
+  /* Description card overlay (click) */
+  .card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.96);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 30;
+    width: min(380px, 80vw);
+    background: rgba(10,10,12,0.95);
+    border: 1px solid rgba(224,126,39,0.4);
+    color: var(--bone);
+    padding: 28px 30px 24px;
+    transition: opacity 220ms cubic-bezier(0.23, 1, 0.32, 1),
+                transform 260ms cubic-bezier(0.23, 1, 0.32, 1);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .card.open { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+  .card .eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--bronze);
+    margin-bottom: 8px;
+  }
+  .card h3 {
+    font-family: 'Cormorant', serif;
+    font-weight: 300;
+    font-size: 30px;
+    line-height: 1.1;
+    margin: 0 0 10px;
+    color: var(--bone);
+    letter-spacing: 0.005em;
+  }
+  .card p {
+    font-size: 13px;
+    line-height: 1.55;
+    color: rgba(244,242,237,0.72);
+    margin: 0 0 14px;
+    font-weight: 300;
+  }
+  .card .meta {
+    display: flex;
+    gap: 18px;
+    border-top: 1px solid rgba(230,196,156,0.18);
+    padding-top: 12px;
+    margin-top: 8px;
+  }
+  .card .meta span {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(244,242,237,0.55);
+  }
+  .card .meta span b {
+    display: block;
+    font-family: 'Cormorant', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 17px;
+    color: var(--foil);
+    letter-spacing: 0.02em;
+    margin-top: 4px;
+    text-transform: none;
+  }
+  .card .close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    background: none;
+    border: none;
+    color: rgba(244,242,237,0.6);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 160ms ease-out, transform 160ms ease-out;
+  }
+  .card .close:hover { color: var(--bone); }
+  .card .close:active { transform: scale(0.92); }
+
+  /* Day/Night toggle */
+  .toggle {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    display: flex;
+    gap: 4px;
+    background: rgba(10,10,12,0.45);
+    border: 1px solid rgba(230,196,156,0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 4px;
+    z-index: 25;
+  }
+  .toggle button {
+    background: none;
+    border: none;
+    color: rgba(244,242,237,0.55);
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: color 200ms ease-out, background 200ms ease-out, transform 160ms ease-out;
+  }
+  .toggle button:hover { color: var(--bone); }
+  .toggle button:active { transform: scale(0.97); }
+  .toggle button.active {
+    background: var(--bronze);
+    color: var(--onyx);
+  }
+
+  /* Top-left brand mark */
+  .mark {
+    position: absolute;
+    top: 24px;
+    left: 28px;
+    z-index: 25;
+    color: rgba(20,18,16,0.72);
+  }
+  .mark .name {
+    font-family: 'Cormorant', serif;
+    font-size: 18px;
+    letter-spacing: 0.05em;
+    font-weight: 400;
+    line-height: 1;
+  }
+  .mark .sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 8px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: rgba(20,18,16,0.5);
+    margin-top: 5px;
+  }
+  body.is-night .mark { color: rgba(244,242,237,0.78); }
+  body.is-night .mark .sub { color: rgba(244,242,237,0.5); }
+
+  /* SVG element states */
+  .floor-band {
+    cursor: pointer;
+    transition: fill 200ms ease-out, opacity 200ms ease-out;
+  }
+  .floor-band:hover { opacity: 1; }
+  .floor-band.active rect.band-glow { opacity: 1; }
+
+  /* hide outline */
+  .stage:focus, button:focus { outline: none; }
+  button:focus-visible { outline: 2px solid var(--bronze); outline-offset: 2px; }
+
+  /* Caption */
+  .caption {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    color: rgba(20,18,16,0.65);
+    z-index: 25;
+    pointer-events: none;
+  }
+  body.is-night .caption { color: rgba(244,242,237,0.6); }
+  .caption .name {
+    font-family: 'Cormorant', serif;
+    font-style: italic;
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+  .caption .tag {
+    font-size: 9px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    margin-top: 6px;
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+/* ----------------------------------------------------------------------
+   EMBASSY CITADEL — Interactive Tower SVG
+   ----------------------------------------------------------------------
+   Anatomy (viewBox 0 0 600 1000):
+   - Sky: 0 → 760
+   - Distant city: 640 → 760
+   - Tower (twin-block):
+       Right (main) block:  x 295–448, y 138–880  — bears EMBASSY signage
+       Left (set-back) block: x 175–295, y 215–880
+       Central glass spine: x 285–305, y 220–870  — glowing seam
+       Crown band:          y 138–200
+       Horizontal ribbons:  ~38 bands stacked across both blocks
+       Vertical gardens:    olive strips at floor 8, 16, 24, 32 edges
+       Podium:              x 145–478, y 845–905 (wider base)
+   - Foreground trees: y 850 → 1000
+   - Birds: traverse sky on curved path
+   ---------------------------------------------------------------------- */
+
+const { useState, useEffect, useRef, useMemo } = React;
+
+/* ------ Amenity floor data (from Embassy Citadel brochure) -------- */
+const AMENITY_FLOORS = [
+  {
+    floor: 79,
+    label: 'Sky Lounge',
+    name: 'The Crown',
+    desc: 'A serenity perch above the harbour line — private fireplace, curated library and a horizon that ends at the Arabian Sea.',
+    height: 'Above the city',
+    type: 'Sky-deck',
+    // floor index from bottom (1 = ground level band) for visual positioning
+    bandIndex: 39,
+  },
+  {
+    floor: 15,
+    label: 'Wellness Retreat',
+    name: 'The Stillwater',
+    desc: 'Olive-stone hammam, twin spa pavilions and a 25-metre lap pool cantilevered toward the western light.',
+    height: 'Level 15',
+    type: 'Wellness',
+    bandIndex: 15,
+  },
+  {
+    floor: 14,
+    label: 'Wellness Continued',
+    name: 'The Reformer',
+    desc: 'Private trainer studio, pilates reformer suite and a meditation court overlooking the inner courtyard.',
+    height: 'Level 14',
+    type: 'Wellness',
+    bandIndex: 14,
+  },
+  {
+    floor: 13,
+    label: 'Atelier',
+    name: 'The Atelier',
+    desc: 'Co-working library, executive boardroom and a serif-quiet reading room finished in olive felt and bronze trim.',
+    height: 'Level 13',
+    type: 'Work / Study',
+    bandIndex: 13,
+  },
+  {
+    floor: 12,
+    label: 'Grand Social',
+    name: 'The Salon',
+    desc: 'Banquette dining for fifty, private chef kitchen, screening room and a long bar drawn in olive marble.',
+    height: 'Level 12',
+    type: 'Social',
+    bandIndex: 12,
+  },
+  {
+    floor: 10,
+    label: 'Family Floor',
+    name: 'The Conservatory',
+    desc: 'A double-height conservatory for play, music and study — daylight filtered through olive-shaded glass.',
+    height: 'Level 10',
+    type: 'Family',
+    bandIndex: 10,
+  },
+];
+
+/* ----------------- Tower geometry constants ----------------- */
+const VIEW_W = 600;
+const VIEW_H = 1000;
+
+// Tower band area — slender & tall (rises high in frame)
+const TOWER_TOP    = 110;        // band 40 top — much higher
+const TOWER_BOTTOM = 860;        // band 1 bottom
+const FLOOR_COUNT  = 40;         // visible ribbon bands
+const FLOOR_HEIGHT = (TOWER_BOTTOM - TOWER_TOP) / FLOOR_COUNT;  // ~18.75
+
+// Right block: main, with EMBASSY signage, rises full height
+const RIGHT_BLOCK = { x: 318, w: 115 };          // narrower & taller
+// Left block: set back lower (shorter), with own crown ~70 px lower
+const LEFT_BLOCK  = { x: 213, w: 100 };
+const LEFT_TOP_OFFSET = 70;                       // left block starts 70 px lower
+
+// Central glass spine: thin glowing seam joining the two blocks
+const SPINE = { x: 310, w: 10 };
+
+// Building stays as TWO joined masses — small gap visible as spine
+
+/* y for band index (1 = bottom band, FLOOR_COUNT = top band) */
+const bandY = (idx) => TOWER_BOTTOM - idx * FLOOR_HEIGHT;
+
+/* ============================ Sky ============================ */
+function Sky({ mode }) {
+  // gradient stops shift with day/night/dusk
+  const stops = {
+    day:   ['#BBD3E6', '#E8E1D2', '#F2E3CE'],
+    dusk:  ['#2a2240', '#6E5C73', '#D29770'],
+    night: ['#07080F', '#0F1124', '#1B1832'],
+  }[mode];
+  return (
+    <>
+      <defs>
+        <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"  stopColor={stops[0]} />
+          <stop offset="60%" stopColor={stops[1]} />
+          <stop offset="100%" stopColor={stops[2]} />
+        </linearGradient>
+
+        {/* Soft sun/moon glow — left side to balance tower on right-of-center */}
+        <radialGradient id="sunGlow" cx="0.18" cy={mode === 'night' ? '0.12' : '0.55'} r="0.45">
+          <stop offset="0%"  stopColor={mode === 'night' ? '#3B3A52' : '#FFD9A4'} stopOpacity="0.85" />
+          <stop offset="55%" stopColor={mode === 'night' ? '#1B1832' : '#E8B97A'} stopOpacity="0.25" />
+          <stop offset="100%" stopColor={mode === 'night' ? '#07080F' : '#D29770'} stopOpacity="0" />
+        </radialGradient>
+
+        {/* spine glow */}
+        <linearGradient id="spineGlow" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"  stopColor="#FFD9A4" stopOpacity="0.0" />
+          <stop offset="20%" stopColor="#FFD9A4" stopOpacity="0.85" />
+          <stop offset="80%" stopColor="#E07E27" stopOpacity="0.6" />
+          <stop offset="100%" stopColor="#E07E27" stopOpacity="0.0" />
+        </linearGradient>
+
+        {/* podium glow */}
+        <radialGradient id="podiumGlow" cx="0.5" cy="0" r="0.7">
+          <stop offset="0%"  stopColor="#FFD9A4" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#FFD9A4" stopOpacity="0" />
+        </radialGradient>
+
+        {/* window subtle gold */}
+        <linearGradient id="winGold" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"  stopColor="#FFD9A4" />
+          <stop offset="100%" stopColor="#E07E27" />
+        </linearGradient>
+
+        {/* ribbon (balcony band) gradient */}
+        <linearGradient id="ribbonGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"  stopColor="#1A1813" />
+          <stop offset="50%" stopColor="#2A241A" />
+          <stop offset="100%" stopColor="#0C0A08" />
+        </linearGradient>
+
+        {/* tower face subtle dark */}
+        <linearGradient id="towerFace" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"  stopColor="#15151A" />
+          <stop offset="50%" stopColor="#22221F" />
+          <stop offset="100%" stopColor="#0E0E12" />
+        </linearGradient>
+
+        {/* left block (lighter to read as foreground vs right tower behind it) */}
+        <linearGradient id="towerFaceL" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"  stopColor="#1E1E22" />
+          <stop offset="50%" stopColor="#26262A" />
+          <stop offset="100%" stopColor="#15151A" />
+        </linearGradient>
+
+        {/* crown */}
+        <linearGradient id="crownGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"  stopColor="#0A0A0F" />
+          <stop offset="60%" stopColor="#16151A" />
+          <stop offset="100%" stopColor="#22221F" />
+        </linearGradient>
+      </defs>
+
+      {/* sky rect */}
+      <rect x="0" y="0" width={VIEW_W} height={VIEW_H} fill="url(#skyGrad)" />
+
+      {/* Sun / Moon disc — kept clear of tower silhouette */}
+      <circle
+        cx={mode === 'night' ? 90 : 110}
+        cy={mode === 'night' ? 120 : 540}
+        r={mode === 'night' ? 26 : 36}
+        fill={mode === 'night' ? '#E6E1D0' : '#FFD9A4'}
+        opacity={mode === 'day' ? 0.95 : (mode === 'night' ? 0.9 : 0.75)}
+      />
+      {/* halo / atmospheric wash */}
+      <rect x="0" y="0" width={VIEW_W} height={VIEW_H} fill="url(#sunGlow)" />
+    </>
+  );
+}
+
+/* ============================ Distant city silhouette ============================ */
+function DistantCity({ mode }) {
+  // Faint city silhouette — tower now spans ~213-433
+  const buildings = [
+    { x: -10, w: 36, h: 55 },
+    { x: 22,  w: 28, h: 78 },
+    { x: 46,  w: 36, h: 64 },
+    { x: 80,  w: 30, h: 110 },
+    { x: 108, w: 24, h: 75 },
+    { x: 128, w: 36, h: 95 },
+    { x: 162, w: 28, h: 70 },
+    { x: 188, w: 22, h: 58 },
+    // tower occupies 213-433
+    { x: 438, w: 22, h: 60 },
+    { x: 460, w: 36, h: 92 },
+    { x: 494, w: 26, h: 64 },
+    { x: 518, w: 38, h: 110 },
+    { x: 552, w: 26, h: 78 },
+    { x: 576, w: 30, h: 95 },
+    { x: 600, w: 22, h: 55 },
+  ];
+  const color = mode === 'night' ? '#0D0E18' : (mode === 'dusk' ? '#3B3149' : '#A8A9AC');
+  const winColor = mode === 'night' ? '#FFD9A4' : (mode === 'dusk' ? '#FFC588' : 'transparent');
+  return (
+    <g opacity={mode === 'day' ? 0.45 : 0.85}>
+      {buildings.map((b, i) => (
+        <g key={i}>
+          <rect x={b.x} y={760 - b.h} width={b.w} height={b.h} fill={color} />
+          {/* tiny windows */}
+          {mode !== 'day' && Array.from({ length: Math.floor(b.h / 12) }).map((_, r) =>
+            Array.from({ length: Math.max(1, Math.floor(b.w / 8)) }).map((_, c) => (
+              <rect
+                key={`${r}-${c}`}
+                x={b.x + 2 + c * 8}
+                y={760 - b.h + 4 + r * 12}
+                width="2"
+                height="3"
+                fill={winColor}
+                opacity={Math.random() > 0.55 ? 0.7 : 0.15}
+                className="distant-win"
+              />
+            ))
+          )}
+        </g>
+      ))}
+      {/* horizon haze line */}
+      <rect x="0" y="755" width={VIEW_W} height="6"
+            fill={mode === 'night' ? '#0F1124' : '#E0CBA8'} opacity="0.5" />
+    </g>
+  );
+}
+
+/* ============================ Tower body ============================ */
+function Tower({ mode, activeFloor, hoveredFloor, onFloorHover, onFloorClick }) {
+
+  const isLit = mode === 'night' || mode === 'dusk';
+
+  /* -- Window grid: per band, render a row of small lit windows.
+        Right block: ~9 columns. Left block: ~7 columns. -- */
+  const renderWindows = (block, bandIdx, isLeft) => {
+    const y = bandY(bandIdx);
+    const cols = isLeft ? 6 : 8;
+    const gap = block.w / cols;
+    return Array.from({ length: cols }).map((_, c) => {
+      const wx = block.x + 4 + c * gap;
+      // deterministic-but-varied "lit" pattern using simple hash
+      const seed = (bandIdx * 31 + c * 7) % 11;
+      const baseOpacity = isLit ? (seed > 3 ? 0.85 : (seed > 1 ? 0.45 : 0.15)) : 0.12;
+      return (
+        <rect
+          key={`w-${isLeft ? 'l' : 'r'}-${bandIdx}-${c}`}
+          x={wx}
+          y={y + 4}
+          width={gap - 5}
+          height={FLOOR_HEIGHT - 8}
+          fill={isLit ? 'url(#winGold)' : '#3C3D42'}
+          opacity={baseOpacity}
+          className={`window window-${bandIdx}-${c}`}
+        />
+      );
+    });
+  };
+
+  /* -- Horizontal ribbon (balcony) band: thin dark gold-bronze edge -- */
+  const renderRibbon = (block, bandIdx, isLeft) => {
+    const y = bandY(bandIdx);
+    return (
+      <g key={`rib-${isLeft ? 'l' : 'r'}-${bandIdx}`}>
+        {/* top edge of balcony slab */}
+        <rect
+          x={block.x}
+          y={y + FLOOR_HEIGHT - 4}
+          width={block.w}
+          height="2"
+          fill="#3A2F1F"
+        />
+        {/* bronze underline highlight (when lit) */}
+        <rect
+          x={block.x}
+          y={y + FLOOR_HEIGHT - 2}
+          width={block.w}
+          height="1"
+          fill={isLit ? '#E07E27' : '#1A1611'}
+          opacity={isLit ? 0.55 : 1}
+        />
+      </g>
+    );
+  };
+
+  /* -- Floor band (full-width interactive band for amenities) -- */
+  const renderFloorBand = (bandIdx) => {
+    const y = bandY(bandIdx);
+    const amenity = AMENITY_FLOORS.find(f => f.bandIndex === bandIdx);
+    if (!amenity) return null;
+    const isActive = activeFloor === bandIdx;
+    const isHover  = hoveredFloor === bandIdx;
+    // Use right block for amenity highlight (most visible)
+    return (
+      <g
+        key={`band-${bandIdx}`}
+        className={`floor-band ${isActive ? 'active' : ''}`}
+        onMouseEnter={(e) => onFloorHover(bandIdx, e)}
+        onMouseLeave={() => onFloorHover(null)}
+        onClick={() => onFloorClick(bandIdx)}
+      >
+        {/* glow ring (visible on active) */}
+        <rect
+          className="band-glow"
+          x={LEFT_BLOCK.x - 6}
+          y={y - 2}
+          width={RIGHT_BLOCK.x + RIGHT_BLOCK.w - LEFT_BLOCK.x + 12}
+          height={FLOOR_HEIGHT + 4}
+          fill="none"
+          stroke="#E07E27"
+          strokeWidth="1.5"
+          opacity={isActive ? 1 : 0}
+          style={{ transition: 'opacity 240ms cubic-bezier(0.23, 1, 0.32, 1)' }}
+        />
+        {/* invisible hover hitbox */}
+        <rect
+          x={LEFT_BLOCK.x - 6}
+          y={y - 2}
+          width={RIGHT_BLOCK.x + RIGHT_BLOCK.w - LEFT_BLOCK.x + 12}
+          height={FLOOR_HEIGHT + 4}
+          fill="transparent"
+        />
+        {/* hover tint */}
+        {(isHover || isActive) && (
+          <rect
+            x={RIGHT_BLOCK.x}
+            y={y + 2}
+            width={RIGHT_BLOCK.w}
+            height={FLOOR_HEIGHT - 2}
+            fill="#E07E27"
+            opacity="0.08"
+          />
+        )}
+      </g>
+    );
+  };
+
+  return (
+    <g>
+      {/* === Left (set-back) block === */}
+      {/* Left block face — clearly setback / slightly darker */}
+      <rect
+        x={LEFT_BLOCK.x}
+        y={TOWER_TOP + LEFT_TOP_OFFSET}
+        width={LEFT_BLOCK.w}
+        height={TOWER_BOTTOM - (TOWER_TOP + LEFT_TOP_OFFSET)}
+        fill="url(#towerFaceL)"
+      />
+      {/* Setback shadow gradient on right edge of left block (depth cue) */}
+      <rect
+        x={LEFT_BLOCK.x + LEFT_BLOCK.w - 14}
+        y={TOWER_TOP + LEFT_TOP_OFFSET}
+        width="14"
+        height={TOWER_BOTTOM - (TOWER_TOP + LEFT_TOP_OFFSET)}
+        fill="#000"
+        opacity="0.3"
+      />
+      {/* Left block top frame */}
+      <rect
+        x={LEFT_BLOCK.x - 3}
+        y={TOWER_TOP + LEFT_TOP_OFFSET - 44}
+        width={LEFT_BLOCK.w + 6}
+        height="6"
+        fill="#0A0A0F"
+      />
+      {/* Left block crown (small glazed cap, lit at night) */}
+      <rect
+        x={LEFT_BLOCK.x + 4}
+        y={TOWER_TOP + LEFT_TOP_OFFSET - 38}
+        width={LEFT_BLOCK.w - 8}
+        height="34"
+        fill={isLit ? '#3D2F1A' : '#161616'}
+      />
+      {/* glass strip in left crown */}
+      <rect
+        x={LEFT_BLOCK.x + 8}
+        y={TOWER_TOP + LEFT_TOP_OFFSET - 32}
+        width={LEFT_BLOCK.w - 16}
+        height="24"
+        fill={isLit ? 'url(#winGold)' : '#222226'}
+        opacity={isLit ? 0.92 : 0.6}
+      />
+      {/* mullions in left crown */}
+      {[1,2,3,4,5].map(i => (
+        <line
+          key={`lcm-${i}`}
+          x1={LEFT_BLOCK.x + 8 + i * ((LEFT_BLOCK.w - 16) / 6)}
+          y1={TOWER_TOP + LEFT_TOP_OFFSET - 32}
+          x2={LEFT_BLOCK.x + 8 + i * ((LEFT_BLOCK.w - 16) / 6)}
+          y2={TOWER_TOP + LEFT_TOP_OFFSET - 8}
+          stroke="#0A0A0F"
+          strokeWidth="0.7"
+          opacity="0.6"
+        />
+      ))}
+
+      {/* === Right (main) block face === */}
+      <rect
+        x={RIGHT_BLOCK.x}
+        y={TOWER_TOP}
+        width={RIGHT_BLOCK.w}
+        height={TOWER_BOTTOM - TOWER_TOP}
+        fill="url(#towerFace)"
+      />
+
+      {/* === Crown of right block (Embassy signage zone) === */}
+      {/* dark crown box */}
+      <rect
+        x={RIGHT_BLOCK.x - 3}
+        y={TOWER_TOP - 50}
+        width={RIGHT_BLOCK.w + 6}
+        height="62"
+        fill="url(#crownGrad)"
+      />
+      {/* Crown glazed band (lit warm at night) */}
+      <rect
+        x={RIGHT_BLOCK.x + 6}
+        y={TOWER_TOP - 38}
+        width={RIGHT_BLOCK.w - 12}
+        height="32"
+        fill={isLit ? '#4A3A20' : '#1A1A1F'}
+      />
+      <rect
+        x={RIGHT_BLOCK.x + 8}
+        y={TOWER_TOP - 34}
+        width={RIGHT_BLOCK.w - 16}
+        height="24"
+        fill={isLit ? 'url(#winGold)' : '#26262A'}
+        opacity={isLit ? 0.92 : 0.7}
+      />
+      {/* vertical mullions in crown */}
+      {[1,2,3,4,5,6,7].map(i => (
+        <line
+          key={`cm-${i}`}
+          x1={RIGHT_BLOCK.x + 8 + i * ((RIGHT_BLOCK.w - 16) / 8)}
+          y1={TOWER_TOP - 34}
+          x2={RIGHT_BLOCK.x + 8 + i * ((RIGHT_BLOCK.w - 16) / 8)}
+          y2={TOWER_TOP - 10}
+          stroke="#0A0A0F"
+          strokeWidth="0.7"
+          opacity="0.6"
+        />
+      ))}
+      {/* Embassy signage panel (top of right block — dark inset bar) */}
+      <rect
+        x={RIGHT_BLOCK.x + 8}
+        y={TOWER_TOP - 8}
+        width={RIGHT_BLOCK.w - 16}
+        height="16"
+        fill="#0A0A0F"
+      />
+      {/* tiny triangular Embassy logo mark */}
+      <polygon
+        points={`${RIGHT_BLOCK.x + 22},${TOWER_TOP + 2}
+                 ${RIGHT_BLOCK.x + 18},${TOWER_TOP - 5}
+                 ${RIGHT_BLOCK.x + 26},${TOWER_TOP - 5}`}
+        fill="#E6C49C"
+        opacity="0.95"
+      />
+      <text
+        x={RIGHT_BLOCK.x + 36}
+        y={TOWER_TOP + 2}
+        textAnchor="start"
+        fontFamily="Inter, sans-serif"
+        fontSize="7.5"
+        letterSpacing="0.28em"
+        fill="#E6C49C"
+        fontWeight="500"
+      >EMBASSY</text>
+
+      {/* === Central glass spine (signature seam joining the two blocks) === */}
+      {/* dark frame around spine — full height of taller (right) block */}
+      <rect
+        x={SPINE.x - 5}
+        y={TOWER_TOP + 6}
+        width={SPINE.w + 10}
+        height={TOWER_BOTTOM - TOWER_TOP - 8}
+        fill="#06060A"
+      />
+      {/* glowing inner spine */}
+      <rect
+        className="spine-glow"
+        x={SPINE.x}
+        y={TOWER_TOP + 8}
+        width={SPINE.w}
+        height={TOWER_BOTTOM - TOWER_TOP - 12}
+        fill={isLit ? 'url(#spineGlow)' : '#1B1C22'}
+        opacity={isLit ? 1 : 0.6}
+      />
+      {/* inner highlight line — bright vertical thread */}
+      <rect
+        x={SPINE.x + SPINE.w / 2 - 0.6}
+        y={TOWER_TOP + 8}
+        width="1.2"
+        height={TOWER_BOTTOM - TOWER_TOP - 12}
+        fill={isLit ? '#FFE4B5' : '#3A3B40'}
+        opacity={isLit ? 0.95 : 0.45}
+        className="spine-line"
+      />
+      {/* horizontal accent dashes inside spine (every ~8 floors, faint structural markers) */}
+      {isLit && [10, 18, 26, 34].map(i => (
+        <rect
+          key={`sp-mk-${i}`}
+          x={SPINE.x - 1}
+          y={bandY(i)}
+          width={SPINE.w + 2}
+          height="1.5"
+          fill="#FFD9A4"
+          opacity="0.6"
+        />
+      ))}
+
+      {/* === Horizontal ribbons for all floors === */}
+      {Array.from({ length: FLOOR_COUNT }).map((_, i) => {
+        const bandIdx = i + 1;
+        const isLeftActive = bandY(bandIdx) > TOWER_TOP + LEFT_TOP_OFFSET;
+        return (
+          <g key={`ribs-${bandIdx}`}>
+            {isLeftActive && renderRibbon(LEFT_BLOCK, bandIdx, true)}
+            {renderRibbon(RIGHT_BLOCK, bandIdx, false)}
+          </g>
+        );
+      })}
+
+      {/* === Windows for all floors === */}
+      {Array.from({ length: FLOOR_COUNT }).map((_, i) => {
+        const bandIdx = i + 1;
+        const isLeftActive = bandY(bandIdx) > TOWER_TOP + LEFT_TOP_OFFSET;
+        return (
+          <g key={`wins-${bandIdx}`}>
+            {isLeftActive && renderWindows(LEFT_BLOCK, bandIdx, true)}
+            {renderWindows(RIGHT_BLOCK, bandIdx, false)}
+          </g>
+        );
+      })}
+
+      {/* === Vertical garden strips (greenery at specific bay edges) === */}
+      {[
+        { x: LEFT_BLOCK.x + 4,  y1: bandY(8),  y2: bandY(7),  w: 6 },
+        { x: RIGHT_BLOCK.x + 50, y1: bandY(16), y2: bandY(15), w: 7 },
+        { x: LEFT_BLOCK.x + LEFT_BLOCK.w - 10, y1: bandY(20), y2: bandY(19), w: 6 },
+        { x: RIGHT_BLOCK.x + RIGHT_BLOCK.w - 16, y1: bandY(24), y2: bandY(23), w: 7 },
+        { x: RIGHT_BLOCK.x + 100, y1: bandY(30), y2: bandY(29), w: 6 },
+      ].map((g, i) => (
+        <g key={`garden-${i}`}>
+          <rect
+            x={g.x}
+            y={g.y1}
+            width={g.w}
+            height={g.y2 - g.y1 + FLOOR_HEIGHT - 6}
+            fill="#3B4A2A"
+          />
+          <rect
+            x={g.x + 1}
+            y={g.y1 + 1}
+            width={g.w - 2}
+            height={(g.y2 - g.y1 + FLOOR_HEIGHT - 8) / 2}
+            fill="#4F6035"
+          />
+        </g>
+      ))}
+
+      {/* === Vertical mullions / structural lines on right block === */}
+      {[0, 1, 2, 3].map(i => {
+        const x = RIGHT_BLOCK.x + (RIGHT_BLOCK.w / 4) * (i + 0.5);
+        return (
+          <line
+            key={`mull-${i}`}
+            x1={x} y1={TOWER_TOP + 4} x2={x} y2={TOWER_BOTTOM}
+            stroke="#070708"
+            strokeWidth="0.6"
+            opacity="0.7"
+          />
+        );
+      })}
+
+      {/* corner edges (sharpen silhouette) */}
+      <line x1={RIGHT_BLOCK.x} y1={TOWER_TOP} x2={RIGHT_BLOCK.x} y2={TOWER_BOTTOM}
+            stroke="#000" strokeWidth="1" opacity="0.7" />
+      <line x1={RIGHT_BLOCK.x + RIGHT_BLOCK.w} y1={TOWER_TOP} x2={RIGHT_BLOCK.x + RIGHT_BLOCK.w} y2={TOWER_BOTTOM}
+            stroke="#000" strokeWidth="1" opacity="0.7" />
+      <line x1={LEFT_BLOCK.x} y1={TOWER_TOP + LEFT_TOP_OFFSET} x2={LEFT_BLOCK.x} y2={TOWER_BOTTOM}
+            stroke="#000" strokeWidth="1" opacity="0.7" />
+
+      {/* === Podium / base === */}
+      {/* podium ambient glow */}
+      <rect x="90" y="800" width="420" height="110" fill="url(#podiumGlow)" opacity={isLit ? 1 : 0.45} />
+      {/* podium mass — wider than the tower (architectural plinth) */}
+      <rect x="155" y={TOWER_BOTTOM} width="290" height="40" fill="#0E0E12" />
+      {/* podium roof line (bronze overhang) */}
+      <rect x="150" y={TOWER_BOTTOM - 2} width="300" height="3" fill="#2A1E10" />
+      <rect x="150" y={TOWER_BOTTOM + 1} width="300" height="1" fill={isLit ? '#E07E27' : '#1A140A'} opacity={isLit ? 0.7 : 1} />
+      {/* podium retail glow windows */}
+      {Array.from({ length: 16 }).map((_, i) => (
+        <rect
+          key={`p-${i}`}
+          x={160 + i * 18}
+          y={TOWER_BOTTOM + 10}
+          width="14"
+          height="22"
+          fill={isLit ? 'url(#winGold)' : '#2A2C32'}
+          opacity={isLit ? 0.78 : 0.4}
+        />
+      ))}
+      {/* podium grand entrance — central, taller, brighter */}
+      <rect x="275" y={TOWER_BOTTOM + 2} width="55" height="38" fill={isLit ? '#FFD9A4' : '#1A1A22'} opacity={isLit ? 0.95 : 0.7} />
+      <rect x="275" y={TOWER_BOTTOM + 2} width="55" height="2" fill="#3A2F1F" />
+      <line x1="302.5" y1={TOWER_BOTTOM + 2} x2="302.5" y2={TOWER_BOTTOM + 40} stroke="#0A0A0F" strokeWidth="0.8" />
+      {/* canopy / overhang lip with bronze trim — slightly wider than entrance */}
+      <rect x="260" y={TOWER_BOTTOM - 4} width="85" height="3" fill="#1A1611" />
+      <rect x="260" y={TOWER_BOTTOM - 1} width="85" height="1.5" fill={isLit ? '#FFD9A4' : '#26221A'} opacity={isLit ? 0.85 : 1} />
+
+      {/* podium base shadow */}
+      <rect x="145" y={TOWER_BOTTOM + 38} width="310" height="4" fill="#06060A" />
+
+      {/* === Floor band overlays (interactive amenities) === */}
+      {AMENITY_FLOORS.map(a => renderFloorBand(a.bandIndex))}
+    </g>
+  );
+}
+
+/* ============================ Foreground trees + birds ============================ */
+function Foreground({ mode }) {
+  // Tree silhouettes anchored at bottom — bigger & more present
+  const trees = [
+    { x: 50,  scale: 1.5, type: 'palm' },
+    { x: 110, scale: 1.15, type: 'leafy' },
+    { x: 165, scale: 1.4, type: 'palm' },
+    { x: 460, scale: 1.35, type: 'leafy' },
+    { x: 515, scale: 1.55, type: 'palm' },
+    { x: 568, scale: 1.2, type: 'leafy' },
+  ];
+
+  const color = mode === 'night' ? '#050508' : (mode === 'dusk' ? '#0E0C18' : '#1F2218');
+
+  return (
+    <g className="foreground">
+      {/* base shadow band (ground plane) */}
+      <rect x="0" y="905" width={VIEW_W} height="95"
+            fill={mode === 'night' ? '#020203' : (mode === 'dusk' ? '#150D1F' : '#15170E')} />
+      {/* horizon detail (ground texture / paving line) */}
+      <path
+        d={`M0 905 Q 150 898 300 902 T 600 900 L 600 912 L 0 912 Z`}
+        fill={color}
+      />
+      {/* warm path-light row in front of podium (urban scene) */}
+      {mode !== 'day' && Array.from({ length: 12 }).map((_, i) => (
+        <circle
+          key={`pl-${i}`}
+          cx={50 + i * 50}
+          cy="918"
+          r="2"
+          fill="#FFD9A4"
+          opacity="0.65"
+        />
+      ))}
+
+      {trees.map((t, i) => (
+        <g key={`tree-${i}`} className={`tree tree-${i}`}
+           style={{ transformOrigin: `${t.x}px 965px`, transformBox: 'fill-box' }}>
+          {t.type === 'palm' ? (
+            <g transform={`translate(${t.x} 965) scale(${t.scale})`}>
+              {/* trunk */}
+              <rect x="-2" y="-90" width="4" height="90" fill={color} />
+              {/* palm fronds */}
+              <path d="M0 -90 Q -30 -110 -55 -100" stroke={color} strokeWidth="3" fill="none" />
+              <path d="M0 -90 Q 30 -110 55 -100" stroke={color} strokeWidth="3" fill="none" />
+              <path d="M0 -90 Q -20 -125 -40 -130" stroke={color} strokeWidth="3" fill="none" />
+              <path d="M0 -90 Q 20 -125 40 -130" stroke={color} strokeWidth="3" fill="none" />
+              <path d="M0 -90 Q -5 -125 -8 -135" stroke={color} strokeWidth="3" fill="none" />
+              <path d="M0 -90 Q 5 -125 8 -135" stroke={color} strokeWidth="3" fill="none" />
+              {/* small frond leaves */}
+              <ellipse cx="-40" cy="-105" rx="14" ry="3" fill={color} transform="rotate(-15 -40 -105)" />
+              <ellipse cx="40"  cy="-105" rx="14" ry="3" fill={color} transform="rotate(15 40 -105)" />
+              <ellipse cx="-22" cy="-128" rx="12" ry="3" fill={color} transform="rotate(-40 -22 -128)" />
+              <ellipse cx="22"  cy="-128" rx="12" ry="3" fill={color} transform="rotate(40 22 -128)" />
+            </g>
+          ) : (
+            <g transform={`translate(${t.x} 965) scale(${t.scale})`}>
+              {/* leafy tree */}
+              <rect x="-2" y="-50" width="4" height="50" fill={color} />
+              <ellipse cx="0" cy="-60" rx="22" ry="28" fill={color} />
+              <ellipse cx="-14" cy="-55" rx="12" ry="16" fill={color} />
+              <ellipse cx="14" cy="-55" rx="12" ry="16" fill={color} />
+              <ellipse cx="0" cy="-78" rx="14" ry="14" fill={color} />
+            </g>
+          )}
+        </g>
+      ))}
+
+      {/* Birds */}
+      <g className="birds">
+        {[0, 1, 2].map(i => (
+          <g key={`bird-${i}`} className={`bird bird-${i}`} opacity="0.55">
+            <path
+              d="M0 0 Q -4 -3 -8 0 M 0 0 Q 4 -3 8 0"
+              stroke={mode === 'night' ? '#444' : '#222'}
+              strokeWidth="1.2"
+              fill="none"
+              strokeLinecap="round"
+            />
+          </g>
+        ))}
+      </g>
+    </g>
+  );
+}
+
+/* ============================ Main app ============================ */
+function App() {
+  const [mode, setMode] = useState('dusk'); // 'day' | 'dusk' | 'night'
+  const [hoveredFloor, setHoveredFloor] = useState(null);
+  const [activeFloor, setActiveFloor] = useState(null);
+  const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const [tipPos, setTipPos] = useState({ x: 0, y: 0 });
+  const svgRef = useRef(null);
+  const towerGroupRef = useRef(null);
+  const stageRef = useRef(null);
+  const wrapRef = useRef(null);
+
+  // Toggle body class for theme-aware chrome
+  useEffect(() => {
+    document.body.classList.toggle('is-night', mode === 'night');
+    document.body.classList.toggle('is-dusk', mode === 'dusk');
+    document.body.classList.toggle('is-day', mode === 'day');
+  }, [mode]);
+
+  /* ----- Entrance: tower rises into frame on mount ----- */
+  useEffect(() => {
+    if (!towerGroupRef.current) return;
+    gsap.fromTo(
+      towerGroupRef.current,
+      { y: 60, opacity: 0 },
+      { y: 0, opacity: 1, duration: 1.2, ease: 'power3.out' }
+    );
+  }, []);
+
+  /* ----- Anime.js: window lights twinkle when lit ----- */
+  useEffect(() => {
+    if (!window.anime) return;
+    const isLit = mode === 'night' || mode === 'dusk';
+    if (!isLit) return;
+    // Random subset of windows
+    const allWins = document.querySelectorAll('.window');
+    const subset = Array.from(allWins).filter(() => Math.random() < 0.25);
+    const anim = window.anime({
+      targets: subset,
+      opacity: [
+        { value: () => 0.2 + Math.random() * 0.6, duration: 900 },
+        { value: () => 0.5 + Math.random() * 0.45, duration: 1100 },
+      ],
+      easing: 'easeInOutSine',
+      delay: window.anime.stagger(80, { from: 'random' }),
+      loop: true,
+      direction: 'alternate',
+    });
+    return () => anim.pause();
+  }, [mode]);
+
+  /* ----- Spine pulse (slow breathing glow) ----- */
+  useEffect(() => {
+    if (!window.anime) return;
+    const target = document.querySelector('.spine-glow');
+    const line = document.querySelector('.spine-line');
+    if (!target) return;
+    const anim = window.anime({
+      targets: [target, line],
+      opacity: [
+        { value: mode === 'day' ? 0.6 : 0.7, duration: 2000 },
+        { value: mode === 'day' ? 0.85 : 1, duration: 2000 },
+      ],
+      easing: 'easeInOutSine',
+      loop: true,
+      direction: 'alternate',
+    });
+    return () => anim.pause();
+  }, [mode]);
+
+  /* ----- Birds drifting ----- */
+  useEffect(() => {
+    if (!window.anime) return;
+    [0, 1, 2].forEach((i) => {
+      const bird = document.querySelector(`.bird-${i}`);
+      if (!bird) return;
+      const startY = 180 + i * 70;
+      const driftDur = 14000 + i * 2500;
+      const delay = i * 4200;
+      // initial position
+      bird.setAttribute('transform', `translate(-30 ${startY})`);
+      window.anime({
+        targets: bird,
+        translateX: [-30, VIEW_W + 30],
+        translateY: [
+          { value: startY - 12, duration: driftDur / 2, easing: 'easeInOutSine' },
+          { value: startY + 8, duration: driftDur / 2, easing: 'easeInOutSine' },
+        ],
+        duration: driftDur,
+        easing: 'linear',
+        delay,
+        loop: true,
+      });
+      // wing flap (subtle scale)
+      window.anime({
+        targets: bird,
+        scale: [1, 0.78, 1],
+        duration: 600,
+        easing: 'easeInOutSine',
+        loop: true,
+      });
+    });
+  }, []);
+
+  /* ----- Trees sway ----- */
+  useEffect(() => {
+    if (!window.anime) return;
+    document.querySelectorAll('.tree').forEach((el, i) => {
+      window.anime({
+        targets: el,
+        rotate: [-1.4, 1.4],
+        duration: 4200 + i * 380,
+        easing: 'easeInOutSine',
+        loop: true,
+        direction: 'alternate',
+      });
+    });
+  }, []);
+
+  /* ----- Mouse parallax ----- */
+  const handleMouseMove = (e) => {
+    if (!stageRef.current) return;
+    const rect = stageRef.current.getBoundingClientRect();
+    const nx = (e.clientX - rect.left) / rect.width - 0.5;   // -0.5 → 0.5
+    const ny = (e.clientY - rect.top) / rect.height - 0.5;
+    setMouse({ x: nx, y: ny });
+  };
+
+  /* parallax: apply translate to specific groups */
+  const skyTx       = mouse.x * -10;
+  const distantTx   = mouse.x * -16;
+  const towerTx     = mouse.x * -8;
+  const foregroundTx = mouse.x * 22;
+  const verticalTilt = mouse.y * -4;
+
+  /* ----- Hover handler — position tooltip relative to tower-wrap (its parent) ----- */
+  const handleFloorHover = (bandIdx, evt) => {
+    setHoveredFloor(bandIdx);
+    if (evt && wrapRef.current) {
+      const rect = wrapRef.current.getBoundingClientRect();
+      setTipPos({
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top,
+      });
+    }
+  };
+
+  const handleFloorClick = (bandIdx) => {
+    setActiveFloor(bandIdx);
+  };
+
+  const hoveredAmenity = useMemo(
+    () => AMENITY_FLOORS.find(f => f.bandIndex === hoveredFloor),
+    [hoveredFloor]
+  );
+  const activeAmenity = useMemo(
+    () => AMENITY_FLOORS.find(f => f.bandIndex === activeFloor),
+    [activeFloor]
+  );
+
+  return (
+    <div className="stage" ref={stageRef} onMouseMove={handleMouseMove}>
+      {/* Brand mark */}
+      <div className="mark">
+        <div className="name">Embassy Citadel</div>
+        <div className="sub">A World Unto Itself · Worli</div>
+      </div>
+
+      {/* Day/Night toggle */}
+      <div className="toggle">
+        {['day', 'dusk', 'night'].map(m => (
+          <button
+            key={m}
+            className={mode === m ? 'active' : ''}
+            onClick={() => setMode(m)}
+          >{m}</button>
+        ))}
+      </div>
+
+      <div className="tower-wrap" ref={wrapRef}>
+        <svg
+          ref={svgRef}
+          className="tower"
+          viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          {/* Sky (parallax slowest) */}
+          <g style={{ transform: `translate(${skyTx}px, ${verticalTilt * 0.3}px)`,
+                      transition: 'transform 600ms cubic-bezier(0.23, 1, 0.32, 1)' }}>
+            <Sky mode={mode} />
+          </g>
+
+          {/* Distant city */}
+          <g style={{ transform: `translate(${distantTx}px, ${verticalTilt * 0.5}px)`,
+                      transition: 'transform 600ms cubic-bezier(0.23, 1, 0.32, 1)' }}>
+            <DistantCity mode={mode} />
+          </g>
+
+          {/* Tower */}
+          <g
+            ref={towerGroupRef}
+            style={{ transform: `translate(${towerTx}px, ${verticalTilt * 0.8}px)`,
+                     transition: 'transform 600ms cubic-bezier(0.23, 1, 0.32, 1)',
+                     transformOrigin: '300px 870px' }}
+          >
+            <Tower
+              mode={mode}
+              hoveredFloor={hoveredFloor}
+              activeFloor={activeFloor}
+              onFloorHover={handleFloorHover}
+              onFloorClick={handleFloorClick}
+            />
+          </g>
+
+          {/* Foreground trees + birds (fastest parallax) */}
+          <g style={{ transform: `translate(${foregroundTx}px, ${verticalTilt * 1.2}px)`,
+                      transition: 'transform 500ms cubic-bezier(0.23, 1, 0.32, 1)' }}>
+            <Foreground mode={mode} />
+          </g>
+        </svg>
+
+        {/* Hover tooltip */}
+        <div
+          className={`tip ${hoveredFloor && hoveredAmenity ? 'show' : ''}`}
+          style={{
+            left: tipPos.x + 14,
+            top: tipPos.y - 70,
+          }}
+        >
+          {hoveredAmenity && (
+            <>
+              <div className="floor-num">{String(hoveredAmenity.floor).padStart(2,'0')}</div>
+              <div className="floor-label">{hoveredAmenity.label}</div>
+              <div className="floor-name">{hoveredAmenity.name}</div>
+            </>
+          )}
+        </div>
+
+        {/* Click overlay card */}
+        <div className={`card ${activeAmenity ? 'open' : ''}`}>
+          {activeAmenity && (
+            <>
+              <button className="close" onClick={() => setActiveFloor(null)}>×</button>
+              <div className="eyebrow">{activeAmenity.label}</div>
+              <h3>{activeAmenity.name}</h3>
+              <p>{activeAmenity.desc}</p>
+              <div className="meta">
+                <span>Level<b>{activeAmenity.height}</b></span>
+                <span>Programme<b>{activeAmenity.type}</b></span>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Caption */}
+      <div className="caption">
+        <div className="name">A world unto itself.</div>
+        <div className="tag">79 Floors · Worli, Mumbai</div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

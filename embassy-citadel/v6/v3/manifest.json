@@ -1,0 +1,15 @@
+{
+  "name": "Embassy Citadel",
+  "short_name": "Citadel",
+  "description": "A World Unto Itself — Embassy Citadel sales suite.",
+  "start_url": "intro.html",
+  "scope": ".",
+  "display": "standalone",
+  "display_override": ["fullscreen", "standalone", "minimal-ui"],
+  "orientation": "landscape",
+  "background_color": "#0E0C09",
+  "theme_color": "#0E0C09",
+  "icons": [
+    { "src": "assets/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

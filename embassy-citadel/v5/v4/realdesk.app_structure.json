@@ -1,0 +1,198 @@
+{
+  "screens": [
+    {
+      "key": "index",
+      "title": "Embassy Citadel",
+      "file": "index.html"
+    },
+    {
+      "key": "intro",
+      "title": "Threshold",
+      "file": "intro.html"
+    },
+    {
+      "key": "home",
+      "title": "Index",
+      "file": "home.html"
+    },
+    {
+      "key": "about-embassy",
+      "title": "About Embassy",
+      "file": "about-embassy.html"
+    },
+    {
+      "key": "about",
+      "title": "Project Overview",
+      "file": "about.html"
+    },
+    {
+      "key": "location",
+      "title": "Location Explorer",
+      "file": "location.html"
+    },
+    {
+      "key": "gallery",
+      "title": "Gallery",
+      "file": "gallery.html"
+    },
+    {
+      "key": "masterplan",
+      "title": "Master Plan",
+      "file": "masterplan.html"
+    },
+    {
+      "key": "amenities",
+      "title": "Amenities",
+      "file": "amenities.html"
+    },
+    {
+      "key": "floor-plan",
+      "title": "Floor Plans",
+      "file": "floor-plan.html"
+    },
+    {
+      "key": "inventory",
+      "title": "Inventory",
+      "file": "inventory.html"
+    },
+    {
+      "key": "inventory-floors",
+      "title": "Choose a Floor",
+      "file": "inventory-floors.html"
+    },
+    {
+      "key": "floor-units",
+      "title": "Choose Your Residence",
+      "file": "floor-units.html"
+    },
+    {
+      "key": "unit-detail",
+      "title": "Residence Detail",
+      "file": "unit-detail.html"
+    },
+    {
+      "key": "tools",
+      "title": "Tools",
+      "file": "tools.html"
+    }
+  ],
+  "buttons": [
+    {
+      "label": "01 \u00b7 About Embassy",
+      "target": "about-embassy"
+    },
+    {
+      "label": "02 \u00b7 Project Overview",
+      "target": "about"
+    },
+    {
+      "label": "03 \u00b7 Location",
+      "target": "location"
+    },
+    {
+      "label": "04 \u00b7 Gallery",
+      "target": "gallery"
+    },
+    {
+      "label": "05 \u00b7 Masterplan",
+      "target": "masterplan"
+    },
+    {
+      "label": "06 \u00b7 Amenities",
+      "target": "amenities"
+    },
+    {
+      "label": "07 \u00b7 Floor Plans",
+      "target": "floor-plan"
+    },
+    {
+      "label": "08 \u00b7 Inventory",
+      "target": "inventory"
+    },
+    {
+      "label": "Price Sheet",
+      "target": "tools.html?tool=price"
+    },
+    {
+      "label": "EMI Calculator",
+      "target": "tools.html?tool=emi"
+    },
+    {
+      "label": "FSI Calculator",
+      "target": "tools.html?tool=fsi"
+    },
+    {
+      "label": "Enter / Threshold",
+      "target": "intro"
+    },
+    {
+      "label": "Select Floor",
+      "target": "floor-units"
+    },
+    {
+      "label": "Select Residence",
+      "target": "unit-detail"
+    },
+    {
+      "label": "Share Pricesheet",
+      "target": "share-modal"
+    }
+  ],
+  "assets": [
+    "assets/embassy-citadel-logo.svg",
+    "assets/bg-paper.png",
+    "assets/tower-hero.png",
+    "assets/tower-elevation.png",
+    "assets/tower.png",
+    "assets/floor-units.svg",
+    "assets/inventory.svg",
+    "assets/inventory/tower-types.webp",
+    "assets/inventory/tower-types-v2.webp",
+    "assets/inventory/inventory-types.svg",
+    "assets/client/video/teaser.mp4",
+    "assets/client/video/teaser-poster.webp",
+    "assets/emi-widget.js",
+    "assets/inventory-data.js",
+    "assets/tools-dock.js",
+    "assets/html2canvas.min.js",
+    "assets/precache-list.js"
+  ],
+  "meta": {
+    "total_screens": 15,
+    "has_3d": false,
+    "3d_elements": [],
+    "animation_level": "high",
+    "asset_counts": {
+      "webp": 170,
+      "jpg": 45,
+      "png": 18,
+      "svg": 6,
+      "js": 5,
+      "mp4": 1,
+      "json": 1
+    },
+    "tech": {
+      "pwa": true,
+      "offline": true,
+      "engine_3d": null,
+      "anim_libs": [
+        "css"
+      ]
+    },
+    "notes": "No real-time 3D engine (no .glb/.gltf, no three.js, no <model-viewer>, no WebGL). The 'tower cross-section' is layered SVG/WebP imagery; depth/360 effects are CSS 3D transforms (perspective + rotateY). animation_level=high due to heavy CSS motion (home.html 27 @keyframes, intro.html 22 @keyframes, continuous rotateY perspective loop). Offline-first PWA: manifest.webmanifest + sw.js with full-app cache filled by intro.html 'Download for Offline' gate; precache manifest in assets/precache-list.js (EC_CACHE version + EC_PRECACHE list). 246 total asset files (~188 MB).",
+    "custom_events": [
+      {
+        "type": "floorplan_view",
+        "desc": "Ranks which floor-plan asset is viewed most (fired in floor-plan buildWindow)"
+      },
+      {
+        "type": "gallery_view",
+        "desc": "Which gallery image is viewed"
+      },
+      {
+        "type": "film_play",
+        "desc": "Teaser film played"
+      }
+    ]
+  }
+}
